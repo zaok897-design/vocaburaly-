@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Үгсийн сан</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;background:#f4f7fc;padding:20px;color:#0f172a}
+.wrap{max-width:720px;margin:0 auto}
+h1{text-align:center;color:#2563eb;margin-bottom:20px;font-size:24px}
+.cats{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:16px}
+.cb{padding:7px 13px;border-radius:20px;background:#fff;border:1.5px solid #e2e8f0;font-size:12px;font-weight:bold;color:#555;cursor:pointer}
+.cb.active{background:#2563eb;color:#fff;border-color:#2563eb}
+.card{background:#fff;border-radius:20px;padding:40px 20px;text-align:center;box-shadow:0 8px 30px rgba(0,0,0,.08);min-height:280px;display:flex;flex-direction:column;justify-content:center;align-items:center;cursor:pointer;position:relative;margin-bottom:16px;transition:.3s}
+.card.back{background:linear-gradient(135deg,#2563eb,#0ea5e9);color:#fff}
+.lbl{font-size:11px;font-weight:bold;color:#888;letter-spacing:2px;margin-bottom:12px}
+.card.back .lbl{color:rgba(255,255,255,.8)}
+.word{font-size:34px;font-weight:800;margin-bottom:12px;word-break:break-word;line-height:1.2}
+.ex{font-size:13px;color:#666;font-style:italic;margin-top:12px;padding-top:12px;border-top:1px solid #eee;max-width:480px}
+.card.back .ex{color:rgba(255,255,255,.9);border-top-color:rgba(255,255,255,.3)}
+.spk{position:absolute;top:14px;right:14px;width:42px;height:42px;border-radius:50%;background:#dbeafe;border:none;font-size:18px;cursor:pointer}
+.card.back .spk{background:rgba(255,255,255,.3)}
+.hint{position:absolute;bottom:12px;left:0;right:0;font-size:11px;color:#999}
+.card.back .hint{color:rgba(255,255,255,.75)}
+.btns{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.btn{padding:11px 20px;border-radius:10px;font-size:14px;font-weight:bold;border:none;cursor:pointer}
+.bp{background:#2563eb;color:#fff}
+.bo{background:#fff;color:#333;border:1.5px solid #e2e8f0}
+.info{text-align:center;color:#666;margin-bottom:12px;font-size:12px}
+.modes{display:flex;gap:8px;justify-content:center;margin-bottom:16px}
+.mb2{padding:8px 16px;border-radius:20px;background:#fff;border:1.5px solid #e2e8f0;font-size:12px;font-weight:bold;cursor:pointer}
+.mb2.active{background:#0f172a;color:#fff;border-color:#0f172a}
+.qbox{background:#fff;border-radius:16px;padding:24px;text-align:center;box-shadow:0 4px 16px rgba(0,0,0,.08)}
+.qword{font-size:26px;font-weight:800;color:#2563eb;margin:14px 0 20px;word-break:break-word}
+.qopt{display:block;width:100%;padding:13px 18px;margin-bottom:8px;border-radius:10px;border:1.5px solid #e2e8f0;background:#fff;font-size:14px;font-weight:600;text-align:left;cursor:pointer}
+.qopt:hover{border-color:#2563eb}
+.qopt.ok{border-color:#16a34a;background:#dcfce7;color:#15803d}
+.qopt.no{border-color:#dc2626;background:#fee2e2;color:#b91c1c}
+.qfb{font-size:14px;font-weight:bold;margin:12px 0;min-height:20px}
+.qsc{font-size:13px;color:#666;margin:10px 0}
+@media(max-width:520px){.word{font-size:26px}body{padding:12px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>📚 English Vocabulary</h1>
+<div class="cats" id="cats"></div>
+<div class="modes">
+  <button class="mb2 active" id="mFlash" onclick="setMode('flash')">📇 Карт</button>
+  <button class="mb2" id="mQuiz" onclick="setMode('quiz')">🎯 Асуулт</button>
+  <button class="mb2" onclick="shuffle()">🔀 Холих</button>
+</div>
+
+<!-- FLASH MODE -->
+<div id="flashBox">
+  <div class="info">Дарж эргүүлэх · 🔊 дарж сонсох · ← → товч</div>
+  <div class="card" id="card" onclick="flip()">
+    <button class="spk" onclick="speak(event)">🔊</button>
+    <div class="lbl" id="lbl">ENGLISH</div>
+    <div class="word" id="word">—</div>
+    <div class="ex" id="ex"></div>
+    <div class="hint" id="hint">Дарж эргүүлэх →</div>
+  </div>
+  <div class="btns">
+    <button class="btn bo" onclick="prev()">← Өмнөх</button>
+    <button class="btn bp" onclick="next()">Дараах →</button>
+  </div>
+  <div class="info" style="margin-top:12px"><span id="counter">1 / 1</span></div>
+</div>
+
+<!-- QUIZ MODE -->
+<div id="quizBox" style="display:none">
+  <div class="qbox">
+    <div style="font-size:12px;color:#666;font-weight:bold">ЗӨВ ОРЧУУЛГЫГ СОНГО</div>
+    <div class="qword" id="qWord">—</div>
+    <div id="qOpts"></div>
+    <div class="qfb" id="qFb"></div>
+    <div class="qsc">Зөв: <b id="qOk">0</b> · Буруу: <b id="qNo">0</b></div>
+    <button class="btn bp" id="qNext" style="display:none" onclick="nextQuiz()">Дараах →</button>
+  </div>
+</div>
+
+</div>
+
+<script>
+var DATA={
+health:{name:'🏥 Эрүүл мэнд',words:[
+{en:'nutrition',mn:'тэжээл',ex:'Good nutrition is key to a healthy life.'},
+{en:'diagnose',mn:'оношлох',ex:'The doctor diagnosed him with the flu.'},
+{en:'symptom',mn:'шинж тэмдэг',ex:'Fever is a common symptom of infection.'},
+{en:'treatment',mn:'эмчилгээ',ex:'Early treatment can prevent complications.'},
+{en:'immune',mn:'дархлаа',ex:'Exercise strengthens the immune system.'},
+{en:'chronic',mn:'архаг',ex:'Diabetes is a chronic condition.'},
+{en:'prevent',mn:'урьдчилан сэргийлэх',ex:'Vaccines help prevent diseases.'},
+{en:'recover',mn:'эдгэрэх',ex:'It took weeks for him to recover.'},
+{en:'mental',mn:'сэтгэцийн',ex:'Mental health is important.'},
+{en:'obesity',mn:'таргалалт',ex:'Obesity increases heart disease risk.'},
+{en:'hygiene',mn:'эрүүл ахуй',ex:'Good hygiene prevents germs.'},
+{en:'fatigue',mn:'ядрал',ex:'Lack of sleep causes fatigue.'},
+{en:'stress',mn:'стресс',ex:'Too much stress affects health.'},
+{en:'diet',mn:'хооллолт',ex:'A balanced diet includes vegetables.'},
+{en:'medication',mn:'эм',ex:'She takes medication for allergies.'},
+{en:'injury',mn:'гэмтэл',ex:'He suffered a minor injury.'},
+{en:'disease',mn:'өвчин',ex:'Heart disease is common.'},
+{en:'cure',mn:'эмчлэх',ex:'There is no cure for colds.'},
+{en:'healthy',mn:'эрүүл',ex:'Vegetables keep you healthy.'},
+{en:'patient',mn:'өвчтөн',ex:'The nurse cared for the patient.'},
+{en:'surgery',mn:'мэс засал',ex:'He needed surgery.'},
+{en:'vaccine',mn:'вакцин',ex:'The vaccine protects against measles.'},
+{en:'infection',mn:'халдвар',ex:'The wound became infected.'},
+{en:'pain',mn:'өвдөлт',ex:'He felt a sharp pain.'},
+{en:'fitness',mn:'хүчин чадал',ex:'Running improves fitness.'},
+{en:'dose',mn:'тун',ex:'Take the correct dose.'},
+{en:'therapy',mn:'эмчилгээ',ex:'Physical therapy helped him.'},
+{en:'nutrient',mn:'шимт бодис',ex:'Vegetables are full of nutrients.'},
+{en:'wound',mn:'шарх',ex:'The nurse cleaned the wound.'},
+{en:'allergy',mn:'харшил',ex:'She has an allergy to peanuts.'}]},
+emotions:{name:'😊 Сэтгэл хөдлөл',words:[
+{en:'confident',mn:'итгэлтэй',ex:'She felt confident before the exam.'},
+{en:'anxious',mn:'түгшүүртэй',ex:'He was anxious about results.'},
+{en:'generous',mn:'өгөөмөр',ex:'She is generous with time.'},
+{en:'honest',mn:'шударга',ex:'An honest person tells truth.'},
+{en:'patient',mn:'тэвчээртэй',ex:'A teacher must be patient.'},
+{en:'curious',mn:'сониуч',ex:'Children are naturally curious.'},
+{en:'grateful',mn:'талархалтай',ex:'I am grateful for your help.'},
+{en:'ambitious',mn:'тэмүүлэлтэй',ex:'She is ambitious and determined.'},
+{en:'polite',mn:'эелдэг',ex:'He is polite to strangers.'},
+{en:'selfish',mn:'хувиа хичээсэн',ex:'It was selfish to take all food.'},
+{en:'reliable',mn:'найдвартай',ex:'He is a reliable friend.'},
+{en:'cheerful',mn:'хөгжилтэй',ex:'She has a cheerful personality.'},
+{en:'nervous',mn:'сандарсан',ex:'I felt nervous before interview.'},
+{en:'proud',mn:'бахархсан',ex:'Parents were proud of her.'},
+{en:'shy',mn:'ичимхий',ex:'The shy boy rarely spoke.'},
+{en:'brave',mn:'зоригтой',ex:'The brave firefighter saved child.'},
+{en:'jealous',mn:'атаархсан',ex:'He was jealous of his brother.'},
+{en:'calm',mn:'тайван',ex:'Try to stay calm during test.'},
+{en:'stubborn',mn:'зөрүүд',ex:'He is too stubborn to change.'},
+{en:'sympathy',mn:'энэрэл',ex:'She showed sympathy for victims.'},
+{en:'frustrated',mn:'уурласан',ex:'He felt frustrated by delay.'},
+{en:'optimistic',mn:'өөдрөг',ex:'She is optimistic about future.'},
+{en:'pessimistic',mn:'гутранги',ex:'He is pessimistic about everything.'},
+{en:'sensitive',mn:'мэдрэмтгий',ex:'She is sensitive to criticism.'},
+{en:'loyal',mn:'үнэнч',ex:'A loyal friend supports you.'},
+{en:'arrogant',mn:'бардам',ex:'Nobody likes his arrogant attitude.'},
+{en:'gentle',mn:'зөөлөн',ex:'She has a gentle nature.'},
+{en:'determined',mn:'шийдэмгий',ex:'She was determined to win.'},
+{en:'mood',mn:'сэтгэлийн байдал',ex:'He was in a good mood today.'},
+{en:'emotion',mn:'сэтгэл хөдлөл',ex:'She hid her emotions.'}]},
+academic:{name:'✍️ Академик үйл үг',words:[
+{en:'argue',mn:'маргах',ex:'The author argues that reading helps.'},
+{en:'claim',mn:'нотлон хэлэх',ex:'Some claim money brings happiness.'},
+{en:'suggest',mn:'санал болгох',ex:'Results suggest a clear pattern.'},
+{en:'indicate',mn:'заах',ex:'The graph indicates a rise.'},
+{en:'demonstrate',mn:'нотлох',ex:'The study demonstrates value of sleep.'},
+{en:'emphasize',mn:'онцлох',ex:'The teacher emphasized main idea.'},
+{en:'illustrate',mn:'тайлбарлах',ex:'This example illustrates the problem.'},
+{en:'conclude',mn:'дүгнэлт хийх',ex:'We can conclude the plan worked.'},
+{en:'compare',mn:'харьцуулах',ex:'The essay compares two theories.'},
+{en:'contrast',mn:'эсрэгцүүлэх',ex:'The report contrasts city and rural life.'},
+{en:'examine',mn:'судлах',ex:'The article examines causes of stress.'},
+{en:'consider',mn:'авч үзэх',ex:'We should consider all options.'},
+{en:'assume',mn:'таамаглах',ex:'Do not assume the answer.'},
+{en:'support',mn:'дэмжих',ex:'The data supports her argument.'},
+{en:'reveal',mn:'илчлэх',ex:'The survey reveals results.'},
+{en:'highlight',mn:'онцлох',ex:'The report highlights problems.'},
+{en:'propose',mn:'санал дэвшүүлэх',ex:'The scientist proposed a theory.'},
+{en:'state',mn:'мэдэгдэх',ex:'The report states the facts.'},
+{en:'reflect',mn:'тусгах',ex:'Results reflect effort.'},
+{en:'identify',mn:'тодорхойлох',ex:'The study identifies three causes.'},
+{en:'analyze',mn:'задлан шинжлэх',ex:'The essay analyzes the poem.'},
+{en:'describe',mn:'бичих',ex:'Describe the main character.'},
+{en:'explain',mn:'тайлбарлах',ex:'The writer explains the process.'},
+{en:'prove',mn:'нотлох',ex:'The experiment proves the point.'},
+{en:'outline',mn:'тоймлон бичих',ex:'First, outline your ideas.'},
+{en:'summarize',mn:'хураангуйлах',ex:'Summarize the article.'},
+{en:'define',mn:'тодорхойлох',ex:'Define the term.'},
+{en:'justify',mn:'үндэслэх',ex:'Justify your opinion.'},
+{en:'evaluate',mn:'үнэлэх',ex:'Evaluate the argument.'},
+{en:'refer',mn:'иш татах',ex:'The author refers to studies.'}]},
+adjectives:{name:'🎨 Тэмдэг нэр',words:[
+{en:'essential',mn:'зайлшгүй чухал',ex:'Water is essential for life.'},
+{en:'significant',mn:'чухал',ex:'There was a significant change.'},
+{en:'obvious',mn:'илэрхий',ex:'The answer was obvious.'},
+{en:'complex',mn:'төвөгтэй',ex:'The problem is complex.'},
+{en:'appropriate',mn:'тохиромжтой',ex:'Wear appropriate clothes.'},
+{en:'accurate',mn:'нарийвчлалтай',ex:'Give an accurate description.'},
+{en:'various',mn:'янз бүрийн',ex:'Sells various kinds of fruit.'},
+{en:'temporary',mn:'түр зуурын',ex:'This is temporary.'},
+{en:'permanent',mn:'байнгын',ex:'He found a permanent job.'},
+{en:'sufficient',mn:'хангалттай',ex:'We have sufficient food.'},
+{en:'rare',mn:'ховор',ex:'A rare and valuable book.'},
+{en:'frequent',mn:'байнга',ex:'A frequent visitor.'},
+{en:'typical',mn:'ердийн',ex:'A typical winter day.'},
+{en:'unique',mn:'өвөрмөц',ex:'Every fingerprint is unique.'},
+{en:'ancient',mn:'эртний',ex:'Ancient ruins.'},
+{en:'modern',mn:'орчин үеийн',ex:'Modern buildings.'},
+{en:'enormous',mn:'асар том',ex:'The stadium is enormous.'},
+{en:'tiny',mn:'жижигхэн',ex:'A tiny insect.'},
+{en:'fragile',mn:'хэврэг',ex:'Fragile glass.'},
+{en:'flexible',mn:'уян хатан',ex:'Flexible schedule.'},
+{en:'reasonable',mn:'боломжийн',ex:'The price is reasonable.'},
+{en:'complicated',mn:'төвөгтэй',ex:'Complicated instructions.'},
+{en:'valuable',mn:'үнэ цэнэтэй',ex:'Valuable advice.'},
+{en:'harmful',mn:'хортой',ex:'Smoking is harmful.'},
+{en:'beneficial',mn:'ашигтай',ex:'Exercise is beneficial.'},
+{en:'remarkable',mn:'гайхалтай',ex:'Remarkable progress.'},
+{en:'ordinary',mn:'энгийн',ex:'An ordinary day.'},
+{en:'crucial',mn:'чухал',ex:'Timing is crucial.'},
+{en:'efficient',mn:'үр ашигтай',ex:'More efficient system.'},
+{en:'genuine',mn:'жинхэнэ',ex:'Genuine interest.'},
+{en:'adequate',mn:'зохих',ex:'Adequate lighting.'},
+{en:'vital',mn:'амин чухал',ex:'Sleep is vital.'}]},
+travel:{name:'✈️ Аялал',words:[
+{en:'destination',mn:'очих газар',ex:'Paris is popular destination.'},
+{en:'journey',mn:'аялал',ex:'The journey took ten hours.'},
+{en:'tourist',mn:'жуулчин',ex:'Many tourists visit.'},
+{en:'accommodation',mn:'байр',ex:'Hotel offers accommodation.'},
+{en:'reservation',mn:'захиалга',ex:'Made a reservation.'},
+{en:'passport',mn:'паспорт',ex:'Check your passport.'},
+{en:'luggage',mn:'ачаа',ex:'Packed her luggage.'},
+{en:'depart',mn:'хөдлөх',ex:'Flight departs at seven.'},
+{en:'arrive',mn:'хүрэлцэн ирэх',ex:'We arrived late.'},
+{en:'explore',mn:'судлан үзэх',ex:'Explore new cities.'},
+{en:'abroad',mn:'гадаадад',ex:'Studied abroad.'},
+{en:'scenery',mn:'үзэмж',ex:'Beautiful scenery.'},
+{en:'adventure',mn:'адал явдал',ex:'A real adventure.'},
+{en:'region',mn:'бүс нутаг',ex:'Famous for lakes.'},
+{en:'border',mn:'хил',ex:'Crossed the border.'},
+{en:'capital',mn:'нийслэл',ex:'Ulaanbaatar is the capital.'},
+{en:'continent',mn:'тив',ex:'Asia is largest continent.'},
+{en:'landmark',mn:'дурсгалт газар',ex:'Famous landmark.'},
+{en:'route',mn:'маршрут',ex:'Shortest route home.'},
+{en:'distance',mn:'зай',ex:'300 km distance.'},
+{en:'tour',mn:'аялал',ex:'Guided tour of city.'},
+{en:'remote',mn:'алслагдсан',ex:'Remote area.'},
+{en:'foreign',mn:'гадаадын',ex:'Foreign cultures.'},
+{en:'nearby',mn:'ойролцоо',ex:'A park nearby.'},
+{en:'souvenir',mn:'бэлэг дурсгал',ex:'Bought a souvenir.'},
+{en:'guide',mn:'хөтөч',ex:'The guide showed us.'},
+{en:'flight',mn:'нислэг',ex:'Flight was delayed.'},
+{en:'local',mn:'нутгийн',ex:'Delicious local food.'}]},
+environment:{name:'🌍 Байгаль',words:[
+{en:'pollution',mn:'бохирдол',ex:'Air pollution is serious.'},
+{en:'sustainable',mn:'тогтвортой',ex:'Need sustainable solutions.'},
+{en:'renewable',mn:'сэргээгдэх',ex:'Solar is renewable.'},
+{en:'emission',mn:'ялгарал',ex:'Reduced emissions.'},
+{en:'conserve',mn:'хамгаалах',ex:'Conserve water.'},
+{en:'ecosystem',mn:'экосистем',ex:'Rich ecosystem.'},
+{en:'drought',mn:'ган гачиг',ex:'Severe drought.'},
+{en:'endangered',mn:'устгах болзошгүй',ex:'Endangered species.'},
+{en:'recycle',mn:'дахин боловсруулах',ex:'Recycle bottles.'},
+{en:'habitat',mn:'амьдрах орчин',ex:'Animal habitats.'},
+{en:'resource',mn:'нөөц',ex:'Natural resources.'},
+{en:'waste',mn:'хог хаягдал',ex:'Reduce waste.'},
+{en:'climate',mn:'уур амьсгал',ex:'Climate change.'},
+{en:'atmosphere',mn:'агаар мандал',ex:'Carbon in atmosphere.'},
+{en:'preserve',mn:'хадгалах',ex:'Preserve forests.'},
+{en:'species',mn:'зүйл',ex:'Many species at risk.'},
+{en:'extinct',mn:'устсан',ex:'Dinosaurs extinct.'},
+{en:'global warming',mn:'дэлхийн дулаарал',ex:'Global warming melts ice.'},
+{en:'natural',mn:'байгалийн',ex:'Natural landscapes.'},
+{en:'wildlife',mn:'зэрлэг амьтан',ex:'Protect wildlife.'},
+{en:'environment',mn:'хүрээлэн буй орчин',ex:'Share environment.'},
+{en:'disaster',mn:'гамшиг',ex:'Natural disaster.'},
+{en:'threat',mn:'аюул',ex:'A threat to health.'},
+{en:'scarce',mn:'ховор',ex:'Water is scarce.'},
+{en:'abundant',mn:'элбэг',ex:'Wind is abundant.'},
+{en:'organic',mn:'органик',ex:'Organic farming.'},
+{en:'carbon',mn:'нүүрстөрөгч',ex:'Carbon emissions.'}]},
+economy:{name:'💰 Эдийн засаг',words:[
+{en:'economy',mn:'эдийн засаг',ex:'Economy is growing.'},
+{en:'budget',mn:'төсөв',ex:'Monthly budget.'},
+{en:'invest',mn:'хөрөнгө оруулах',ex:'Invest in property.'},
+{en:'profit',mn:'ашиг',ex:'Made a profit.'},
+{en:'loss',mn:'алдагдал',ex:'Financial loss.'},
+{en:'afford',mn:'төлж чадах',ex:'Cannot afford a car.'},
+{en:'expense',mn:'зардал',ex:'Travel expenses.'},
+{en:'income',mn:'орлого',ex:'Main income from teaching.'},
+{en:'debt',mn:'өр',ex:'Pay off debt.'},
+{en:'loan',mn:'зээл',ex:'Took a loan.'},
+{en:'currency',mn:'мөнгөн тэмдэгт',ex:'Strong currency.'},
+{en:'inflation',mn:'инфляци',ex:'Inflation rises.'},
+{en:'trade',mn:'худалдаа',ex:'Increased trade.'},
+{en:'market',mn:'зах зээл',ex:'Market prices.'},
+{en:'demand',mn:'эрэлт',ex:'Demand rising.'},
+{en:'supply',mn:'нийлүүлэлт',ex:'Oil supply.'},
+{en:'consumer',mn:'хэрэглэгч',ex:'Consumer wants.'},
+{en:'wealth',mn:'баялаг',ex:'Natural wealth.'},
+{en:'poverty',mn:'ядуурал',ex:'Reduce poverty.'},
+{en:'financial',mn:'санхүүгийн',ex:'Financial difficulties.'},
+{en:'bank',mn:'банк',ex:'Money in bank.'},
+{en:'value',mn:'үнэ цэнэ',ex:'Value increased.'},
+{en:'tax',mn:'татвар',ex:'Pay income tax.'},
+{en:'cost',mn:'өртөг',ex:'Cost of living.'},
+{en:'price',mn:'үнэ',ex:'Price rising.'},
+{en:'save',mn:'хэмнэх',ex:'Save money.'},
+{en:'spend',mn:'зарцуулах',ex:'Spend on entertainment.'},
+{en:'wealthy',mn:'баян',ex:'Wealthy family.'},
+{en:'export',mn:'экспорт',ex:'Exports minerals.'},
+{en:'import',mn:'импорт',ex:'Imports electronics.'},
+{en:'insurance',mn:'даатгал',ex:'Health insurance.'},
+{en:'investment',mn:'хөрөнгө оруулалт',ex:'Good investment.'},
+{en:'prosper',mn:'цэцэглэх',ex:'Business prospered.'}]},
+tech:{name:'💻 Технологи',words:[
+{en:'device',mn:'төхөөрөмж',ex:'Common device today.'},
+{en:'innovation',mn:'инноваци',ex:'Known for innovation.'},
+{en:'access',mn:'хандах',ex:'Access to internet.'},
+{en:'artificial',mn:'хиймэл',ex:'AI is changing.'},
+{en:'upgrade',mn:'сайжруулах',ex:'Upgraded software.'},
+{en:'network',mn:'сүлжээ',ex:'Fast network.'},
+{en:'virtual',mn:'виртуал',ex:'Virtual classes.'},
+{en:'data',mn:'мэдээлэл',ex:'Collect data.'},
+{en:'efficient',mn:'үр ашигтай',ex:'Efficient work.'},
+{en:'breakthrough',mn:'нээлт',ex:'Medical breakthrough.'},
+{en:'automate',mn:'автоматжуулах',ex:'Automate production.'},
+{en:'interact',mn:'харилцах',ex:'Interact with app.'},
+{en:'platform',mn:'платформ',ex:'Multiple platforms.'},
+{en:'reliable',mn:'найдвартай',ex:'Reliable connection.'},
+{en:'security',mn:'аюулгүй байдал',ex:'Cyber security.'},
+{en:'update',mn:'шинэчлэх',ex:'Update the app.'},
+{en:'convenient',mn:'тохиромжтой',ex:'Convenient shopping.'},
+{en:'feature',mn:'онцлог',ex:'Useful features.'},
+{en:'gadget',mn:'хэрэгсэл',ex:'New gadgets.'},
+{en:'digital',mn:'дижитал',ex:'Digital world.'},
+{en:'software',mn:'програм',ex:'Develop software.'},
+{en:'download',mn:'татаж авах',ex:'Download file.'},
+{en:'connect',mn:'холбох',ex:'Connect devices.'},
+{en:'communicate',mn:'харилцах',ex:'Communicate by email.'},
+{en:'invention',mn:'шинэ бүтээл',ex:'Important invention.'},
+{en:'screen',mn:'дэлгэц',ex:'Screen time.'},
+{en:'signal',mn:'дохио',ex:'Weak signal.'},
+{en:'password',mn:'нууц үг',ex:'Strong password.'},
+{en:'online',mn:'онлайн',ex:'Work online.'},
+{en:'remote',mn:'зайны',ex:'Work remotely.'},
+{en:'technology',mn:'технологи',ex:'Technology changed education.'},
+{en:'information',mn:'мэдээлэл',ex:'Useful information.'},
+{en:'message',mn:'мессеж',ex:'Sent a message.'},
+{en:'storage',mn:'хадгалалт',ex:'Storage space.'},
+{en:'wireless',mn:'утасгүй',ex:'Wireless network.'},
+{en:'battery',mn:'батерей',ex:'Battery dead.'},
+{en:'portable',mn:'зөөврийн',ex:'Portable laptop.'},
+{en:'function',mn:'үйлдэл',ex:'Main function.'}]},
+education:{name:'🎓 Боловсрол',words:[
+{en:'achieve',mn:'амжилтад хүрэх',ex:'Achieve goals.'},
+{en:'curriculum',mn:'хөтөлбөр',ex:'Updated curriculum.'},
+{en:'assess',mn:'үнэлэх',ex:'Assess students.'},
+{en:'enroll',mn:'бүртгүүлэх',ex:'Enrolled in university.'},
+{en:'scholarship',mn:'тэтгэлэг',ex:'Received a scholarship.'},
+{en:'graduate',mn:'төгсөх',ex:'Graduate next year.'},
+{en:'lecture',mn:'лекц',ex:'Gave a lecture.'},
+{en:'motivate',mn:'урам зориг өгөх',ex:'Motivate students.'},
+{en:'literacy',mn:'бичиг үсэг',ex:'Literacy improved.'},
+{en:'academic',mn:'академик',ex:'Academic record.'},
+{en:'concentrate',mn:'төвлөрөх',ex:'Hard to concentrate.'},
+{en:'memorize',mn:'цээжлэх',ex:'Memorize vocabulary.'},
+{en:'comprehend',mn:'ойлгох',ex:'Comprehend the text.'},
+{en:'evaluate',mn:'үнэлэх',ex:'Evaluate applications.'},
+{en:'discipline',mn:'сахилга',ex:'Discipline matters.'},
+{en:'tuition',mn:'төлбөр',ex:'Tuition increased.'},
+{en:'require',mn:'шаардах',ex:'Requires reading.'},
+{en:'skill',mn:'чадвар',ex:'Essential skill.'},
+{en:'research',mn:'судалгаа',ex:'Conducted research.'},
+{en:'knowledge',mn:'мэдлэг',ex:'Knowledge helps.'},
+{en:'intelligent',mn:'ухаалаг',ex:'Intelligent student.'},
+{en:'semester',mn:'улирал',ex:'Spring semester.'},
+{en:'assignment',mn:'даалгавар',ex:'Difficult assignment.'},
+{en:'degree',mn:'зэрэг',ex:'Earned a degree.'},
+{en:'encourage',mn:'урамшуулах',ex:'Encourage reading.'},
+{en:'explain',mn:'тайлбарлах',ex:'Explain the rule.'},
+{en:'improve',mn:'сайжруулах',ex:'Improve vocabulary.'},
+{en:'instruction',mn:'заавар',ex:'Follow instructions.'},
+{en:'progress',mn:'ахиц',ex:'Made progress.'},
+{en:'revise',mn:'давтах',ex:'Revise before exam.'},
+{en:'subject',mn:'хичээл',ex:'Favorite subject.'},
+{en:'talented',mn:'авьяаслаг',ex:'Talented musician.'},
+{en:'achievement',mn:'ололт',ex:'Great achievement.'},
+{en:'fluent',mn:'чөлөөтэй',ex:'Fluent in three languages.'},
+{en:'participate',mn:'оролцох',ex:'Participate in discussion.'},
+{en:'theory',mn:'онол',ex:'Theory explains learning.'},
+{en:'understand',mn:'ойлгох',ex:'Understand the concept.'},
+{en:'diploma',mn:'диплом',ex:'Received diploma.'}]}
+};
+
+var curCat='health';
+var curWords=[];
+var curIdx=0;
+var back=false;
+var mode='flash';
+var qOk=0,qNo=0,qAns=false;
+
+function initCats(){
+  var box=document.getElementById('cats');box.innerHTML='';
+  for(var k in DATA){
+    var b=document.createElement('button');
+    b.className='cb'+(k===curCat?' active':'');
+    b.textContent=DATA[k].name;
+    b.setAttribute('data-k',k);
+    b.onclick=function(){pickCat(this.getAttribute('data-k'));};
+    box.appendChild(b);
+  }
+}
+
+function pickCat(k){
+  curCat=k;curWords=DATA[k].words.slice();curIdx=0;back=false;qOk=0;qNo=0;
+  var bs=document.querySelectorAll('.cb');
+  for(var i=0;i<bs.length;i++){
+    if(bs[i].getAttribute('data-k')===k)bs[i].classList.add('active');
+    else bs[i].classList.remove('active');
+  }
+  if(mode==='flash')renderCard();else renderQuiz();
+}
+
+function renderCard(){
+  if(!curWords.length)return;
+  var w=curWords[curIdx];
+  var c=document.getElementById('card');
+  if(back){
+    c.classList.add('back');
+    document.getElementById('lbl').textContent='МОНГОЛ';
+    document.getElementById('word').textContent=w.mn;
+    document.getElementById('ex').textContent=w.ex;
+    document.getElementById('hint').textContent='← Дарж буцаах';
+  } else {
+    c.classList.remove('back');
+    document.getElementById('lbl').textContent='ENGLISH';
+    document.getElementById('word').textContent=w.en;
+    document.getElementById('ex').textContent=w.ex;
+    document.getElementById('hint').textContent='Дарж эргүүлэх →';
+  }
+  document.getElementById('counter').textContent=(curIdx+1)+' / '+curWords.length;
+}
+
+function flip(){back=!back;renderCard();}
+function next(){if(curIdx<curWords.length-1)curIdx++;else curIdx=0;back=false;renderCard();}
+function prev(){if(curIdx>0)curIdx--;else curIdx=curWords.length-1;back=false;renderCard();}
+function shuffle(){
+  for(var i=curWords.length-1;i>0;i--){
+    var j=Math.floor(Math.random()*(i+1));
+    var t=curWords[i];curWords[i]=curWords[j];curWords[j]=t;
+  }
+  curIdx=0;back=false;renderCard();
+}
+
+function speak(e){
+  if(e)e.stopPropagation();
+  var w=curWords[curIdx];
+  var txt=back?w.mn:w.en;
+  var lang=back?'mn-MN':'en-US';
+  if(!('speechSynthesis' in window)){alert('Browser дэмжихгүй');return;}
+  window.speechSynthesis.cancel();
+  var u=new SpeechSynthesisUtterance(txt);
+  u.lang=lang;u.rate=0.85;
+  window.speechSynthesis.speak(u);
+}
+
+function setMode(m){
+  mode=m;
+  document.getElementById('mFlash').classList.toggle('active',m==='flash');
+  document.getElementById('mQuiz').classList.toggle('active',m==='quiz');
+  if(m==='flash'){
+    document.getElementById('flashBox').style.display='block';
+    document.getElementById('quizBox').style.display='none';
+    renderCard();
+  } else {
+    document.getElementById('flashBox').style.display='none';
+    document.getElementById('quizBox').style.display='block';
+    qOk=0;qNo=0;renderQuiz();
+  }
+}
+
+function renderQuiz(){
+  if(!curWords.length)return;
+  qAns=false;
+  var w=curWords[curIdx];
+  document.getElementById('qWord').textContent=w.en;
+  var opts=[w.mn];
+  var pool=curWords.filter(function(x){return x.mn!==w.mn});
+  for(var i=pool.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=pool[i];pool[i]=pool[j];pool[j]=t;}
+  for(var i=0;i<3&&i<pool.length;i++)opts.push(pool[i].mn);
+  for(var i=opts.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=opts[i];opts[i]=opts[j];opts[j]=t;}
+  var box=document.getElementById('qOpts');box.innerHTML='';
+  for(var i=0;i<opts.length;i++){
+    (function(o){
+      var b=document.createElement('button');
+      b.className='qopt';
+      b.textContent=o;
+      b.onclick=function(){checkQ(b,o,w.mn);};
+      box.appendChild(b);
+    })(opts[i]);
+  }
+  document.getElementById('qFb').textContent='';
+  document.getElementById('qNext').style.display='none';
+  document.getElementById('qOk').textContent=qOk;
+  document.getElementById('qNo').textContent=qNo;
+}
+
+function checkQ(btn,chosen,correct){
+  if(qAns)return;
+  qAns=true;
+  var all=document.querySelectorAll('.qopt');
+  for(var i=0;i<all.length;i++)all[i].style.pointerEvents='none';
+  if(chosen===correct){
+    btn.classList.add('ok');
+    document.getElementById('qFb').textContent='✓ Зөв!';
+    document.getElementById('qFb').style.color='#16a34a';
+    qOk++;
+  } else {
+    btn.classList.add('no');
+    for(var i=0;i<all.length;i++){if(all[i].textContent===correct)all[i].classList.add('ok');}
+    document.getElementById('qFb').textContent='✗ Буруу. Зөв: '+correct;
+    document.getElementById('qFb').style.color='#dc2626';
+    qNo++;
+  }
+  document.getElementById('qOk').textContent=qOk;
+  document.getElementById('qNo').textContent=qNo;
+  document.getElementById('qNext').style.display='inline-block';
+}
+
+function nextQuiz(){
+  if(curIdx<curWords.length-1)curIdx++;else curIdx=0;
+  renderQuiz();
+}
+
+document.getElementById('card').onclick=flip;
+document.addEventListener('keydown',function(e){
+  if(mode!=='flash')return;
+  if(e.key==='ArrowRight')next();
+  if(e.key==='ArrowLeft')prev();
+  if(e.key===' '){e.preventDefault();flip();}
+});
+
+initCats();
+pickCat('health');
+</script>
+</body>
+</html>
