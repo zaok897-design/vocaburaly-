@@ -3,535 +3,1630 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Үгсийн сан</title>
+<title>English Learning Portal</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:Arial,sans-serif;background:#f4f7fc;padding:20px;color:#0f172a}
-.wrap{max-width:720px;margin:0 auto}
-h1{text-align:center;color:#2563eb;margin-bottom:20px;font-size:24px}
-.cats{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:16px}
-.cb{padding:7px 13px;border-radius:20px;background:#fff;border:1.5px solid #e2e8f0;font-size:12px;font-weight:bold;color:#555;cursor:pointer}
-.cb.active{background:#2563eb;color:#fff;border-color:#2563eb}
-.card{background:#fff;border-radius:20px;padding:40px 20px;text-align:center;box-shadow:0 8px 30px rgba(0,0,0,.08);min-height:280px;display:flex;flex-direction:column;justify-content:center;align-items:center;cursor:pointer;position:relative;margin-bottom:16px;transition:.3s}
-.card.back{background:linear-gradient(135deg,#2563eb,#0ea5e9);color:#fff}
-.lbl{font-size:11px;font-weight:bold;color:#888;letter-spacing:2px;margin-bottom:12px}
-.card.back .lbl{color:rgba(255,255,255,.8)}
-.word{font-size:34px;font-weight:800;margin-bottom:12px;word-break:break-word;line-height:1.2}
-.ex{font-size:13px;color:#666;font-style:italic;margin-top:12px;padding-top:12px;border-top:1px solid #eee;max-width:480px}
-.card.back .ex{color:rgba(255,255,255,.9);border-top-color:rgba(255,255,255,.3)}
-.spk{position:absolute;top:14px;right:14px;width:42px;height:42px;border-radius:50%;background:#dbeafe;border:none;font-size:18px;cursor:pointer}
-.card.back .spk{background:rgba(255,255,255,.3)}
-.hint{position:absolute;bottom:12px;left:0;right:0;font-size:11px;color:#999}
-.card.back .hint{color:rgba(255,255,255,.75)}
-.btns{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
-.btn{padding:11px 20px;border-radius:10px;font-size:14px;font-weight:bold;border:none;cursor:pointer}
-.bp{background:#2563eb;color:#fff}
-.bo{background:#fff;color:#333;border:1.5px solid #e2e8f0}
-.info{text-align:center;color:#666;margin-bottom:12px;font-size:12px}
-.modes{display:flex;gap:8px;justify-content:center;margin-bottom:16px}
-.mb2{padding:8px 16px;border-radius:20px;background:#fff;border:1.5px solid #e2e8f0;font-size:12px;font-weight:bold;cursor:pointer}
-.mb2.active{background:#0f172a;color:#fff;border-color:#0f172a}
-.qbox{background:#fff;border-radius:16px;padding:24px;text-align:center;box-shadow:0 4px 16px rgba(0,0,0,.08)}
-.qword{font-size:26px;font-weight:800;color:#2563eb;margin:14px 0 20px;word-break:break-word}
-.qopt{display:block;width:100%;padding:13px 18px;margin-bottom:8px;border-radius:10px;border:1.5px solid #e2e8f0;background:#fff;font-size:14px;font-weight:600;text-align:left;cursor:pointer}
-.qopt:hover{border-color:#2563eb}
-.qopt.ok{border-color:#16a34a;background:#dcfce7;color:#15803d}
-.qopt.no{border-color:#dc2626;background:#fee2e2;color:#b91c1c}
-.qfb{font-size:14px;font-weight:bold;margin:12px 0;min-height:20px}
-.qsc{font-size:13px;color:#666;margin:10px 0}
-@media(max-width:520px){.word{font-size:26px}body{padding:12px}}
+body{font-family:Arial,sans-serif;background:#f4f7fc;color:#0f172a;line-height:1.6}
+button{font-family:inherit;cursor:pointer;border:none;background:none}
+input,select{font-family:inherit}
+.container{max-width:1100px;margin:0 auto;padding:0 18px}
+header{background:#fff;border-bottom:1px solid #e2e8f0;padding:12px 0;position:sticky;top:0;z-index:50}
+.header-inner{display:flex;justify-content:space-between;align-items:center;gap:14px}
+.brand{display:flex;gap:11px;align-items:center;cursor:pointer}
+.brand-mark{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,#1e3a8a,#2563eb,#0ea5e9);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800}
+.brand-text b{display:block;font-size:15px}
+.brand-text span{display:block;font-size:11px;color:#64748b}
+nav{display:flex;gap:6px}
+.nav-link{padding:8px 14px;border-radius:9px;font-size:14px;font-weight:600;color:#64748b}
+.nav-link:hover{background:#dbeafe;color:#1d4ed8}
+.nav-link.active{background:#2563eb;color:#fff}
+main{padding:26px 0 60px;min-height:60vh}
+.screen{display:none}
+.screen.active{display:block}
+.hero{background:linear-gradient(135deg,#1e3a8a,#2563eb,#0ea5e9);color:#fff;padding:50px 32px;border-radius:24px}
+.hero h1{font-size:42px;font-weight:800;margin-bottom:12px}
+.hero .subtitle{font-size:18px;opacity:.95;margin-bottom:8px}
+.hero .desc{font-size:15px;opacity:.85;margin-bottom:28px;max-width:600px}
+.hero-actions{display:flex;gap:12px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 22px;border-radius:11px;font-size:14.5px;font-weight:700;transition:.18s;text-decoration:none}
+.btn-primary{background:#2563eb;color:#fff}
+.btn-primary:hover{background:#1d4ed8}
+.btn-white{background:#fff;color:#1d4ed8}
+.btn-glass{background:rgba(255,255,255,.15);color:#fff;border:1.5px solid rgba(255,255,255,.45)}
+.btn-glass:hover{background:rgba(255,255,255,.28)}
+.btn-outline{background:#fff;color:#0f172a;border:1.5px solid #e2e8f0}
+.btn-outline:hover{border-color:#2563eb;color:#2563eb}
+.btn-success{background:#16a34a;color:#fff}
+.btn-danger{background:#dc2626;color:#fff}
+.btn-lg{padding:15px 30px;font-size:16px}
+.btn-sm{padding:8px 14px;font-size:13px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.card{background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:24px;box-shadow:0 4px 16px rgba(15,23,42,.06)}
+.section-title{font-size:22px;font-weight:800;margin-bottom:6px}
+.section-sub{color:#64748b;font-size:14px;margin-bottom:20px}
+.muted{color:#64748b}
+.small{font-size:13px}
+.grid{display:grid;gap:18px}
+.grid-3{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+.grid-2{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+.mt-24{margin-top:24px}.mt-16{margin-top:16px}.mb-16{margin-bottom:16px}.mb-24{margin-bottom:24px}
+.tile{padding:26px;border-radius:16px;border:1.5px solid #e2e8f0;background:#fff;text-align:left;display:flex;flex-direction:column;gap:10px;transition:.2s;width:100%}
+.tile:hover{transform:translateY(-4px);box-shadow:0 12px 40px rgba(15,23,42,.12)}
+.tile-icon{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px}
+.tile h3{font-size:17px;font-weight:700}
+.tile p{font-size:13.5px;color:#64748b}
+.exam-card{position:relative;overflow:hidden}
+.exam-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:linear-gradient(180deg,#2563eb,#0ea5e9)}
+.exam-year{font-size:30px;font-weight:800}
+.version-row{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+.version-row .btn{flex:1;min-width:120px}
+.badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:11.5px;font-weight:700;background:#dbeafe;color:#1d4ed8}
+.field{margin-bottom:18px}
+.field label{display:block;font-size:13.5px;font-weight:700;margin-bottom:7px}
+.field input,.field select{width:100%;padding:13px 15px;border-radius:11px;border:1.5px solid #e2e8f0;font-size:15px;background:#fff}
+.field input:focus{outline:none;border-color:#2563eb;box-shadow:0 0 0 4px rgba(37,99,235,.12)}
+.form-narrow{max-width:480px;margin:0 auto}
+.exam-top{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:18px 24px;flex-wrap:wrap}
+.timer{font-size:21px;font-weight:800;padding:9px 18px;border-radius:11px;background:#dbeafe;color:#1d4ed8}
+.timer.warning{background:#fef3c7;color:#b45309}
+.timer.danger{background:#fee2e2;color:#dc2626}
+.progress{height:7px;background:#e4ebf6;border-radius:999px;overflow:hidden;margin:14px 0 20px}
+.progress-bar{height:100%;width:0;background:linear-gradient(90deg,#2563eb,#0ea5e9);transition:width .35s}
+.exam-layout{display:grid;grid-template-columns:1fr 260px;gap:20px;align-items:start}
+.question-card{padding:28px}
+.q-number{display:inline-block;font-size:12px;font-weight:800;color:#2563eb;background:#dbeafe;padding:4px 12px;border-radius:999px;margin-bottom:14px}
+.q-text{font-size:17px;font-weight:600;line-height:1.55;margin-bottom:20px}
+.options{display:flex;flex-direction:column;gap:10px}
+.opt{display:flex;align-items:center;gap:14px;text-align:left;width:100%;padding:14px 18px;border-radius:12px;border:1.5px solid #e2e8f0;background:#fff;font-size:15px;font-weight:500;transition:.16s}
+.opt:hover{border-color:#a8c4f0;background:#f8fbff}
+.opt .letter{width:30px;height:30px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#f1f5f9;font-weight:800;font-size:13px;color:#64748b}
+.opt.selected{border-color:#2563eb;background:#eff6ff}
+.opt.selected .letter{background:#2563eb;color:#fff}
+.exam-actions{display:flex;gap:11px;margin-top:24px;flex-wrap:wrap}
+.exam-actions .btn{flex:1;min-width:130px}
+.side-card{padding:20px;position:sticky;top:88px}
+.qnav{display:grid;grid-template-columns:repeat(5,1fr);gap:7px}
+.qnav button{aspect-ratio:1;border-radius:9px;border:1.5px solid #e2e8f0;background:#fff;font-size:13px;font-weight:700;color:#64748b}
+.qnav button.answered{background:#dbeafe;border-color:#93b4f5;color:#1d4ed8}
+.qnav button.current{background:#2563eb;border-color:#2563eb;color:#fff}
+.thankyou{text-align:center;padding:60px 30px}
+.thankyou .big{font-size:80px;margin-bottom:20px}
+.thankyou h2{font-size:28px;font-weight:800;margin-bottom:12px}
+.thankyou p{font-size:16px;color:#64748b;margin-bottom:8px}
+.table-wrap{overflow-x:auto;border-radius:16px;border:1px solid #e2e8f0;background:#fff}
+table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:700px}
+thead{background:#f8fafc}
+th{text-align:left;padding:12px 14px;font-weight:800;font-size:12px;color:#64748b;text-transform:uppercase;border-bottom:1.5px solid #e2e8f0}
+td{padding:12px 14px;border-bottom:1px solid #f1f5f9}
+.score-chip{display:inline-block;padding:3px 10px;border-radius:999px;font-weight:800;font-size:12px}
+.alert{padding:13px 17px;border-radius:12px;font-size:14px;margin-bottom:16px;display:flex;gap:10px;line-height:1.5}
+.alert-info{background:#eff6ff;border:1px solid #bfdbfe;color:#1e40af}
+.alert-warn{background:#fffbeb;border:1px solid #fde68a;color:#92400e}
+.alert-err{background:#fee2e2;border:1px solid #fecaca;color:#b91c1c}
+.alert-ok{background:#dcfce7;border:1px solid #bbf7d0;color:#15803d}
+.modal-back{position:fixed;left:0;top:0;right:0;bottom:0;background:rgba(15,23,42,.55);display:none;align-items:center;justify-content:center;z-index:200;padding:20px}
+.modal-back.show{display:flex}
+.modal{background:#fff;border-radius:20px;padding:30px;max-width:440px;width:100%}
+.modal h3{font-size:19px;font-weight:800;margin-bottom:10px}
+.modal p{color:#64748b;font-size:14.5px;margin-bottom:22px}
+.modal-actions{display:flex;gap:11px}
+.modal-actions .btn{flex:1}
+.empty-state{text-align:center;padding:50px 20px;color:#64748b}
+.empty-state .icon{font-size:44px;margin-bottom:14px;opacity:.5}
+.steps{display:flex;flex-direction:column;gap:15px}
+.step{display:flex;gap:14px}
+.step-num{width:32px;height:32px;border-radius:50%;background:#2563eb;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;flex-shrink:0}
+.divider{height:1px;background:#e2e8f0;margin:24px 0}
+.flex-between{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}
+.hidden{display:none !important}
+footer{border-top:1px solid #e2e8f0;background:#fff;padding:20px;text-align:center;font-size:13px;color:#64748b}
+
+/* ============ VOCAB STYLES (same design) ============ */
+.cats{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;justify-content:center}
+.cat-btn{padding:8px 16px;border-radius:999px;background:#fff;border:1.5px solid #e2e8f0;font-size:13px;font-weight:600;color:#475569;transition:.2s}
+.cat-btn:hover{border-color:#2563eb;color:#2563eb}
+.cat-btn.active{background:#2563eb;border-color:#2563eb;color:#fff;box-shadow:0 4px 12px rgba(37,99,235,.3)}
+.modes{display:flex;gap:8px;justify-content:center;margin-bottom:20px;flex-wrap:wrap}
+.mode-btn{padding:8px 18px;border-radius:999px;background:#fff;border:1.5px solid #e2e8f0;font-size:13px;font-weight:600;color:#475569;transition:.2s}
+.mode-btn.active{background:#0f172a;border-color:#0f172a;color:#fff}
+.flash-wrap{perspective:1200px;margin-bottom:20px}
+.flash-card{position:relative;width:100%;min-height:320px;cursor:pointer;transform-style:preserve-3d;transition:transform .6s;border-radius:20px}
+.flash-card.flipped{transform:rotateY(180deg)}
+.flash-face{position:absolute;inset:0;backface-visibility:hidden;background:#fff;border-radius:20px;padding:40px 28px;box-shadow:0 12px 40px rgba(15,23,42,.1);border:1px solid #e2e8f0;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center}
+.flash-back{transform:rotateY(180deg);background:linear-gradient(135deg,#2563eb,#0ea5e9);color:#fff;border:none}
+.flash-face .flabel{font-size:12px;font-weight:800;letter-spacing:1.5px;color:#94a3b8;margin-bottom:14px;text-transform:uppercase}
+.flash-back .flabel{color:rgba(255,255,255,.85)}
+.flash-face .fword{font-size:42px;font-weight:800;margin-bottom:12px;word-break:break-word;line-height:1.15}
+.flash-back .fword{color:#fff}
+.flash-face .fex{font-size:14px;color:#64748b;font-style:italic;margin-top:14px;padding-top:14px;border-top:1px solid #e2e8f0;max-width:540px}
+.flash-back .fex{color:rgba(255,255,255,.92);border-top-color:rgba(255,255,255,.28)}
+.speak-btn{position:absolute;top:14px;right:14px;width:44px;height:44px;border-radius:50%;background:#dbeafe;display:flex;align-items:center;justify-content:center;font-size:20px;transition:.2s;border:none;cursor:pointer}
+.speak-btn:hover{background:#bfdbfe;transform:scale(1.08)}
+.flash-back .speak-btn{background:rgba(255,255,255,.25)}
+.flash-back .speak-btn:hover{background:rgba(255,255,255,.4)}
+.fhint{position:absolute;bottom:14px;left:0;right:0;text-align:center;font-size:12px;color:#94a3b8}
+.flash-back .fhint{color:rgba(255,255,255,.78)}
+.vcontrols{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:16px}
+.vinfo{text-align:center;color:#64748b;font-size:13px;margin-top:12px}
+.quiz-box{background:#fff;border-radius:16px;padding:28px;box-shadow:0 4px 16px rgba(15,23,42,.06);text-align:center;border:1px solid #e2e8f0}
+.quiz-box h3{font-size:20px;font-weight:800;margin-bottom:6px;color:#2563eb}
+.quiz-box .q-sub{font-size:13px;color:#64748b;margin-bottom:20px}
+.quiz-word{font-size:30px;font-weight:800;color:#2563eb;margin:16px 0 22px;word-break:break-word}
+.quiz-options{display:flex;flex-direction:column;gap:10px;max-width:520px;margin:0 auto 16px}
+.quiz-opt{padding:14px 18px;border-radius:12px;border:1.5px solid #e2e8f0;background:#fff;font-size:15px;font-weight:600;text-align:left;transition:.18s;color:#0f172a}
+.quiz-opt:hover{border-color:#2563eb;background:#f8fbff}
+.quiz-opt.correct{border-color:#16a34a;background:#dcfce7;color:#15803d}
+.quiz-opt.wrong{border-color:#dc2626;background:#fee2e2;color:#b91c1c}
+.quiz-opt.disabled{pointer-events:none}
+.quiz-feedback{font-size:15px;font-weight:700;margin-bottom:14px;min-height:24px}
+.quiz-feedback.ok{color:#16a34a}
+.quiz-feedback.no{color:#dc2626}
+.quiz-score{display:flex;justify-content:center;gap:24px;font-size:14px;color:#64748b;margin-bottom:14px}
+.quiz-score b{color:#2563eb;font-size:17px}
+
+@media(max-width:800px){.exam-layout{grid-template-columns:1fr}.side-card{position:static;order:-1}.qnav{grid-template-columns:repeat(8,1fr)}.hero h1{font-size:32px}}
+@media(max-width:520px){.flash-face .fword{font-size:28px}.quiz-word{font-size:22px}.flash-card{min-height:280px}.flash-face{padding:28px 18px}.hero h1{font-size:26px}}
 </style>
 </head>
 <body>
-<div class="wrap">
-<h1>📚 English Vocabulary</h1>
-<div class="cats" id="cats"></div>
-<div class="modes">
-  <button class="mb2 active" id="mFlash" onclick="setMode('flash')">📇 Карт</button>
-  <button class="mb2" id="mQuiz" onclick="setMode('quiz')">🎯 Асуулт</button>
-  <button class="mb2" onclick="shuffle()">🔀 Холих</button>
+
+<header>
+  <div class="container header-inner">
+    <div class="brand" onclick="showScreen('home')">
+      <div class="brand-mark">EN</div>
+      <div class="brand-text">
+        <b>English Learning Portal</b>
+        <span>Шалгалт & Үгсийн сан</span>
+      </div>
+    </div>
+    <nav>
+      <button class="nav-link" onclick="showScreen('home')">🏠 Нүүр</button>
+      <button class="nav-link" onclick="showScreen('select')">📝 Шалгалт</button>
+      <button class="nav-link" onclick="openVocab()">📚 Үгсийн сан</button>
+      <button class="nav-link" onclick="openTeacher()">👨‍🏫 Багш</button>
+    </nav>
+  </div>
+</header>
+
+<main>
+<div class="container">
+
+<!-- HOME -->
+<div class="screen active" data-screen="home">
+  <div class="hero">
+    <h1>English Learning Portal</h1>
+    <p class="subtitle">Англи хэл сурах цахим платформ</p>
+    <p class="desc">Шалгалт өгөх, үгсийн сангаа баяжуулах, дуудлагыг сонсох — бүгд нэг дор.</p>
+    <div class="hero-actions">
+      <button class="btn btn-white btn-lg" onclick="showScreen('select')">📝 Шалгалт өгөх</button>
+      <button class="btn btn-glass btn-lg" onclick="openVocab()">📚 Үгсийн сан</button>
+    </div>
+  </div>
+  <div class="grid grid-3 mt-24">
+    <button class="tile" onclick="showScreen('select')">
+      <div class="tile-icon" style="background:#dbeafe">📝</div>
+      <h3>Шалгалт өгөх</h3>
+      <p>2021–2025 оны A болон B хувилбараас сонгоно уу.</p>
+    </button>
+    <button class="tile" onclick="openVocab()">
+      <div class="tile-icon" style="background:#dcfce7">📚</div>
+      <h3>Үгсийн сан</h3>
+      <p>10 ангилал · Карт, дуудлага, асуулт хариулт.</p>
+    </button>
+    <button class="tile" onclick="showScreen('instructions')">
+      <div class="tile-icon" style="background:#fef3c7">📖</div>
+      <h3>Заавар</h3>
+      <p>Шалгалтын дүрэм, үнэлгээний талаарх мэдээлэл.</p>
+    </button>
+  </div>
 </div>
 
-<!-- FLASH MODE -->
-<div id="flashBox">
-  <div class="info">Дарж эргүүлэх · 🔊 дарж сонсох · ← → товч</div>
-  <div class="card" id="card" onclick="flip()">
-    <button class="spk" onclick="speak(event)">🔊</button>
-    <div class="lbl" id="lbl">ENGLISH</div>
-    <div class="word" id="word">—</div>
-    <div class="ex" id="ex"></div>
-    <div class="hint" id="hint">Дарж эргүүлэх →</div>
-  </div>
-  <div class="btns">
-    <button class="btn bo" onclick="prev()">← Өмнөх</button>
-    <button class="btn bp" onclick="next()">Дараах →</button>
-  </div>
-  <div class="info" style="margin-top:12px"><span id="counter">1 / 1</span></div>
-</div>
-
-<!-- QUIZ MODE -->
-<div id="quizBox" style="display:none">
-  <div class="qbox">
-    <div style="font-size:12px;color:#666;font-weight:bold">ЗӨВ ОРЧУУЛГЫГ СОНГО</div>
-    <div class="qword" id="qWord">—</div>
-    <div id="qOpts"></div>
-    <div class="qfb" id="qFb"></div>
-    <div class="qsc">Зөв: <b id="qOk">0</b> · Буруу: <b id="qNo">0</b></div>
-    <button class="btn bp" id="qNext" style="display:none" onclick="nextQuiz()">Дараах →</button>
+<!-- INSTRUCTIONS -->
+<div class="screen" data-screen="instructions">
+  <div class="card">
+    <h2 class="section-title">📖 Шалгалтын заавар</h2>
+    <p class="section-sub">Шалгалт эхлэхээс өмнө уншина уу.</p>
+    <div class="alert alert-info"><span>ℹ️</span><div>Асуултууд <b>англи хэлээр</b>, товчнууд <b>монгол хэлээр</b>.</div></div>
+    <div class="steps mt-16">
+      <div class="step"><div class="step-num">1</div><div><b>Шалгалтаа сонгох</b><p class="small muted">Жил (2021–2025) болон хувилбар (A/B)-аа сонгоно.</p></div></div>
+      <div class="step"><div class="step-num">2</div><div><b>Мэдээллээ бөглөх</b><p class="small muted">Овог нэр, ангиа зөв бичнэ үү.</p></div></div>
+      <div class="step"><div class="step-num">3</div><div><b>Асуултад хариулах</b><p class="small muted">Асуулт бүрт нэг зөв хариултыг сонгоно.</p></div></div>
+      <div class="step"><div class="step-num">4</div><div><b>Шалгалтаа дуусгах</b><p class="small muted">"Шалгалтыг дуусгах" товчийг дарна.</p></div></div>
+      <div class="step"><div class="step-num">5</div><div><b>Багш үр дүнг харна</b><p class="small muted">Таны оноог зөвхөн багш харна.</p></div></div>
+    </div>
+    <div class="alert alert-warn mt-16"><span>⚠️</span><div>Шалгалт дууссаны дараа оноо <b>шууд харагдахгүй</b>. Багш таны үр дүнг хянана.</div></div>
+    <div class="mt-24"><button class="btn btn-primary btn-lg" onclick="showScreen('select')">Шалгалт эхлүүлэх →</button></div>
   </div>
 </div>
 
+<!-- EXAM SELECT -->
+<div class="screen" data-screen="select">
+  <div class="flex-between mb-16">
+    <div>
+      <h2 class="section-title">📝 Шалгалт сонгох</h2>
+      <p class="section-sub" style="margin-bottom:0">Жил болон хувилбараа сонгоно уу.</p>
+    </div>
+    <button class="btn btn-outline btn-sm" onclick="showScreen('home')">← Нүүр</button>
+  </div>
+  <div class="grid grid-2" id="examList"></div>
+</div>
+
+<!-- START -->
+<div class="screen" data-screen="start">
+  <div class="card form-narrow">
+    <h2 class="section-title">Сурагчийн мэдээлэл</h2>
+    <p class="section-sub">Шалгалт эхлэхээс өмнө бөглөнө үү.</p>
+    <div class="alert alert-info" id="startExamInfo"><span>📋</span><div></div></div>
+    <div class="field">
+      <label>Овог нэр *</label>
+      <input type="text" id="inpName" placeholder="Жишээ: Бат-Эрдэнэ Тэмүүлэн">
+    </div>
+    <div class="field">
+      <label>Анги *</label>
+      <input type="text" id="inpClass" placeholder="Жишээ: 11А">
+    </div>
+    <div id="startError" class="alert alert-err hidden"><span>⚠️</span><div></div></div>
+    <div class="modal-actions mt-16">
+      <button class="btn btn-outline" onclick="showScreen('select')">← Буцах</button>
+      <button class="btn btn-primary" onclick="startExam()">Шалгалт эхлүүлэх →</button>
+    </div>
+  </div>
+</div>
+
+<!-- EXAM -->
+<div class="screen" data-screen="exam">
+  <div class="card exam-top">
+    <div>
+      <div id="examTitle" style="font-size:16px;font-weight:800">—</div>
+      <div class="muted small" id="examStudent">—</div>
+    </div>
+    <div class="timer" id="timer">30:00</div>
+  </div>
+  <div class="progress"><div class="progress-bar" id="progressBar"></div></div>
+  <div class="exam-layout">
+    <div class="card question-card">
+      <div class="q-number" id="qNumber">АСУУЛТ 1</div>
+      <div class="q-text" id="qText">—</div>
+      <div class="options" id="qOptions"></div>
+      <div class="exam-actions">
+        <button class="btn btn-outline" id="prevBtn" onclick="prevQuestion()">← Өмнөх</button>
+        <button class="btn btn-primary" id="nextBtn" onclick="nextQuestion()">Дараах →</button>
+        <button class="btn btn-success" id="submitBtn" onclick="confirmSubmit()">✓ Шалгалтыг дуусгах</button>
+      </div>
+    </div>
+    <div class="card side-card">
+      <div style="font-size:14px;font-weight:800;margin-bottom:12px">Асуултууд</div>
+      <div class="qnav" id="qnav"></div>
+      <div class="small muted mt-16" id="answeredCount">Хариулсан: 0</div>
+    </div>
+  </div>
+</div>
+
+<!-- THANK YOU -->
+<div class="screen" data-screen="thankyou">
+  <div class="card thankyou">
+    <div class="big">✅</div>
+    <h2>Баярлалаа!</h2>
+    <p style="font-size:16px;color:#64748b;margin-bottom:20px">Та шалгалтаа амжилттай дуусгалаа.</p>
+    <div class="alert alert-ok" style="display:inline-flex;text-align:left;max-width:500px">
+      <span>ℹ️</span>
+      <div>Таны үр дүн багшид хүргэгдлээ. <b>Оноог зөвхөн багш харна.</b></div>
+    </div>
+    <div class="mt-24">
+      <button class="btn btn-primary btn-lg" onclick="showScreen('home')">🏠 Нүүр хуудас</button>
+    </div>
+  </div>
+</div>
+
+<!-- VOCAB -->
+<div class="screen" data-screen="vocab">
+  <div class="flex-between mb-16">
+    <div>
+      <h2 class="section-title">📚 Үгсийн сан</h2>
+      <p class="section-sub" style="margin-bottom:0">Ангилал сонгон карт эсвэл асуулт хариултын горимд давтана уу.</p>
+    </div>
+    <button class="btn btn-outline btn-sm" onclick="showScreen('home')">← Нүүр</button>
+  </div>
+
+  <div class="cats" id="cats"></div>
+
+  <div class="modes">
+    <button class="mode-btn active" id="mFlash" onclick="setVMode('flash')">📇 Карт</button>
+    <button class="mode-btn" id="mQuiz" onclick="setVMode('quiz')">🎯 Асуулт</button>
+    <button class="mode-btn" onclick="shuffleCards()">🔀 Холих</button>
+  </div>
+
+  <!-- FLASH MODE -->
+  <div id="flashBox">
+    <div class="flash-wrap">
+      <div class="flash-card" id="flashCard" onclick="flipCard(event)">
+        <div class="flash-face">
+          <button class="speak-btn" onclick="speakWord(event)">🔊</button>
+          <div class="flabel">ENGLISH</div>
+          <div class="fword" id="fWord">—</div>
+          <div class="fex" id="fEx"></div>
+          <div class="fhint">Дарж эргүүлэх →</div>
+        </div>
+        <div class="flash-face flash-back">
+          <div class="flabel">МОНГОЛ</div>
+          <div class="fword" id="bWord">—</div>
+          <div class="fex" id="bEx"></div>
+          <div class="fhint">← Дарж буцаах</div>
+        </div>
+      </div>
+    </div>
+    <div class="vcontrols">
+      <button class="btn btn-outline" onclick="prevCard()">← Өмнөх</button>
+      <button class="btn btn-primary" onclick="nextCard()">Дараах →</button>
+    </div>
+    <div class="vinfo"><span id="vCounter">1 / 1</span></div>
+  </div>
+
+  <!-- QUIZ MODE -->
+  <div id="quizBox" style="display:none">
+    <div class="quiz-box">
+      <h3>Асуулт хариулт</h3>
+      <div class="q-sub">Зөв орчуулгыг сонгоно уу</div>
+      <div class="quiz-word" id="quizWord">—</div>
+      <div class="quiz-options" id="quizOptions"></div>
+      <div class="quiz-feedback" id="quizFeedback"></div>
+      <div class="quiz-score">
+        <span>Зөв: <b id="quizOk">0</b></span>
+        <span>Буруу: <b id="quizNo">0</b></span>
+      </div>
+      <button class="btn btn-primary" id="quizNext" style="display:none" onclick="nextQuiz()">Дараах →</button>
+    </div>
+  </div>
+</div>
+
+<!-- TEACHER LOGIN -->
+<div class="screen" data-screen="teacher-login">
+  <div class="card form-narrow">
+    <div style="text-align:center;margin-bottom:20px">
+      <div style="font-size:44px;margin-bottom:10px">🔐</div>
+      <h2 class="section-title">Багшийн хэсэг</h2>
+      <p class="section-sub">Нууц үгээ оруулна уу.</p>
+    </div>
+    <div class="field">
+      <label>Нууц үг</label>
+      <input type="password" id="inpPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')teacherLogin()">
+    </div>
+    <div id="loginError" class="alert alert-err hidden"><span>⚠️</span><div>Нууц үг буруу байна.</div></div>
+    <div class="modal-actions mt-16">
+      <button class="btn btn-outline" onclick="showScreen('home')">← Буцах</button>
+      <button class="btn btn-primary" onclick="teacherLogin()">Нэвтрэх →</button>
+    </div>
+  </div>
+</div>
+
+<!-- TEACHER DASHBOARD -->
+<div class="screen" data-screen="teacher">
+  <div class="flex-between mb-16">
+    <div>
+      <h2 class="section-title">👨‍🏫 Багшийн удирдлага</h2>
+      <p class="section-sub" style="margin-bottom:0">Сурагчдын үр дүнгийн хяналт</p>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-outline btn-sm" onclick="openPasswordChange()">🔑 Нууц үг солих</button>
+      <button class="btn btn-outline btn-sm" onclick="exportCSV()">⬇️ CSV</button>
+      <button class="btn btn-danger btn-sm" onclick="clearAllResults()">🗑 Устгах</button>
+      <button class="btn btn-primary btn-sm" onclick="teacherLogout()">Гарах</button>
+    </div>
+  </div>
+  <div class="grid grid-3 mb-24" id="teacherStats"></div>
+  <div class="card mb-24">
+    <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
+      <div style="flex:1;min-width:180px">
+        <label class="small" style="font-weight:700;display:block;margin-bottom:6px">Нэрээр хайх</label>
+        <input type="text" id="tSearch" placeholder="Сурагчийн нэр..." oninput="renderTeacherTable()" style="width:100%;padding:11px 14px;border-radius:10px;border:1.5px solid #e2e8f0;font-size:14px">
+      </div>
+      <div style="min-width:140px">
+        <label class="small" style="font-weight:700;display:block;margin-bottom:6px">Жил</label>
+        <select id="tYear" onchange="renderTeacherTable()" style="width:100%;padding:11px 14px;border-radius:10px;border:1.5px solid #e2e8f0;font-size:14px;background:#fff">
+          <option value="">Бүгд</option>
+          <option>2021</option><option>2022</option><option>2023</option><option>2024</option><option>2025</option>
+        </select>
+      </div>
+      <div style="min-width:120px">
+        <label class="small" style="font-weight:700;display:block;margin-bottom:6px">Хувилбар</label>
+        <select id="tVersion" onchange="renderTeacherTable()" style="width:100%;padding:11px 14px;border-radius:10px;border:1.5px solid #e2e8f0;font-size:14px;background:#fff">
+          <option value="">Бүгд</option>
+          <option value="A">A</option>
+          <option value="B">B</option>
+        </select>
+      </div>
+    </div>
+  </div>
+  <div id="teacherTableBox"></div>
+</div>
+
+</div>
+</main>
+
+<footer>
+  <div class="container">
+    <p><b>English Learning Portal</b> — Шалгалт & Үгсийн сан</p>
+    <p class="small">© 2021–2025</p>
+  </div>
+</footer>
+
+<!-- MODAL: Confirm -->
+<div class="modal-back" id="modalBack">
+  <div class="modal">
+    <h3 id="modalTitle">Баталгаажуулалт</h3>
+    <p id="modalText">Үргэлжлүүлэх үү?</p>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal()">Үгүй</button>
+      <button class="btn btn-primary" id="modalOk">Тийм</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Password Change -->
+<div class="modal-back" id="passModalBack">
+  <div class="modal">
+    <h3>🔑 Нууц үг солих</h3>
+    <p>Шинэ нууц үгээ оруулна уу. Дараагийн удаа энэ нууц үгээр нэвтэрнэ.</p>
+    <div class="field">
+      <label>Одоогийн нууц үг</label>
+      <input type="password" id="oldPass" placeholder="••••••••">
+    </div>
+    <div class="field">
+      <label>Шинэ нууц үг</label>
+      <input type="password" id="newPass" placeholder="••••••••">
+    </div>
+    <div class="field">
+      <label>Шинэ нууц үг (давтах)</label>
+      <input type="password" id="newPass2" placeholder="••••••••">
+    </div>
+    <div id="passChangeMsg" class="alert hidden"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closePassModal()">Болих</button>
+      <button class="btn btn-primary" onclick="changePassword()">Хадгалах</button>
+    </div>
+  </div>
 </div>
 
 <script>
-var DATA={
-health:{name:'🏥 Эрүүл мэнд',words:[
-{en:'nutrition',mn:'тэжээл',ex:'Good nutrition is key to a healthy life.'},
-{en:'diagnose',mn:'оношлох',ex:'The doctor diagnosed him with the flu.'},
-{en:'symptom',mn:'шинж тэмдэг',ex:'Fever is a common symptom of infection.'},
-{en:'treatment',mn:'эмчилгээ',ex:'Early treatment can prevent complications.'},
-{en:'immune',mn:'дархлаа',ex:'Exercise strengthens the immune system.'},
-{en:'chronic',mn:'архаг',ex:'Diabetes is a chronic condition.'},
-{en:'prevent',mn:'урьдчилан сэргийлэх',ex:'Vaccines help prevent diseases.'},
-{en:'recover',mn:'эдгэрэх',ex:'It took weeks for him to recover.'},
-{en:'mental',mn:'сэтгэцийн',ex:'Mental health is important.'},
-{en:'obesity',mn:'таргалалт',ex:'Obesity increases heart disease risk.'},
-{en:'hygiene',mn:'эрүүл ахуй',ex:'Good hygiene prevents germs.'},
-{en:'fatigue',mn:'ядрал',ex:'Lack of sleep causes fatigue.'},
-{en:'stress',mn:'стресс',ex:'Too much stress affects health.'},
-{en:'diet',mn:'хооллолт',ex:'A balanced diet includes vegetables.'},
-{en:'medication',mn:'эм',ex:'She takes medication for allergies.'},
-{en:'injury',mn:'гэмтэл',ex:'He suffered a minor injury.'},
-{en:'disease',mn:'өвчин',ex:'Heart disease is common.'},
-{en:'cure',mn:'эмчлэх',ex:'There is no cure for colds.'},
-{en:'healthy',mn:'эрүүл',ex:'Vegetables keep you healthy.'},
-{en:'patient',mn:'өвчтөн',ex:'The nurse cared for the patient.'},
-{en:'surgery',mn:'мэс засал',ex:'He needed surgery.'},
-{en:'vaccine',mn:'вакцин',ex:'The vaccine protects against measles.'},
-{en:'infection',mn:'халдвар',ex:'The wound became infected.'},
-{en:'pain',mn:'өвдөлт',ex:'He felt a sharp pain.'},
-{en:'fitness',mn:'хүчин чадал',ex:'Running improves fitness.'},
-{en:'dose',mn:'тун',ex:'Take the correct dose.'},
-{en:'therapy',mn:'эмчилгээ',ex:'Physical therapy helped him.'},
-{en:'nutrient',mn:'шимт бодис',ex:'Vegetables are full of nutrients.'},
-{en:'wound',mn:'шарх',ex:'The nurse cleaned the wound.'},
-{en:'allergy',mn:'харшил',ex:'She has an allergy to peanuts.'}]},
-emotions:{name:'😊 Сэтгэл хөдлөл',words:[
-{en:'confident',mn:'итгэлтэй',ex:'She felt confident before the exam.'},
-{en:'anxious',mn:'түгшүүртэй',ex:'He was anxious about results.'},
-{en:'generous',mn:'өгөөмөр',ex:'She is generous with time.'},
-{en:'honest',mn:'шударга',ex:'An honest person tells truth.'},
-{en:'patient',mn:'тэвчээртэй',ex:'A teacher must be patient.'},
-{en:'curious',mn:'сониуч',ex:'Children are naturally curious.'},
-{en:'grateful',mn:'талархалтай',ex:'I am grateful for your help.'},
-{en:'ambitious',mn:'тэмүүлэлтэй',ex:'She is ambitious and determined.'},
-{en:'polite',mn:'эелдэг',ex:'He is polite to strangers.'},
-{en:'selfish',mn:'хувиа хичээсэн',ex:'It was selfish to take all food.'},
-{en:'reliable',mn:'найдвартай',ex:'He is a reliable friend.'},
-{en:'cheerful',mn:'хөгжилтэй',ex:'She has a cheerful personality.'},
-{en:'nervous',mn:'сандарсан',ex:'I felt nervous before interview.'},
-{en:'proud',mn:'бахархсан',ex:'Parents were proud of her.'},
-{en:'shy',mn:'ичимхий',ex:'The shy boy rarely spoke.'},
-{en:'brave',mn:'зоригтой',ex:'The brave firefighter saved child.'},
-{en:'jealous',mn:'атаархсан',ex:'He was jealous of his brother.'},
-{en:'calm',mn:'тайван',ex:'Try to stay calm during test.'},
-{en:'stubborn',mn:'зөрүүд',ex:'He is too stubborn to change.'},
-{en:'sympathy',mn:'энэрэл',ex:'She showed sympathy for victims.'},
-{en:'frustrated',mn:'уурласан',ex:'He felt frustrated by delay.'},
-{en:'optimistic',mn:'өөдрөг',ex:'She is optimistic about future.'},
-{en:'pessimistic',mn:'гутранги',ex:'He is pessimistic about everything.'},
-{en:'sensitive',mn:'мэдрэмтгий',ex:'She is sensitive to criticism.'},
-{en:'loyal',mn:'үнэнч',ex:'A loyal friend supports you.'},
-{en:'arrogant',mn:'бардам',ex:'Nobody likes his arrogant attitude.'},
-{en:'gentle',mn:'зөөлөн',ex:'She has a gentle nature.'},
-{en:'determined',mn:'шийдэмгий',ex:'She was determined to win.'},
-{en:'mood',mn:'сэтгэлийн байдал',ex:'He was in a good mood today.'},
-{en:'emotion',mn:'сэтгэл хөдлөл',ex:'She hid her emotions.'}]},
-academic:{name:'✍️ Академик үйл үг',words:[
-{en:'argue',mn:'маргах',ex:'The author argues that reading helps.'},
-{en:'claim',mn:'нотлон хэлэх',ex:'Some claim money brings happiness.'},
-{en:'suggest',mn:'санал болгох',ex:'Results suggest a clear pattern.'},
-{en:'indicate',mn:'заах',ex:'The graph indicates a rise.'},
-{en:'demonstrate',mn:'нотлох',ex:'The study demonstrates value of sleep.'},
-{en:'emphasize',mn:'онцлох',ex:'The teacher emphasized main idea.'},
-{en:'illustrate',mn:'тайлбарлах',ex:'This example illustrates the problem.'},
-{en:'conclude',mn:'дүгнэлт хийх',ex:'We can conclude the plan worked.'},
-{en:'compare',mn:'харьцуулах',ex:'The essay compares two theories.'},
-{en:'contrast',mn:'эсрэгцүүлэх',ex:'The report contrasts city and rural life.'},
-{en:'examine',mn:'судлах',ex:'The article examines causes of stress.'},
-{en:'consider',mn:'авч үзэх',ex:'We should consider all options.'},
-{en:'assume',mn:'таамаглах',ex:'Do not assume the answer.'},
-{en:'support',mn:'дэмжих',ex:'The data supports her argument.'},
-{en:'reveal',mn:'илчлэх',ex:'The survey reveals results.'},
-{en:'highlight',mn:'онцлох',ex:'The report highlights problems.'},
-{en:'propose',mn:'санал дэвшүүлэх',ex:'The scientist proposed a theory.'},
-{en:'state',mn:'мэдэгдэх',ex:'The report states the facts.'},
-{en:'reflect',mn:'тусгах',ex:'Results reflect effort.'},
-{en:'identify',mn:'тодорхойлох',ex:'The study identifies three causes.'},
-{en:'analyze',mn:'задлан шинжлэх',ex:'The essay analyzes the poem.'},
-{en:'describe',mn:'бичих',ex:'Describe the main character.'},
-{en:'explain',mn:'тайлбарлах',ex:'The writer explains the process.'},
-{en:'prove',mn:'нотлох',ex:'The experiment proves the point.'},
-{en:'outline',mn:'тоймлон бичих',ex:'First, outline your ideas.'},
-{en:'summarize',mn:'хураангуйлах',ex:'Summarize the article.'},
-{en:'define',mn:'тодорхойлох',ex:'Define the term.'},
-{en:'justify',mn:'үндэслэх',ex:'Justify your opinion.'},
-{en:'evaluate',mn:'үнэлэх',ex:'Evaluate the argument.'},
-{en:'refer',mn:'иш татах',ex:'The author refers to studies.'}]},
-adjectives:{name:'🎨 Тэмдэг нэр',words:[
-{en:'essential',mn:'зайлшгүй чухал',ex:'Water is essential for life.'},
-{en:'significant',mn:'чухал',ex:'There was a significant change.'},
-{en:'obvious',mn:'илэрхий',ex:'The answer was obvious.'},
-{en:'complex',mn:'төвөгтэй',ex:'The problem is complex.'},
-{en:'appropriate',mn:'тохиромжтой',ex:'Wear appropriate clothes.'},
-{en:'accurate',mn:'нарийвчлалтай',ex:'Give an accurate description.'},
-{en:'various',mn:'янз бүрийн',ex:'Sells various kinds of fruit.'},
-{en:'temporary',mn:'түр зуурын',ex:'This is temporary.'},
-{en:'permanent',mn:'байнгын',ex:'He found a permanent job.'},
-{en:'sufficient',mn:'хангалттай',ex:'We have sufficient food.'},
-{en:'rare',mn:'ховор',ex:'A rare and valuable book.'},
-{en:'frequent',mn:'байнга',ex:'A frequent visitor.'},
-{en:'typical',mn:'ердийн',ex:'A typical winter day.'},
-{en:'unique',mn:'өвөрмөц',ex:'Every fingerprint is unique.'},
-{en:'ancient',mn:'эртний',ex:'Ancient ruins.'},
-{en:'modern',mn:'орчин үеийн',ex:'Modern buildings.'},
-{en:'enormous',mn:'асар том',ex:'The stadium is enormous.'},
-{en:'tiny',mn:'жижигхэн',ex:'A tiny insect.'},
-{en:'fragile',mn:'хэврэг',ex:'Fragile glass.'},
-{en:'flexible',mn:'уян хатан',ex:'Flexible schedule.'},
-{en:'reasonable',mn:'боломжийн',ex:'The price is reasonable.'},
-{en:'complicated',mn:'төвөгтэй',ex:'Complicated instructions.'},
-{en:'valuable',mn:'үнэ цэнэтэй',ex:'Valuable advice.'},
-{en:'harmful',mn:'хортой',ex:'Smoking is harmful.'},
-{en:'beneficial',mn:'ашигтай',ex:'Exercise is beneficial.'},
-{en:'remarkable',mn:'гайхалтай',ex:'Remarkable progress.'},
-{en:'ordinary',mn:'энгийн',ex:'An ordinary day.'},
-{en:'crucial',mn:'чухал',ex:'Timing is crucial.'},
-{en:'efficient',mn:'үр ашигтай',ex:'More efficient system.'},
-{en:'genuine',mn:'жинхэнэ',ex:'Genuine interest.'},
-{en:'adequate',mn:'зохих',ex:'Adequate lighting.'},
-{en:'vital',mn:'амин чухал',ex:'Sleep is vital.'}]},
-travel:{name:'✈️ Аялал',words:[
-{en:'destination',mn:'очих газар',ex:'Paris is popular destination.'},
-{en:'journey',mn:'аялал',ex:'The journey took ten hours.'},
-{en:'tourist',mn:'жуулчин',ex:'Many tourists visit.'},
-{en:'accommodation',mn:'байр',ex:'Hotel offers accommodation.'},
-{en:'reservation',mn:'захиалга',ex:'Made a reservation.'},
-{en:'passport',mn:'паспорт',ex:'Check your passport.'},
-{en:'luggage',mn:'ачаа',ex:'Packed her luggage.'},
-{en:'depart',mn:'хөдлөх',ex:'Flight departs at seven.'},
-{en:'arrive',mn:'хүрэлцэн ирэх',ex:'We arrived late.'},
-{en:'explore',mn:'судлан үзэх',ex:'Explore new cities.'},
-{en:'abroad',mn:'гадаадад',ex:'Studied abroad.'},
-{en:'scenery',mn:'үзэмж',ex:'Beautiful scenery.'},
-{en:'adventure',mn:'адал явдал',ex:'A real adventure.'},
-{en:'region',mn:'бүс нутаг',ex:'Famous for lakes.'},
-{en:'border',mn:'хил',ex:'Crossed the border.'},
-{en:'capital',mn:'нийслэл',ex:'Ulaanbaatar is the capital.'},
-{en:'continent',mn:'тив',ex:'Asia is largest continent.'},
-{en:'landmark',mn:'дурсгалт газар',ex:'Famous landmark.'},
-{en:'route',mn:'маршрут',ex:'Shortest route home.'},
-{en:'distance',mn:'зай',ex:'300 km distance.'},
-{en:'tour',mn:'аялал',ex:'Guided tour of city.'},
-{en:'remote',mn:'алслагдсан',ex:'Remote area.'},
-{en:'foreign',mn:'гадаадын',ex:'Foreign cultures.'},
-{en:'nearby',mn:'ойролцоо',ex:'A park nearby.'},
-{en:'souvenir',mn:'бэлэг дурсгал',ex:'Bought a souvenir.'},
-{en:'guide',mn:'хөтөч',ex:'The guide showed us.'},
-{en:'flight',mn:'нислэг',ex:'Flight was delayed.'},
-{en:'local',mn:'нутгийн',ex:'Delicious local food.'}]},
-environment:{name:'🌍 Байгаль',words:[
-{en:'pollution',mn:'бохирдол',ex:'Air pollution is serious.'},
-{en:'sustainable',mn:'тогтвортой',ex:'Need sustainable solutions.'},
-{en:'renewable',mn:'сэргээгдэх',ex:'Solar is renewable.'},
-{en:'emission',mn:'ялгарал',ex:'Reduced emissions.'},
-{en:'conserve',mn:'хамгаалах',ex:'Conserve water.'},
-{en:'ecosystem',mn:'экосистем',ex:'Rich ecosystem.'},
-{en:'drought',mn:'ган гачиг',ex:'Severe drought.'},
-{en:'endangered',mn:'устгах болзошгүй',ex:'Endangered species.'},
-{en:'recycle',mn:'дахин боловсруулах',ex:'Recycle bottles.'},
-{en:'habitat',mn:'амьдрах орчин',ex:'Animal habitats.'},
-{en:'resource',mn:'нөөц',ex:'Natural resources.'},
-{en:'waste',mn:'хог хаягдал',ex:'Reduce waste.'},
-{en:'climate',mn:'уур амьсгал',ex:'Climate change.'},
-{en:'atmosphere',mn:'агаар мандал',ex:'Carbon in atmosphere.'},
-{en:'preserve',mn:'хадгалах',ex:'Preserve forests.'},
-{en:'species',mn:'зүйл',ex:'Many species at risk.'},
-{en:'extinct',mn:'устсан',ex:'Dinosaurs extinct.'},
-{en:'global warming',mn:'дэлхийн дулаарал',ex:'Global warming melts ice.'},
-{en:'natural',mn:'байгалийн',ex:'Natural landscapes.'},
-{en:'wildlife',mn:'зэрлэг амьтан',ex:'Protect wildlife.'},
-{en:'environment',mn:'хүрээлэн буй орчин',ex:'Share environment.'},
-{en:'disaster',mn:'гамшиг',ex:'Natural disaster.'},
-{en:'threat',mn:'аюул',ex:'A threat to health.'},
-{en:'scarce',mn:'ховор',ex:'Water is scarce.'},
-{en:'abundant',mn:'элбэг',ex:'Wind is abundant.'},
-{en:'organic',mn:'органик',ex:'Organic farming.'},
-{en:'carbon',mn:'нүүрстөрөгч',ex:'Carbon emissions.'}]},
-economy:{name:'💰 Эдийн засаг',words:[
-{en:'economy',mn:'эдийн засаг',ex:'Economy is growing.'},
-{en:'budget',mn:'төсөв',ex:'Monthly budget.'},
-{en:'invest',mn:'хөрөнгө оруулах',ex:'Invest in property.'},
-{en:'profit',mn:'ашиг',ex:'Made a profit.'},
-{en:'loss',mn:'алдагдал',ex:'Financial loss.'},
-{en:'afford',mn:'төлж чадах',ex:'Cannot afford a car.'},
-{en:'expense',mn:'зардал',ex:'Travel expenses.'},
-{en:'income',mn:'орлого',ex:'Main income from teaching.'},
-{en:'debt',mn:'өр',ex:'Pay off debt.'},
-{en:'loan',mn:'зээл',ex:'Took a loan.'},
-{en:'currency',mn:'мөнгөн тэмдэгт',ex:'Strong currency.'},
-{en:'inflation',mn:'инфляци',ex:'Inflation rises.'},
-{en:'trade',mn:'худалдаа',ex:'Increased trade.'},
-{en:'market',mn:'зах зээл',ex:'Market prices.'},
-{en:'demand',mn:'эрэлт',ex:'Demand rising.'},
-{en:'supply',mn:'нийлүүлэлт',ex:'Oil supply.'},
-{en:'consumer',mn:'хэрэглэгч',ex:'Consumer wants.'},
-{en:'wealth',mn:'баялаг',ex:'Natural wealth.'},
-{en:'poverty',mn:'ядуурал',ex:'Reduce poverty.'},
-{en:'financial',mn:'санхүүгийн',ex:'Financial difficulties.'},
-{en:'bank',mn:'банк',ex:'Money in bank.'},
-{en:'value',mn:'үнэ цэнэ',ex:'Value increased.'},
-{en:'tax',mn:'татвар',ex:'Pay income tax.'},
-{en:'cost',mn:'өртөг',ex:'Cost of living.'},
-{en:'price',mn:'үнэ',ex:'Price rising.'},
-{en:'save',mn:'хэмнэх',ex:'Save money.'},
-{en:'spend',mn:'зарцуулах',ex:'Spend on entertainment.'},
-{en:'wealthy',mn:'баян',ex:'Wealthy family.'},
-{en:'export',mn:'экспорт',ex:'Exports minerals.'},
-{en:'import',mn:'импорт',ex:'Imports electronics.'},
-{en:'insurance',mn:'даатгал',ex:'Health insurance.'},
-{en:'investment',mn:'хөрөнгө оруулалт',ex:'Good investment.'},
-{en:'prosper',mn:'цэцэглэх',ex:'Business prospered.'}]},
-tech:{name:'💻 Технологи',words:[
-{en:'device',mn:'төхөөрөмж',ex:'Common device today.'},
-{en:'innovation',mn:'инноваци',ex:'Known for innovation.'},
-{en:'access',mn:'хандах',ex:'Access to internet.'},
-{en:'artificial',mn:'хиймэл',ex:'AI is changing.'},
-{en:'upgrade',mn:'сайжруулах',ex:'Upgraded software.'},
-{en:'network',mn:'сүлжээ',ex:'Fast network.'},
-{en:'virtual',mn:'виртуал',ex:'Virtual classes.'},
-{en:'data',mn:'мэдээлэл',ex:'Collect data.'},
-{en:'efficient',mn:'үр ашигтай',ex:'Efficient work.'},
-{en:'breakthrough',mn:'нээлт',ex:'Medical breakthrough.'},
-{en:'automate',mn:'автоматжуулах',ex:'Automate production.'},
-{en:'interact',mn:'харилцах',ex:'Interact with app.'},
-{en:'platform',mn:'платформ',ex:'Multiple platforms.'},
-{en:'reliable',mn:'найдвартай',ex:'Reliable connection.'},
-{en:'security',mn:'аюулгүй байдал',ex:'Cyber security.'},
-{en:'update',mn:'шинэчлэх',ex:'Update the app.'},
-{en:'convenient',mn:'тохиромжтой',ex:'Convenient shopping.'},
-{en:'feature',mn:'онцлог',ex:'Useful features.'},
-{en:'gadget',mn:'хэрэгсэл',ex:'New gadgets.'},
-{en:'digital',mn:'дижитал',ex:'Digital world.'},
-{en:'software',mn:'програм',ex:'Develop software.'},
-{en:'download',mn:'татаж авах',ex:'Download file.'},
-{en:'connect',mn:'холбох',ex:'Connect devices.'},
-{en:'communicate',mn:'харилцах',ex:'Communicate by email.'},
-{en:'invention',mn:'шинэ бүтээл',ex:'Important invention.'},
-{en:'screen',mn:'дэлгэц',ex:'Screen time.'},
-{en:'signal',mn:'дохио',ex:'Weak signal.'},
-{en:'password',mn:'нууц үг',ex:'Strong password.'},
-{en:'online',mn:'онлайн',ex:'Work online.'},
-{en:'remote',mn:'зайны',ex:'Work remotely.'},
-{en:'technology',mn:'технологи',ex:'Technology changed education.'},
-{en:'information',mn:'мэдээлэл',ex:'Useful information.'},
-{en:'message',mn:'мессеж',ex:'Sent a message.'},
-{en:'storage',mn:'хадгалалт',ex:'Storage space.'},
-{en:'wireless',mn:'утасгүй',ex:'Wireless network.'},
-{en:'battery',mn:'батерей',ex:'Battery dead.'},
-{en:'portable',mn:'зөөврийн',ex:'Portable laptop.'},
-{en:'function',mn:'үйлдэл',ex:'Main function.'}]},
-education:{name:'🎓 Боловсрол',words:[
-{en:'achieve',mn:'амжилтад хүрэх',ex:'Achieve goals.'},
-{en:'curriculum',mn:'хөтөлбөр',ex:'Updated curriculum.'},
-{en:'assess',mn:'үнэлэх',ex:'Assess students.'},
-{en:'enroll',mn:'бүртгүүлэх',ex:'Enrolled in university.'},
-{en:'scholarship',mn:'тэтгэлэг',ex:'Received a scholarship.'},
-{en:'graduate',mn:'төгсөх',ex:'Graduate next year.'},
-{en:'lecture',mn:'лекц',ex:'Gave a lecture.'},
-{en:'motivate',mn:'урам зориг өгөх',ex:'Motivate students.'},
-{en:'literacy',mn:'бичиг үсэг',ex:'Literacy improved.'},
-{en:'academic',mn:'академик',ex:'Academic record.'},
-{en:'concentrate',mn:'төвлөрөх',ex:'Hard to concentrate.'},
-{en:'memorize',mn:'цээжлэх',ex:'Memorize vocabulary.'},
-{en:'comprehend',mn:'ойлгох',ex:'Comprehend the text.'},
-{en:'evaluate',mn:'үнэлэх',ex:'Evaluate applications.'},
-{en:'discipline',mn:'сахилга',ex:'Discipline matters.'},
-{en:'tuition',mn:'төлбөр',ex:'Tuition increased.'},
-{en:'require',mn:'шаардах',ex:'Requires reading.'},
-{en:'skill',mn:'чадвар',ex:'Essential skill.'},
-{en:'research',mn:'судалгаа',ex:'Conducted research.'},
-{en:'knowledge',mn:'мэдлэг',ex:'Knowledge helps.'},
-{en:'intelligent',mn:'ухаалаг',ex:'Intelligent student.'},
-{en:'semester',mn:'улирал',ex:'Spring semester.'},
-{en:'assignment',mn:'даалгавар',ex:'Difficult assignment.'},
-{en:'degree',mn:'зэрэг',ex:'Earned a degree.'},
-{en:'encourage',mn:'урамшуулах',ex:'Encourage reading.'},
-{en:'explain',mn:'тайлбарлах',ex:'Explain the rule.'},
-{en:'improve',mn:'сайжруулах',ex:'Improve vocabulary.'},
-{en:'instruction',mn:'заавар',ex:'Follow instructions.'},
-{en:'progress',mn:'ахиц',ex:'Made progress.'},
-{en:'revise',mn:'давтах',ex:'Revise before exam.'},
-{en:'subject',mn:'хичээл',ex:'Favorite subject.'},
-{en:'talented',mn:'авьяаслаг',ex:'Talented musician.'},
-{en:'achievement',mn:'ололт',ex:'Great achievement.'},
-{en:'fluent',mn:'чөлөөтэй',ex:'Fluent in three languages.'},
-{en:'participate',mn:'оролцох',ex:'Participate in discussion.'},
-{en:'theory',mn:'онол',ex:'Theory explains learning.'},
-{en:'understand',mn:'ойлгох',ex:'Understand the concept.'},
-{en:'diploma',mn:'диплом',ex:'Received diploma.'}]}
+var CONFIG = {
+  DEFAULT_PASSWORD: 'teacher2025',
+  PASSWORD_KEY: 'eep_teacher_pass_v1',
+  STORAGE_KEY: 'eep_results_v1'
 };
 
-var curCat='health';
-var curWords=[];
-var curIdx=0;
-var back=false;
-var mode='flash';
-var qOk=0,qNo=0,qAns=false;
+function getTeacherPassword(){
+  return localStorage.getItem(CONFIG.PASSWORD_KEY) || CONFIG.DEFAULT_PASSWORD;
+}
+
+/* ============================================================
+   EXAM DATA (2021-2025, A/B) — бүрэн
+   ============================================================ */
+var EXAMS = {
+  '2021': {
+    A: [
+      {q:'The town was severely damaged by __________ after the heavy rain.',o:['hurricane','flood','snowstorm','forest fire','earthquake'],a:1},
+      {q:'Most young children don\'t read newspapers, they prefer to read __________.',o:['magazines','journals','Comics','newspapers','adverts'],a:2},
+      {q:'There are a lot of __________ in this part of town, so always close the windows and lock the door.',o:['Shoplifters','robberies','thieves','burglars','muggers'],a:3},
+      {q:'The best __________ movie I\'ve ever seen was Star Wars.',o:['action','cartoon','horror','crime','science fiction'],a:4},
+      {q:'A __________ is a large store that sells different things.',o:['department store','toy store','bookstore','hardware store','stationery'],a:0},
+      {q:'My car broke __________ again and I had to go to work on foot.',o:['of','Out','off','down','into'],a:3},
+      {q:'You should check in two hours before your flight is scheduled to take __________.',o:['into','up','for','after','off'],a:4},
+      {q:'Due to the storm, I put __________ to my doctor\'s appointment.',o:['off','on','out','up','down'],a:0},
+      {q:'She came __________ a huge amount of money when her cousin died.',o:['by','out','to','into','up'],a:3},
+      {q:'Device inside a computer that stores large amounts of information.',o:['Modem','Word processor','Disk drive','Spreadsheet','Hard disk'],a:4},
+      {q:'An apparatus that allows information to be read from a disk.',o:['Word processor','Hard disk','Disk drive','Spreadsheet','Modem'],a:2},
+      {q:'A program or grid to perform mathematical operations.',o:['Word processor','Spreadsheet','Hard disk','Disk drive','Modern'],a:1},
+      {q:'Wow! Look outside now. It\'s raining cats and dogs today.',o:['Cats and dogs are falling','I forgot my umbrella','I forgot my cats','It\'s raining heavily','Cats and dogs are outside'],a:3}
+    ],
+    B: [
+      {q:'The buildings are often destroyed by __________ after violent movement of the ground.',o:['forest fire','flood','snowstorm','earthquake','hurricane'],a:3},
+      {q:'I quite like the __________. There are many interesting adverts.',o:['television commercials','quiz show','soap opera','chat show','documentary'],a:0},
+      {q:'The __________ attack people in a public place.',o:['robberies','Shoplifters','thieves','burglars','Muggers'],a:4},
+      {q:'__________ Jim nor Tom passed the exam.',o:['Either','Both','Neither','All','None'],a:2},
+      {q:'Alex is very __________ of his younger sister.',o:['protect','protection','protected','protective','protector'],a:3},
+      {q:'We must get a __________ of flour, and some eggs and apples.',o:['box','can','tube','bar','bag'],a:4},
+      {q:'The more he exercises, __________ he will be.',o:['the healthier','healthiest','healthier','the healthiest','healthy'],a:0},
+      {q:'Children __________ their necks to see who their mother was talking to.',o:['nodded','spilled','fluttered','craned','ignored'],a:3},
+      {q:'The Professor wanted to __________ the importance of learning foreign languages.',o:['grasp','integrate','damage','extend','emphasize'],a:4},
+      {q:'Regular exercise is good for your body and brain. It __________ your blood with oxygen.',o:['stores','influences','enriches','processes','produces'],a:2},
+      {q:'Millions of birds migrate to the south every year. It is an annual __________.',o:['celebration','phenomenon','perception','motivation','behavior'],a:1},
+      {q:'Under these __________ the kids couldn\'t play.',o:['willingness','basements','decisions','circumstances','cells'],a:3},
+      {q:'Many foreign __________ attended the opening ceremony.',o:['scavengers','failures','abilities','attempts','dignitaries'],a:4},
+      {q:'If I could do it __________ again, I\'d do it differently.',o:['over','without','away','in','with'],a:0},
+      {q:'It\'s getting late, I\'m turning __________.',o:['into','around','in','up','off'],a:2},
+      {q:'Be careful walking in the woods, there are a lot of branches sticking __________.',o:['to','at','by','out','with'],a:3},
+      {q:'Jake and I lost our jobs yesterday. Now we are in the same boat.',o:['In the broken boat','Have a good situation','Looking for a job','Travelling by boat','In the same bad situation'],a:4},
+      {q:'I only got the message by word of mouth.',o:['He read from newspaper','The message was passed by his mom','He opened his mouth','The message passed from person to person','He was only mouthing'],a:3},
+      {q:'My girlfriend always acts as if she was born yesterday.',o:['She is naive','She was born yesterday','Her boyfriend doesn\'t know','She believes in experience','His girlfriend is thoughtful'],a:0}
+    ]
+  },
+  '2022': {
+    A: [
+      {q:'We can travel to Brighton __________ by bus or by train.',o:['both','none','neither','either','all'],a:3},
+      {q:'The more he looked at her, __________ embarrassed she was.',o:['more','the most','the more','mostly','much'],a:2},
+      {q:'John is __________ and needs help when asked to sign papers.',o:['literate','illiterate','literacy','illiteracy','literally'],a:1},
+      {q:'Could you please buy a __________ of jam for me?',o:['bar','can','bag','jar','carton'],a:3},
+      {q:'My boss __________ this language course to me.',o:['recommended','persuaded','influenced','criticized','maintained'],a:0},
+      {q:'Teaching in a lively way increases students\' __________ to learn.',o:['volunteering','tolerance','diversity','motivation','automation'],a:3},
+      {q:'The forecast is for dry weather with no __________ expected.',o:['degradation','desertification','precipitation','protection','permission'],a:2},
+      {q:'My __________ is that you\'re not getting enough work done.',o:['concentration','concern','occupation','action','attachment'],a:1},
+      {q:'Synthetic fabrics are made from __________ substances.',o:['organic','artificial','unique','modern','combined'],a:1},
+      {q:'The two countries have __________ close ties for centuries.',o:['ignored','distracted','debated','maintained','confused'],a:3},
+      {q:'Because of mistakes in my test, my teacher made me do it __________.',o:['without','with','away','in','over'],a:4},
+      {q:'After the thieves are captured, the stolen items will be turned __________ to the owners.',o:['in','away','into','against','down'],a:0},
+      {q:'Chingee is nearly eight feet tall, so she really sticks __________ in a crowd.',o:['to','down','around','with','out'],a:4},
+      {q:'He was desperate to get rid of his car. I was able to buy it for a song.',o:['His car was expensive','He sang a song','He exchanged his car','He bought the car very cheaply','He bought a CD'],a:3},
+      {q:'Chingee got it in the neck because she forgot to turn off the car light.',o:['The long drive hurt her','She forgot the light','She was punished for the damage','Her shirt was open','She was punished for the light'],a:2},
+      {q:'I was up in the air about selling my house and moving into a bigger one.',o:['He was in the air','He was excited about moving','He always airs his house','He sold his old house','He left the windows open'],a:0}
+    ],
+    B: [
+      {q:'__________ Jim nor Tom passed the exam.',o:['Either','Both','Neither','All','None'],a:2},
+      {q:'Alex is very __________ of his younger sister.',o:['protect','protection','protected','protective','protector'],a:3},
+      {q:'We must get a __________ of flour, some eggs and apples.',o:['box','can','tube','bar','bag'],a:4},
+      {q:'The more he exercises, __________ he will be.',o:['the healthier','healthiest','healthier','the healthiest','healthy'],a:0},
+      {q:'Children __________ their necks to see who their mother was talking to.',o:['nodded','spilled','fluttered','craned','ignored'],a:3},
+      {q:'The Professor wanted to __________ the importance of learning foreign languages.',o:['grasp','integrate','damage','extend','emphasize'],a:4},
+      {q:'Regular exercise is good for your body and brain. It __________ your blood with oxygen.',o:['stores','influences','enriches','processes','produces'],a:2},
+      {q:'Millions of birds migrate to the south every year. It is an annual __________.',o:['celebration','phenomenon','perception','motivation','behavior'],a:1},
+      {q:'Under these __________ the kids couldn\'t play.',o:['willingness','basements','decisions','circumstances','cells'],a:3},
+      {q:'Many foreign __________ attended the opening ceremony.',o:['scavengers','failures','abilities','attempts','dignitaries'],a:4},
+      {q:'If I could do it __________ again, I\'d do it differently.',o:['over','without','away','in','with'],a:0},
+      {q:'It\'s getting late, I\'m turning __________.',o:['into','around','in','up','off'],a:2},
+      {q:'Be careful walking in the woods, there are a lot of branches sticking __________.',o:['to','at','by','out','with'],a:3},
+      {q:'Jake and I lost our jobs yesterday. Now we are in the same boat.',o:['In the broken boat','Have a good situation','Looking for a job','Travelling by boat','In the same bad situation'],a:4},
+      {q:'I only got the message by word of mouth.',o:['He read from newspaper','The message was passed by his mom','He opened his mouth','The message passed from person to person','He was only mouthing'],a:3},
+      {q:'My girlfriend always acts as if she was born yesterday.',o:['She is naive','She was born yesterday','Her boyfriend doesn\'t know','She believes in experience','His girlfriend is thoughtful'],a:0}
+    ]
+  },
+  '2023': {
+    A: [
+      {q:'You need to acquire __________ in social work.',o:['application','qualification','necessity','operation','cooperation'],a:1},
+      {q:'He lied to me and to make matters worse, he didn\'t __________ at all.',o:['thank','apologize','reject','admit','accept'],a:1},
+      {q:'The level of junk food __________ was illustrated by statistics.',o:['consideration','compulsion','consumption','combination','compassion'],a:2},
+      {q:'Many groups are working to reduce __________ to protect pastureland.',o:['drought','hazards','blizzard','soil erosion','gale'],a:3},
+      {q:'Jack has already __________ a very good reputation as a talented prosecutor.',o:['made','won','done','gained','achieved'],a:3},
+      {q:'The little boy\'s eyes __________ when he saw his daddy.',o:['lit up','shone','lightened','flowed','darkened'],a:0},
+      {q:'Always __________ your files and any documents you\'re working on.',o:['back up','hack into','log in','click on','crash on'],a:0},
+      {q:'Tom: I feel sorry for being tardy. The alarm didn\'t go off.',o:['denying','refusing','making an excuse','requesting','regretting'],a:2},
+      {q:'John: She must be Alice\'s daughter. She looks just like her.',o:['criticism','complaint','compliment','assumption','suggestion'],a:3},
+      {q:'go on a, balanced, a sensible',o:['date','meal','solution','plan','diet'],a:4},
+      {q:'Knowledge, Wisdom, Information',o:['to impart','to conduct','to instruct','to earn','to endure'],a:0},
+      {q:'I recognize a few words in the passage, therefore, I __________.',o:['find it easy','keep my mouth shut','am not eager','try hard to catch meaning','never look up'],a:3},
+      {q:'Choose the most possible solution to flood.',o:['stonework','wind turbines','dams and canals','tunnels and subways','sea barrier'],a:2},
+      {q:'The department\'s solution hit the nail on the head.',o:['caused by failures','staff did exactly right','was not bad','was quite smart','hit box of nails'],a:1},
+      {q:'The computer isn\'t the best, but you shouldn\'t look a gift horse in the mouth.',o:['give back','bad gift','not complain about gift','never receive','receiving horse is hobby'],a:2}
+    ],
+    B: [
+      {q:'I\'ve got great __________ on my assignment from the teacher.',o:['feedback','portfolio','debate','grant','finance'],a:0},
+      {q:'Roads should have a __________ so people can cross the road safely.',o:['zebra crossing','intersection','dead end','one-way street','lane'],a:0},
+      {q:'Plasmas can __________ electricity.',o:['dissolve','attract','affect','insulate','conduct'],a:4},
+      {q:'When fossil fuels burn, different substances are __________ into the air.',o:['supplied','tapped','trapped','released','accelerated'],a:3},
+      {q:'In the tournament, Hannah __________ all her opponents.',o:['had','gained','beat','granted','rewarded'],a:2},
+      {q:'The cave is in the list of UNESCO world __________ sites.',o:['legacy','representation','heritage','tradition','masterpiece'],a:2},
+      {q:'I was working and suddenly the screen __________ black.',o:['crashed','went','installed','loaded','turned'],a:1},
+      {q:'Anna: Don\'t keep putting it off.',o:['denying','refusing','making an excuse','requesting','regretting'],a:2},
+      {q:'Jack: I can\'t drink bitter coffee. Alice: Would you like some black coffee?',o:['demand','promise','offer','prediction','appointment'],a:2},
+      {q:'a valuable, rich, a reliable',o:['determination','enthusiasm','source','guarantee','extension'],a:2},
+      {q:'tears, laughter, song',o:['to let out','to make','to bump into','to burst into','to cry over'],a:3},
+      {q:'I struggle to speak and say \'Err\' a lot when I __________.',o:['run out of ideas','avoid pronouncing','find fluency','provide feedback','have impact'],a:0},
+      {q:'Choose the most possible solution to air pollution.',o:['temporary shelter','dump sites','organic products','hybrid cars','exhaust fumes'],a:3},
+      {q:'He made up some cock-and-bull story about losing his car keys.',o:['upset about being late','people thought true','illegal activities','story about animals','told a fake story'],a:4},
+      {q:'The police will arrest the suspect by hook or by crook.',o:['investigate all','use technology','mobilize all','use any method possible','be on duty'],a:3}
+    ]
+  },
+  '2024': {
+    A: [
+      {q:'The rain won\'t last long; it\'s only a __________.',o:['hail','breeze','shower','frost','downpour'],a:2},
+      {q:'__________ is a person whose job is riding horses in races.',o:['Fencer','Jockey','Runner','Swimmer','Golfer'],a:1},
+      {q:'The theory of __________ studies the nature and origin of the universe.',o:['chemistry','physics','biology','cosmology','medicine'],a:3},
+      {q:'Always log __________ when you leave your computer.',o:['up','in','on','for','out'],a:4},
+      {q:'Please, print your name and address in __________ letters.',o:['capital','block','clog','bulk','fill'],a:0},
+      {q:'My boyfriend and I live on the same __________.',o:['capital','block','clog','bulk','fill'],a:1},
+      {q:'Every autumn dead leaves __________ the drains.',o:['capital','block','clog','bulk','fill'],a:2},
+      {q:'What will you wear when you go hiking?',o:['camping gear','climbing boots','a walking stick','walking boots','a surfing board'],a:3},
+      {q:'What expression is used for making others experience pain?',o:['to experience pain','to feel pain','to ease pain','to relieve pain','to inflict pain'],a:4},
+      {q:'The store owner was held __________ by three men wearing ski masks.',o:['down','back','up','in','on'],a:2},
+      {q:'If you don\'t wear an undershirt, you\'ll __________ down with pneumonia.',o:['come','get','put','take','hold'],a:0},
+      {q:'A (an) __________ ageing substance, viral drug, depressant treatment',o:['ante-','pro-','non-','pre-','anti-'],a:4},
+      {q:'A persist (__________) learner',o:['-ance','-ant','-ence','-ent','-ible'],a:3},
+      {q:'Tonya spends a lot of money __________ fancy clothes.',o:['in','over','on','for','onto'],a:2},
+      {q:'I asked our neighbors to keep an eye __________ the house.',o:['with','over','at','for','on'],a:4},
+      {q:'It really got Mr Robert\'s goat when he had to wait two hours.',o:['annoyed at long delay','angry couldn\'t get ticket','didn\'t care about line','frustrated was late','didn\'t mind delay'],a:0},
+      {q:'Who wears trousers in your family?',o:['caregiver','financially dependent','dominant partner in marriage','most educated','only breadwinner'],a:2}
+    ],
+    B: [
+      {q:'I would love to be a good __________, but my eyesight isn\'t very good.',o:['high jumper','gymnast','archer','weight lifter','canoeist'],a:2},
+      {q:'It was absolutely pouring down yesterday. It was a real __________.',o:['shower','downpour','gale','hurricane','blizzard'],a:1},
+      {q:'__________ studies the rocks that make up the Earth\'s surface.',o:['Archeology','Geography','Geometry','Geology','Astrology'],a:3},
+      {q:'The ability of zoom __________ is useful when working on detailed diagrams.',o:['over','out','up','on','in'],a:3},
+      {q:'A (an) __________ is a tall bird with long thin legs and a long neck.',o:['crane','ostrich','lever','move','stretch'],a:1},
+      {q:'Finally, the house was put back onto the truck by __________.',o:['crane','ostrich','lever','move','stretch'],a:0},
+      {q:'The boy __________ his neck to get the first glimpse of a celebrity.',o:['craned','ostriched','levered','moved','stretched'],a:0},
+      {q:'What will you take when you reach the mountain\'s peak?',o:['hiking boots','climbing gear','a fencing sword','bowling pins','a mountain bike'],a:1},
+      {q:'What expression is used for making pain go away?',o:['to complain of pain','to suffer pain','to cause pain','to soothe pain','to inflict pain'],a:3},
+      {q:'A (an) __________ ageing substance, viral drug, depressant treatment',o:['ante-','pro-','non-','pre-','anti-'],a:4},
+      {q:'A persist (__________) learner',o:['-ance','-ant','-ence','-ent','-ible'],a:3},
+      {q:'Tonya spends a lot of money __________ fancy clothes.',o:['in','over','on','for','onto'],a:2},
+      {q:'I asked our neighbors to keep an eye __________ the house.',o:['with','over','at','for','on'],a:4},
+      {q:'It really got Mr Robert\'s goat when he had to wait two hours.',o:['annoyed at long delay','angry couldn\'t get ticket','didn\'t care about line','frustrated was late','didn\'t mind delay'],a:0},
+      {q:'Who wears trousers in your family?',o:['caregiver','financially dependent','dominant partner in marriage','most educated','only breadwinner'],a:2}
+    ]
+  },
+  '2025': {
+    A: [
+      {q:'Which item is made from cotton?',o:['a raincoat','a shirt','a wristband','nylons','a jumper'],a:1},
+      {q:'A young horse is called? A __________.',o:['fawn','kid','cub','lamb','foal'],a:4},
+      {q:'A __________ is a part of the building where a vehicle is kept.',o:['garage','patio','garden','shade','concrete'],a:0},
+      {q:'Name the means of a transport the front part of which is a cockpit.',o:['coach','aircraft','caravan','train','ferry'],a:1},
+      {q:'A __________ uses a computer or smartphone to commit crimes.',o:['kidnapper','fraudster','vandal','mugger','cybercriminal'],a:4},
+      {q:'As soon as Lydia and I met, we knew we were going to get __________ well.',o:['up','(a) round','at','on','in'],a:3},
+      {q:'It was sunny and hot.',o:['a bit of drizzle','a few sunny showers','very overcast','quite a breeze','a bit of heat wave'],a:4},
+      {q:'Public transport is excellent - it\'s cheap and __________.',o:['useful','efficient','cosmopolitan','stressful','crowded'],a:1},
+      {q:'They won two nil.',o:['year somebody was born','the temperature','a telephone number','the score in a tennis match','the result of the football match'],a:4},
+      {q:'Ron was arrested by the police, who (26) __________ him of being involved in a robbery.',o:['suspected','heard','questioned','charged','convicted'],a:0},
+      {q:'He had been (27) __________ previously of petty crime, but never anything serious.',o:['suspected','heard','questioned','charged','convicted'],a:4},
+      {q:'The police (28) __________ him for several hours',o:['suspected','heard','questioned','charged','convicted'],a:2},
+      {q:'and finally (29) __________ him with robbery.',o:['suspected','heard','questioned','charged','convicted'],a:3},
+      {q:'His case would be (30) __________.',o:['suspected','heard','questioned','charged','convicted'],a:1},
+      {q:'In which sentence does "to take off" mean "to remove something from a surface"?',o:['Take off your shoes','You need to take the old wax off the floor','Our plane took off an hour late','If this business takes off, we could make money'],a:1}
+    ],
+    B: [
+      {q:'It was absolutely pouring down yesterday. It was a real __________.',o:['shower','downpour','gale','hurricane','blizzard'],a:1},
+      {q:'Jack: I can\'t drink bitter coffee. Alice: Would you like some black coffee?',o:['take','promise','offer','prediction','appointment'],a:2},
+      {q:'a valuable, rich, a reliable',o:['determination','enthusiasm','source','guarantee','extension'],a:2},
+      {q:'tears, laughter, song',o:['to let out','to make','to bump into','to burst into','to cry over'],a:3},
+      {q:'I recognize a few words in the passage, therefore, I __________.',o:['find it easy','keep my mouth shut','am not eager','try hard to catch meaning','never look up'],a:3},
+      {q:'Choose the most possible solution to flood.',o:['stonework','wind turbines','dams and canals','tunnels and subways','sea barrier'],a:2},
+      {q:'The department\'s solution hit the nail on the head.',o:['caused by failures','staff did exactly right','was not bad','was quite smart','hit box of nails'],a:1},
+      {q:'The computer isn\'t the best, but you shouldn\'t look a gift horse in the mouth.',o:['give back','bad gift','not complain about gift','never receive','receiving horse is hobby'],a:2}
+    ]
+  }
+};
+
+/* ============================================================
+   VOCAB DATA — 10 ангилал
+   ============================================================ */
+var VOCAB = {
+  'health': { name:'🏥 Эрүүл мэнд', words:[
+    {en:'nutrition',mn:'тэжээл',ex:'Good nutrition is key to a healthy life.'},
+    {en:'diagnose',mn:'оношлох',ex:'The doctor diagnosed him with the flu.'},
+    {en:'symptom',mn:'шинж тэмдэг',ex:'Fever is a common symptom of infection.'},
+    {en:'treatment',mn:'эмчилгээ',ex:'Early treatment can prevent complications.'},
+    {en:'immune',mn:'дархлаа',ex:'Exercise strengthens the immune system.'},
+    {en:'chronic',mn:'архаг',ex:'Diabetes is a chronic condition.'},
+    {en:'prevent',mn:'урьдчилан сэргийлэх',ex:'Vaccines help prevent diseases.'},
+    {en:'recover',mn:'эдгэрэх',ex:'It took weeks for him to recover.'},
+    {en:'mental',mn:'сэтгэцийн',ex:'Mental health is important.'},
+    {en:'obesity',mn:'таргалалт',ex:'Obesity increases heart disease risk.'},
+    {en:'hygiene',mn:'эрүүл ахуй',ex:'Good hygiene prevents germs.'},
+    {en:'fatigue',mn:'ядрал',ex:'Lack of sleep causes fatigue.'},
+    {en:'stress',mn:'стресс',ex:'Too much stress affects health.'},
+    {en:'diet',mn:'хооллолт',ex:'A balanced diet includes vegetables.'},
+    {en:'medication',mn:'эм',ex:'She takes medication for allergies.'},
+    {en:'injury',mn:'гэмтэл',ex:'He suffered a minor injury.'},
+    {en:'disease',mn:'өвчин',ex:'Heart disease is common.'},
+    {en:'cure',mn:'эмчлэх',ex:'There is no cure for colds.'},
+    {en:'healthy',mn:'эрүүл',ex:'Vegetables keep you healthy.'},
+    {en:'patient',mn:'өвчтөн',ex:'The nurse cared for the patient.'},
+    {en:'surgery',mn:'мэс засал',ex:'He needed surgery.'},
+    {en:'vaccine',mn:'вакцин',ex:'The vaccine protects against measles.'},
+    {en:'infection',mn:'халдвар',ex:'The wound became infected.'},
+    {en:'pain',mn:'өвдөлт',ex:'He felt a sharp pain.'},
+    {en:'fitness',mn:'хүчин чадал',ex:'Running improves fitness.'},
+    {en:'dose',mn:'тун',ex:'Take the correct dose.'},
+    {en:'therapy',mn:'эмчилгээ',ex:'Physical therapy helped him.'},
+    {en:'nutrient',mn:'шимт бодис',ex:'Vegetables are full of nutrients.'},
+    {en:'wound',mn:'шарх',ex:'The nurse cleaned the wound.'},
+    {en:'allergy',mn:'харшил',ex:'She has an allergy to peanuts.'}
+  ]},
+  'emotions': { name:'😊 Сэтгэл хөдлөл', words:[
+    {en:'confident',mn:'итгэлтэй',ex:'She felt confident before the exam.'},
+    {en:'anxious',mn:'түгшүүртэй',ex:'He was anxious about results.'},
+    {en:'generous',mn:'өгөөмөр',ex:'She is generous with time.'},
+    {en:'honest',mn:'шударга',ex:'An honest person tells truth.'},
+    {en:'patient',mn:'тэвчээртэй',ex:'A teacher must be patient.'},
+    {en:'curious',mn:'сониуч',ex:'Children are naturally curious.'},
+    {en:'grateful',mn:'талархалтай',ex:'I am grateful for your help.'},
+    {en:'ambitious',mn:'тэмүүлэлтэй',ex:'She is ambitious and determined.'},
+    {en:'polite',mn:'эелдэг',ex:'He is polite to strangers.'},
+    {en:'selfish',mn:'хувиа хичээсэн',ex:'It was selfish to take all food.'},
+    {en:'reliable',mn:'найдвартай',ex:'He is a reliable friend.'},
+    {en:'cheerful',mn:'хөгжилтэй',ex:'She has a cheerful personality.'},
+    {en:'nervous',mn:'сандарсан',ex:'I felt nervous before interview.'},
+    {en:'proud',mn:'бахархсан',ex:'Parents were proud of her.'},
+    {en:'shy',mn:'ичимхий',ex:'The shy boy rarely spoke.'},
+    {en:'brave',mn:'зоригтой',ex:'The brave firefighter saved child.'},
+    {en:'jealous',mn:'атаархсан',ex:'He was jealous of his brother.'},
+    {en:'calm',mn:'тайван',ex:'Try to stay calm during test.'},
+    {en:'stubborn',mn:'зөрүүд',ex:'He is too stubborn to change.'},
+    {en:'sympathy',mn:'энэрэл',ex:'She showed sympathy for victims.'},
+    {en:'frustrated',mn:'уурласан',ex:'He felt frustrated by delay.'},
+    {en:'optimistic',mn:'өөдрөг',ex:'She is optimistic about future.'},
+    {en:'pessimistic',mn:'гутранги',ex:'He is pessimistic about everything.'},
+    {en:'sensitive',mn:'мэдрэмтгий',ex:'She is sensitive to criticism.'},
+    {en:'loyal',mn:'үнэнч',ex:'A loyal friend supports you.'},
+    {en:'arrogant',mn:'бардам',ex:'Nobody likes his arrogant attitude.'},
+    {en:'gentle',mn:'зөөлөн',ex:'She has a gentle nature.'},
+    {en:'determined',mn:'шийдэмгий',ex:'She was determined to win.'},
+    {en:'mood',mn:'сэтгэлийн байдал',ex:'He was in a good mood today.'},
+    {en:'emotion',mn:'сэтгэл хөдлөл',ex:'She hid her emotions.'}
+  ]},
+  'academic': { name:'✍️ Академик үйл үг', words:[
+    {en:'argue',mn:'маргах',ex:'The author argues that reading helps.'},
+    {en:'claim',mn:'нотлон хэлэх',ex:'Some claim money brings happiness.'},
+    {en:'suggest',mn:'санал болгох',ex:'Results suggest a clear pattern.'},
+    {en:'indicate',mn:'заах',ex:'The graph indicates a rise.'},
+    {en:'demonstrate',mn:'нотлох',ex:'The study demonstrates value of sleep.'},
+    {en:'emphasize',mn:'онцлох',ex:'The teacher emphasized main idea.'},
+    {en:'illustrate',mn:'тайлбарлах',ex:'This example illustrates the problem.'},
+    {en:'conclude',mn:'дүгнэлт хийх',ex:'We can conclude the plan worked.'},
+    {en:'compare',mn:'харьцуулах',ex:'The essay compares two theories.'},
+    {en:'contrast',mn:'эсрэгцүүлэх',ex:'The report contrasts city and rural life.'},
+    {en:'examine',mn:'судлах',ex:'The article examines causes of stress.'},
+    {en:'consider',mn:'авч үзэх',ex:'We should consider all options.'},
+    {en:'assume',mn:'таамаглах',ex:'Do not assume the answer.'},
+    {en:'support',mn:'дэмжих',ex:'The data supports her argument.'},
+    {en:'reveal',mn:'илчлэх',ex:'The survey reveals results.'},
+    {en:'highlight',mn:'онцлох',ex:'The report highlights problems.'},
+    {en:'propose',mn:'санал дэвшүүлэх',ex:'The scientist proposed a theory.'},
+    {en:'state',mn:'мэдэгдэх',ex:'The report states the facts.'},
+    {en:'reflect',mn:'тусгах',ex:'Results reflect effort.'},
+    {en:'identify',mn:'тодорхойлох',ex:'The study identifies three causes.'},
+    {en:'analyze',mn:'задлан шинжлэх',ex:'The essay analyzes the poem.'},
+    {en:'describe',mn:'бичих',ex:'Describe the main character.'},
+    {en:'explain',mn:'тайлбарлах',ex:'The writer explains the process.'},
+    {en:'prove',mn:'нотлох',ex:'The experiment proves the point.'},
+    {en:'outline',mn:'тоймлон бичих',ex:'First, outline your ideas.'},
+    {en:'summarize',mn:'хураангуйлах',ex:'Summarize the article.'},
+    {en:'define',mn:'тодорхойлох',ex:'Define the term.'},
+    {en:'justify',mn:'үндэслэх',ex:'Justify your opinion.'},
+    {en:'evaluate',mn:'үнэлэх',ex:'Evaluate the argument.'},
+    {en:'refer',mn:'иш татах',ex:'The author refers to studies.'}
+  ]},
+  'adjectives': { name:'🎨 Тэмдэг нэр', words:[
+    {en:'essential',mn:'зайлшгүй чухал',ex:'Water is essential for life.'},
+    {en:'significant',mn:'чухал',ex:'There was a significant change.'},
+    {en:'obvious',mn:'илэрхий',ex:'The answer was obvious.'},
+    {en:'complex',mn:'төвөгтэй',ex:'The problem is complex.'},
+    {en:'appropriate',mn:'тохиромжтой',ex:'Wear appropriate clothes.'},
+    {en:'accurate',mn:'нарийвчлалтай',ex:'Give an accurate description.'},
+    {en:'various',mn:'янз бүрийн',ex:'Sells various kinds of fruit.'},
+    {en:'temporary',mn:'түр зуурын',ex:'This is temporary.'},
+    {en:'permanent',mn:'байнгын',ex:'He found a permanent job.'},
+    {en:'sufficient',mn:'хангалттай',ex:'We have sufficient food.'},
+    {en:'rare',mn:'ховор',ex:'A rare and valuable book.'},
+    {en:'frequent',mn:'байнга',ex:'A frequent visitor.'},
+    {en:'typical',mn:'ердийн',ex:'A typical winter day.'},
+    {en:'unique',mn:'өвөрмөц',ex:'Every fingerprint is unique.'},
+    {en:'ancient',mn:'эртний',ex:'Ancient ruins.'},
+    {en:'modern',mn:'орчин үеийн',ex:'Modern buildings.'},
+    {en:'enormous',mn:'асар том',ex:'The stadium is enormous.'},
+    {en:'tiny',mn:'жижигхэн',ex:'A tiny insect.'},
+    {en:'fragile',mn:'хэврэг',ex:'Fragile glass.'},
+    {en:'flexible',mn:'уян хатан',ex:'Flexible schedule.'},
+    {en:'reasonable',mn:'боломжийн',ex:'The price is reasonable.'},
+    {en:'complicated',mn:'төвөгтэй',ex:'Complicated instructions.'},
+    {en:'valuable',mn:'үнэ цэнэтэй',ex:'Valuable advice.'},
+    {en:'harmful',mn:'хортой',ex:'Smoking is harmful.'},
+    {en:'beneficial',mn:'ашигтай',ex:'Exercise is beneficial.'},
+    {en:'remarkable',mn:'гайхалтай',ex:'Remarkable progress.'},
+    {en:'ordinary',mn:'энгийн',ex:'An ordinary day.'},
+    {en:'crucial',mn:'чухал',ex:'Timing is crucial.'},
+    {en:'efficient',mn:'үр ашигтай',ex:'More efficient system.'},
+    {en:'genuine',mn:'жинхэнэ',ex:'Genuine interest.'},
+    {en:'adequate',mn:'зохих',ex:'Adequate lighting.'},
+    {en:'vital',mn:'амин чухал',ex:'Sleep is vital.'}
+  ]},
+  'travel': { name:'✈️ Аялал', words:[
+    {en:'destination',mn:'очих газар',ex:'Paris is popular destination.'},
+    {en:'journey',mn:'аялал',ex:'The journey took ten hours.'},
+    {en:'tourist',mn:'жуулчин',ex:'Many tourists visit.'},
+    {en:'accommodation',mn:'байр',ex:'Hotel offers accommodation.'},
+    {en:'reservation',mn:'захиалга',ex:'Made a reservation.'},
+    {en:'passport',mn:'паспорт',ex:'Check your passport.'},
+    {en:'luggage',mn:'ачаа',ex:'Packed her luggage.'},
+    {en:'depart',mn:'хөдлөх',ex:'Flight departs at seven.'},
+    {en:'arrive',mn:'хүрэлцэн ирэх',ex:'We arrived late.'},
+    {en:'explore',mn:'судлан үзэх',ex:'Explore new cities.'},
+    {en:'abroad',mn:'гадаадад',ex:'Studied abroad.'},
+    {en:'scenery',mn:'үзэмж',ex:'Beautiful scenery.'},
+    {en:'adventure',mn:'адал явдал',ex:'A real adventure.'},
+    {en:'region',mn:'бүс нутаг',ex:'Famous for lakes.'},
+    {en:'border',mn:'хил',ex:'Crossed the border.'},
+    {en:'capital',mn:'нийслэл',ex:'Ulaanbaatar is the capital.'},
+    {en:'continent',mn:'тив',ex:'Asia is largest continent.'},
+    {en:'landmark',mn:'дурсгалт газар',ex:'Famous landmark.'},
+    {en:'route',mn:'маршрут',ex:'Shortest route home.'},
+    {en:'distance',mn:'зай',ex:'300 km distance.'},
+    {en:'tour',mn:'аялал',ex:'Guided tour of city.'},
+    {en:'remote',mn:'алслагдсан',ex:'Remote area.'},
+    {en:'foreign',mn:'гадаадын',ex:'Foreign cultures.'},
+    {en:'nearby',mn:'ойролцоо',ex:'A park nearby.'},
+    {en:'souvenir',mn:'бэлэг дурсгал',ex:'Bought a souvenir.'},
+    {en:'guide',mn:'хөтөч',ex:'The guide showed us.'},
+    {en:'flight',mn:'нислэг',ex:'Flight was delayed.'},
+    {en:'local',mn:'нутгийн',ex:'Delicious local food.'}
+  ]},
+  'environment': { name:'🌍 Байгаль', words:[
+    {en:'pollution',mn:'бохирдол',ex:'Air pollution is serious.'},
+    {en:'sustainable',mn:'тогтвортой',ex:'Need sustainable solutions.'},
+    {en:'renewable',mn:'сэргээгдэх',ex:'Solar is renewable.'},
+    {en:'emission',mn:'ялгарал',ex:'Reduced emissions.'},
+    {en:'conserve',mn:'хамгаалах',ex:'Conserve water.'},
+    {en:'ecosystem',mn:'экосистем',ex:'Rich ecosystem.'},
+    {en:'drought',mn:'ган гачиг',ex:'Severe drought.'},
+    {en:'endangered',mn:'устгах болзошгүй',ex:'Endangered species.'},
+    {en:'recycle',mn:'дахин боловсруулах',ex:'Recycle bottles.'},
+    {en:'habitat',mn:'амьдрах орчин',ex:'Animal habitats.'},
+    {en:'resource',mn:'нөөц',ex:'Natural resources.'},
+    {en:'waste',mn:'хог хаягдал',ex:'Reduce waste.'},
+    {en:'climate',mn:'уур амьсгал',ex:'Climate change.'},
+    {en:'atmosphere',mn:'агаар мандал',ex:'Carbon in atmosphere.'},
+    {en:'preserve',mn:'хадгалах',ex:'Preserve forests.'},
+    {en:'species',mn:'зүйл',ex:'Many species at risk.'},
+    {en:'extinct',mn:'устсан',ex:'Dinosaurs extinct.'},
+    {en:'global warming',mn:'дэлхийн дулаарал',ex:'Global warming melts ice.'},
+    {en:'natural',mn:'байгалийн',ex:'Natural landscapes.'},
+    {en:'wildlife',mn:'зэрлэг амьтан',ex:'Protect wildlife.'},
+    {en:'environment',mn:'хүрээлэн буй орчин',ex:'Share environment.'},
+    {en:'disaster',mn:'гамшиг',ex:'Natural disaster.'},
+    {en:'threat',mn:'аюул',ex:'A threat to health.'},
+    {en:'scarce',mn:'ховор',ex:'Water is scarce.'},
+    {en:'abundant',mn:'элбэг',ex:'Wind is abundant.'},
+    {en:'organic',mn:'органик',ex:'Organic farming.'},
+    {en:'carbon',mn:'нүүрстөрөгч',ex:'Carbon emissions.'}
+  ]},
+  'economy': { name:'💰 Эдийн засаг', words:[
+    {en:'economy',mn:'эдийн засаг',ex:'Economy is growing.'},
+    {en:'budget',mn:'төсөв',ex:'Monthly budget.'},
+    {en:'invest',mn:'хөрөнгө оруулах',ex:'Invest in property.'},
+    {en:'profit',mn:'ашиг',ex:'Made a profit.'},
+    {en:'loss',mn:'алдагдал',ex:'Financial loss.'},
+    {en:'afford',mn:'төлж чадах',ex:'Cannot afford a car.'},
+    {en:'expense',mn:'зардал',ex:'Travel expenses.'},
+    {en:'income',mn:'орлого',ex:'Main income from teaching.'},
+    {en:'debt',mn:'өр',ex:'Pay off debt.'},
+    {en:'loan',mn:'зээл',ex:'Took a loan.'},
+    {en:'currency',mn:'мөнгөн тэмдэгт',ex:'Strong currency.'},
+    {en:'inflation',mn:'инфляци',ex:'Inflation rises.'},
+    {en:'trade',mn:'худалдаа',ex:'Increased trade.'},
+    {en:'market',mn:'зах зээл',ex:'Market prices.'},
+    {en:'demand',mn:'эрэлт',ex:'Demand rising.'},
+    {en:'supply',mn:'нийлүүлэлт',ex:'Oil supply.'},
+    {en:'consumer',mn:'хэрэглэгч',ex:'Consumer wants.'},
+    {en:'wealth',mn:'баялаг',ex:'Natural wealth.'},
+    {en:'poverty',mn:'ядуурал',ex:'Reduce poverty.'},
+    {en:'financial',mn:'санхүүгийн',ex:'Financial difficulties.'},
+    {en:'bank',mn:'банк',ex:'Money in bank.'},
+    {en:'value',mn:'үнэ цэнэ',ex:'Value increased.'},
+    {en:'tax',mn:'татвар',ex:'Pay income tax.'},
+    {en:'cost',mn:'өртөг',ex:'Cost of living.'},
+    {en:'price',mn:'үнэ',ex:'Price rising.'},
+    {en:'save',mn:'хэмнэх',ex:'Save money.'},
+    {en:'spend',mn:'зарцуулах',ex:'Spend on entertainment.'},
+    {en:'wealthy',mn:'баян',ex:'Wealthy family.'},
+    {en:'export',mn:'экспорт',ex:'Exports minerals.'},
+    {en:'import',mn:'импорт',ex:'Imports electronics.'},
+    {en:'insurance',mn:'даатгал',ex:'Health insurance.'},
+    {en:'investment',mn:'хөрөнгө оруулалт',ex:'Good investment.'},
+    {en:'prosper',mn:'цэцэглэх',ex:'Business prospered.'}
+  ]},
+  'tech': { name:'💻 Технологи', words:[
+    {en:'device',mn:'төхөөрөмж',ex:'Common device today.'},
+    {en:'innovation',mn:'инноваци',ex:'Known for innovation.'},
+    {en:'access',mn:'хандах',ex:'Access to internet.'},
+    {en:'artificial',mn:'хиймэл',ex:'AI is changing.'},
+    {en:'upgrade',mn:'сайжруулах',ex:'Upgraded software.'},
+    {en:'network',mn:'сүлжээ',ex:'Fast network.'},
+    {en:'virtual',mn:'виртуал',ex:'Virtual classes.'},
+    {en:'data',mn:'мэдээлэл',ex:'Collect data.'},
+    {en:'efficient',mn:'үр ашигтай',ex:'Efficient work.'},
+    {en:'breakthrough',mn:'нээлт',ex:'Medical breakthrough.'},
+    {en:'automate',mn:'автоматжуулах',ex:'Automate production.'},
+    {en:'interact',mn:'харилцах',ex:'Interact with app.'},
+    {en:'platform',mn:'платформ',ex:'Multiple platforms.'},
+    {en:'reliable',mn:'найдвартай',ex:'Reliable connection.'},
+    {en:'security',mn:'аюулгүй байдал',ex:'Cyber security.'},
+    {en:'update',mn:'шинэчлэх',ex:'Update the app.'},
+    {en:'convenient',mn:'тохиромжтой',ex:'Convenient shopping.'},
+    {en:'feature',mn:'онцлог',ex:'Useful features.'},
+    {en:'gadget',mn:'хэрэгсэл',ex:'New gadgets.'},
+    {en:'digital',mn:'дижитал',ex:'Digital world.'},
+    {en:'software',mn:'програм',ex:'Develop software.'},
+    {en:'download',mn:'татаж авах',ex:'Download file.'},
+    {en:'connect',mn:'холбох',ex:'Connect devices.'},
+    {en:'communicate',mn:'харилцах',ex:'Communicate by email.'},
+    {en:'invention',mn:'шинэ бүтээл',ex:'Important invention.'},
+    {en:'screen',mn:'дэлгэц',ex:'Screen time.'},
+    {en:'signal',mn:'дохио',ex:'Weak signal.'},
+    {en:'password',mn:'нууц үг',ex:'Strong password.'},
+    {en:'online',mn:'онлайн',ex:'Work online.'},
+    {en:'remote',mn:'зайны',ex:'Work remotely.'},
+    {en:'technology',mn:'технологи',ex:'Technology changed education.'},
+    {en:'information',mn:'мэдээлэл',ex:'Useful information.'},
+    {en:'message',mn:'мессеж',ex:'Sent a message.'},
+    {en:'storage',mn:'хадгалалт',ex:'Storage space.'},
+    {en:'wireless',mn:'утасгүй',ex:'Wireless network.'},
+    {en:'battery',mn:'батерей',ex:'Battery dead.'},
+    {en:'portable',mn:'зөөврийн',ex:'Portable laptop.'},
+    {en:'function',mn:'үйлдэл',ex:'Main function.'}
+  ]},
+  'education': { name:'🎓 Боловсрол', words:[
+    {en:'achieve',mn:'амжилтад хүрэх',ex:'Achieve goals.'},
+    {en:'curriculum',mn:'хөтөлбөр',ex:'Updated curriculum.'},
+    {en:'assess',mn:'үнэлэх',ex:'Assess students.'},
+    {en:'enroll',mn:'бүртгүүлэх',ex:'Enrolled in university.'},
+    {en:'scholarship',mn:'тэтгэлэг',ex:'Received a scholarship.'},
+    {en:'graduate',mn:'төгсөх',ex:'Graduate next year.'},
+    {en:'lecture',mn:'лекц',ex:'Gave a lecture.'},
+    {en:'motivate',mn:'урам зориг өгөх',ex:'Motivate students.'},
+    {en:'literacy',mn:'бичиг үсэг',ex:'Literacy improved.'},
+    {en:'academic',mn:'академик',ex:'Academic record.'},
+    {en:'concentrate',mn:'төвлөрөх',ex:'Hard to concentrate.'},
+    {en:'memorize',mn:'цээжлэх',ex:'Memorize vocabulary.'},
+    {en:'comprehend',mn:'ойлгох',ex:'Comprehend the text.'},
+    {en:'evaluate',mn:'үнэлэх',ex:'Evaluate applications.'},
+    {en:'discipline',mn:'сахилга',ex:'Discipline matters.'},
+    {en:'tuition',mn:'төлбөр',ex:'Tuition increased.'},
+    {en:'require',mn:'шаардах',ex:'Requires reading.'},
+    {en:'skill',mn:'чадвар',ex:'Essential skill.'},
+    {en:'research',mn:'судалгаа',ex:'Conducted research.'},
+    {en:'knowledge',mn:'мэдлэг',ex:'Knowledge helps.'},
+    {en:'intelligent',mn:'ухаалаг',ex:'Intelligent student.'},
+    {en:'semester',mn:'улирал',ex:'Spring semester.'},
+    {en:'assignment',mn:'даалгавар',ex:'Difficult assignment.'},
+    {en:'degree',mn:'зэрэг',ex:'Earned a degree.'},
+    {en:'encourage',mn:'урамшуулах',ex:'Encourage reading.'},
+    {en:'explain',mn:'тайлбарлах',ex:'Explain the rule.'},
+    {en:'improve',mn:'сайжруулах',ex:'Improve vocabulary.'},
+    {en:'instruction',mn:'заавар',ex:'Follow instructions.'},
+    {en:'progress',mn:'ахиц',ex:'Made progress.'},
+    {en:'revise',mn:'давтах',ex:'Revise before exam.'},
+    {en:'subject',mn:'хичээл',ex:'Favorite subject.'},
+    {en:'talented',mn:'авьяаслаг',ex:'Talented musician.'},
+    {en:'achievement',mn:'ололт',ex:'Great achievement.'},
+    {en:'fluent',mn:'чөлөөтэй',ex:'Fluent in three languages.'},
+    {en:'participate',mn:'оролцох',ex:'Participate in discussion.'},
+    {en:'theory',mn:'онол',ex:'Theory explains learning.'},
+    {en:'understand',mn:'ойлгох',ex:'Understand the concept.'},
+    {en:'diploma',mn:'диплом',ex:'Received diploma.'}
+  ]}
+};
+
+/* ============================================================
+   EXAM STATE & LOGIC
+   ============================================================ */
+var state = {
+  selected:null, student:{name:'',className:''},
+  answers:[], current:0, timerId:null, remaining:0,
+  startTime:0, submitted:false
+};
+
+function $(s){return document.querySelector(s)}
+function $$(s){return Array.prototype.slice.call(document.querySelectorAll(s))}
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+
+function showScreen(name){
+  var screens = $$('.screen');
+  for (var i=0; i<screens.length; i++) {
+    if (screens[i].getAttribute('data-screen') === name) {
+      screens[i].classList.add('active');
+    } else {
+      screens[i].classList.remove('active');
+    }
+  }
+  if (name !== 'exam') stopTimer();
+  window.scrollTo(0,0);
+}
+
+function goHome(){
+  if (state.timerId && !state.submitted) {
+    openModal('Шалгалтаас гарах уу?', 'Хариултууд хадгалагдахгүй.', 'Тийм, гарах', function(){
+      stopTimer(); state.timerId = null; state.submitted = true; showScreen('home');
+    });
+    return;
+  }
+  showScreen('home');
+}
+
+function fmtTime(sec){
+  var m = Math.floor(sec/60), s = sec%60;
+  return String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+}
+
+function gradeOf(p){
+  if (p>=90) return {letter:'A',label:'Маш сайн',color:'#16a34a'};
+  if (p>=80) return {letter:'B',label:'Сайн',color:'#2563eb'};
+  if (p>=70) return {letter:'C',label:'Дунд',color:'#0891b2'};
+  if (p>=60) return {letter:'D',label:'Хангалттай',color:'#f59e0b'};
+  return {letter:'F',label:'Хангалтгүй',color:'#dc2626'};
+}
+
+function fmtDate(iso){
+  var d = new Date(iso);
+  function p(n){return String(n).padStart(2,'0')}
+  return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes());
+}
+
+var modalAction = null;
+function openModal(title,text,okLabel,action){
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalText').textContent = text;
+  document.getElementById('modalOk').textContent = okLabel || 'Тийм';
+  modalAction = action;
+  document.getElementById('modalBack').classList.add('show');
+}
+function closeModal(){
+  document.getElementById('modalBack').classList.remove('show');
+  modalAction = null;
+}
+
+function openPassModal(){ document.getElementById('passModalBack').classList.add('show'); }
+function closePassModal(){
+  document.getElementById('passModalBack').classList.remove('show');
+  document.getElementById('oldPass').value = '';
+  document.getElementById('newPass').value = '';
+  document.getElementById('newPass2').value = '';
+  document.getElementById('passChangeMsg').classList.add('hidden');
+}
+function openPasswordChange(){ openPassModal(); }
+function changePassword(){
+  var oldP = document.getElementById('oldPass').value;
+  var newP = document.getElementById('newPass').value;
+  var newP2 = document.getElementById('newPass2').value;
+  var msg = document.getElementById('passChangeMsg');
+  if (oldP !== getTeacherPassword()) {
+    msg.className = 'alert alert-err';
+    msg.textContent = 'Одоогийн нууц үг буруу байна.';
+    msg.classList.remove('hidden');
+    return;
+  }
+  if (newP.length < 4) {
+    msg.className = 'alert alert-err';
+    msg.textContent = 'Шинэ нууц үг хамгийн багадаа 4 тэмдэгт байх ёстой.';
+    msg.classList.remove('hidden');
+    return;
+  }
+  if (newP !== newP2) {
+    msg.className = 'alert alert-err';
+    msg.textContent = 'Шинэ нууц үгнүүд таарахгүй байна.';
+    msg.classList.remove('hidden');
+    return;
+  }
+  localStorage.setItem(CONFIG.PASSWORD_KEY, newP);
+  msg.className = 'alert alert-ok';
+  msg.textContent = '✓ Нууц үг амжилттай солигдлоо!';
+  msg.classList.remove('hidden');
+  setTimeout(closePassModal, 1500);
+}
+
+function renderExamList(){
+  var wrap = document.getElementById('examList');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  var years = Object.keys(EXAMS).sort();
+  for (var i=0; i<years.length; i++) {
+    var year = years[i];
+    var count = EXAMS[year].A.length;
+    var div = document.createElement('div');
+    div.className = 'card exam-card';
+    div.innerHTML = '<div class="flex-between"><div class="exam-year">'+year+'</div>'+
+      '<span class="badge">2 хувилбар</span></div>'+
+      '<p class="muted small" style="margin-top:6px">Англи хэл · '+count+' асуулт · 30 минут</p>'+
+      '<div class="version-row">'+
+      '<button class="btn btn-primary" data-year="'+year+'" data-version="A">A хувилбар</button>'+
+      '<button class="btn btn-outline" data-year="'+year+'" data-version="B">B хувилбар</button>'+
+      '</div>';
+    wrap.appendChild(div);
+  }
+  wrap.onclick = function(e){
+    var target = e.target;
+    while (target && target !== wrap) {
+      if (target.getAttribute && target.getAttribute('data-year')) {
+        selectExam(target.getAttribute('data-year'), target.getAttribute('data-version'));
+        return;
+      }
+      target = target.parentNode;
+    }
+  };
+}
+
+function selectExam(year, version){
+  var data = EXAMS[year][version];
+  state.selected = {year:year, version:version, duration:30, questions:data};
+  document.getElementById('startExamInfo').innerHTML = '<span>📋</span><div><b>'+year+' он · '+version+' хувилбар</b><br>Асуулт: <b>'+data.length+'</b> · Хугацаа: <b>30 минут</b></div>';
+  showScreen('start');
+  setTimeout(function(){document.getElementById('inpName').focus()},250);
+}
+
+function startExam(){
+  var name = document.getElementById('inpName').value.trim();
+  var cls = document.getElementById('inpClass').value.trim();
+  var errBox = document.getElementById('startError');
+  if (!name || !cls) {
+    errBox.classList.remove('hidden');
+    errBox.querySelector('div').textContent = 'Овог нэр болон ангиа бөглөнө үү.';
+    return;
+  }
+  errBox.classList.add('hidden');
+  state.student = {name:name, className:cls};
+  state.answers = new Array(state.selected.questions.length);
+  for (var i=0; i<state.answers.length; i++) state.answers[i] = null;
+  state.current = 0;
+  state.submitted = false;
+  state.startTime = Date.now();
+  state.remaining = 30 * 60;
+  document.getElementById('examTitle').textContent = state.selected.year+' он · '+state.selected.version+' хувилбар — English Test';
+  document.getElementById('examStudent').textContent = name+' · '+cls;
+  showScreen('exam');
+  renderQuestion();
+  renderQNav();
+  startTimer();
+}
+
+function startTimer(){
+  stopTimer();
+  updateTimerDisplay();
+  state.timerId = setInterval(function(){
+    state.remaining--;
+    updateTimerDisplay();
+    if (state.remaining <= 0) { stopTimer(); autoSubmit(); }
+  }, 1000);
+}
+function stopTimer(){
+  if (state.timerId) { clearInterval(state.timerId); state.timerId = null; }
+}
+function updateTimerDisplay(){
+  var el = document.getElementById('timer');
+  if (!el) return;
+  el.textContent = fmtTime(Math.max(0, state.remaining));
+  el.classList.remove('warning');
+  el.classList.remove('danger');
+  if (state.remaining <= 60) el.classList.add('danger');
+  else if (state.remaining <= 300) el.classList.add('warning');
+}
+
+function renderQuestion(){
+  var qs = state.selected.questions;
+  var idx = state.current;
+  var q = qs[idx];
+  document.getElementById('qNumber').textContent = 'АСУУЛТ '+(idx+1)+' / '+qs.length;
+  document.getElementById('qText').textContent = q.q;
+  var optBox = document.getElementById('qOptions');
+  optBox.innerHTML = '';
+  var letters = ['A','B','C','D','E'];
+  for (var i=0; i<q.o.length; i++) {
+    (function(i){
+      var b = document.createElement('button');
+      b.className = 'opt' + (state.answers[idx] === i ? ' selected' : '');
+      b.innerHTML = '<span class="letter">'+letters[i]+'</span><span>'+esc(q.o[i])+'</span>';
+      b.onclick = function(){ chooseAnswer(i); };
+      optBox.appendChild(b);
+    })(i);
+  }
+  document.getElementById('prevBtn').disabled = idx === 0;
+  document.getElementById('nextBtn').style.display = idx === qs.length-1 ? 'none' : 'inline-flex';
+  updateProgress();
+}
+
+function chooseAnswer(i){
+  state.answers[state.current] = i;
+  renderQuestion();
+  renderQNav();
+}
+
+function renderQNav(){
+  var nav = document.getElementById('qnav');
+  nav.innerHTML = '';
+  for (var i=0; i<state.selected.questions.length; i++) {
+    (function(i){
+      var b = document.createElement('button');
+      b.textContent = i+1;
+      if (state.answers[i] !== null) b.classList.add('answered');
+      if (i === state.current) b.classList.add('current');
+      b.onclick = function(){ state.current = i; renderQuestion(); renderQNav(); };
+      nav.appendChild(b);
+    })(i);
+  }
+  var ans = 0;
+  for (var j=0; j<state.answers.length; j++) if (state.answers[j] !== null) ans++;
+  document.getElementById('answeredCount').textContent = 'Хариулсан: '+ans+' / '+state.selected.questions.length;
+}
+
+function updateProgress(){
+  var ans = 0;
+  for (var j=0; j<state.answers.length; j++) if (state.answers[j] !== null) ans++;
+  var total = state.selected.questions.length;
+  document.getElementById('progressBar').style.width = ((state.current+1)/total*100)+'%';
+  document.getElementById('answeredCount').textContent = 'Хариулсан: '+ans+' / '+total;
+}
+
+function nextQuestion(){
+  if (state.current < state.selected.questions.length - 1) {
+    state.current++; renderQuestion(); renderQNav();
+  }
+}
+function prevQuestion(){
+  if (state.current > 0) { state.current--; renderQuestion(); renderQNav(); }
+}
+
+function confirmSubmit(){
+  var un = 0;
+  for (var i=0; i<state.answers.length; i++) if (state.answers[i] === null) un++;
+  var msg = un > 0
+    ? 'Танд '+un+' хариулаагүй асуулт байна. Шалгалтыг дуусгах уу?'
+    : 'Бүх асуултад хариулсан. Шалгалтыг дуусгах уу?';
+  openModal('Шалгалтыг дуусгах', msg, 'Тийм, дуусгах', finishExam);
+}
+
+function autoSubmit(){
+  openModal('Хугацаа дууслаа','Хариултууд автоматаар илгээгдлээ.','Үргэлжлүүлэх', finishExam);
+}
+
+function finishExam(){
+  if (state.submitted) return;
+  state.submitted = true;
+  stopTimer();
+  var qs = state.selected.questions;
+  var score = 0;
+  for (var i=0; i<qs.length; i++) {
+    if (state.answers[i] === qs[i].a) score++;
+  }
+  var total = qs.length;
+  var percent = Math.round(score/total*100);
+  var grade = gradeOf(percent);
+  var secsUsed = Math.round((Date.now() - state.startTime)/1000);
+  var record = {
+    id: Date.now()+'-'+Math.random().toString(36).slice(2,8),
+    timestamp: new Date().toISOString(),
+    name: state.student.name,
+    className: state.student.className,
+    year: state.selected.year,
+    version: state.selected.version,
+    score: score, total: total, percent: percent,
+    grade: grade.letter, gradeLabel: grade.label,
+    timeUsed: fmtTime(secsUsed)
+  };
+  saveResult(record);
+  showScreen('thankyou');
+}
+
+function getResults(){
+  try { return JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEY) || '[]'); }
+  catch(e){ return []; }
+}
+function saveResult(r){
+  var all = getResults();
+  all.push(r);
+  try { localStorage.setItem(CONFIG.STORAGE_KEY, JSON.stringify(all)); } catch(e){}
+}
+function clearAllResults(){
+  openModal('Бүх үр дүнг устгах','Энэ үйлдлийг буцаах боломжгүй.','Тийм, устгах', function(){
+    localStorage.removeItem(CONFIG.STORAGE_KEY);
+    renderTeacherTable();
+    renderTeacherStats();
+  });
+}
+
+function openTeacher(){
+  if (sessionStorage.getItem('eep_teacher') === '1') {
+    renderTeacherStats();
+    renderTeacherTable();
+    showScreen('teacher');
+  } else {
+    document.getElementById('loginError').classList.add('hidden');
+    document.getElementById('inpPass').value = '';
+    showScreen('teacher-login');
+    setTimeout(function(){document.getElementById('inpPass').focus()},200);
+  }
+}
+
+function teacherLogin(){
+  var pass = document.getElementById('inpPass').value;
+  if (pass === getTeacherPassword()) {
+    sessionStorage.setItem('eep_teacher','1');
+    document.getElementById('inpPass').value = '';
+    document.getElementById('loginError').classList.add('hidden');
+    renderTeacherStats();
+    renderTeacherTable();
+    showScreen('teacher');
+  } else {
+    document.getElementById('loginError').classList.remove('hidden');
+    document.getElementById('inpPass').value = '';
+    document.getElementById('inpPass').focus();
+  }
+}
+
+function teacherLogout(){
+  sessionStorage.removeItem('eep_teacher');
+  showScreen('home');
+}
+
+function renderTeacherStats(){
+  var all = getResults();
+  var box = document.getElementById('teacherStats');
+  if (!all.length) {
+    box.innerHTML = '<div class="card" style="grid-column:1/-1"><div class="empty-state"><div class="icon">📭</div><p>Одоогоор үр дүн байхгүй.</p></div></div>';
+    return;
+  }
+  var sum=0, best=0, passed=0;
+  for (var i=0; i<all.length; i++) {
+    sum += all[i].percent;
+    if (all[i].percent > best) best = all[i].percent;
+    if (all[i].percent >= 60) passed++;
+  }
+  var avg = Math.round(sum/all.length);
+  box.innerHTML =
+    '<div class="card" style="text-align:center"><div style="font-size:30px;font-weight:800;color:#2563eb">'+all.length+'</div><div class="muted small" style="font-weight:700">Нийт шалгалт</div></div>'+
+    '<div class="card" style="text-align:center"><div style="font-size:30px;font-weight:800;color:#0ea5e9">'+avg+'%</div><div class="muted small" style="font-weight:700">Дундаж</div></div>'+
+    '<div class="card" style="text-align:center"><div style="font-size:30px;font-weight:800;color:#16a34a">'+best+'%</div><div class="muted small" style="font-weight:700">Хамгийн өндөр</div></div>'+
+    '<div class="card" style="text-align:center"><div style="font-size:30px;font-weight:800;color:#f59e0b">'+passed+'/'+all.length+'</div><div class="muted small" style="font-weight:700">Тэнцсэн</div></div>';
+}
+
+function renderTeacherTable(){
+  var box = document.getElementById('teacherTableBox');
+  var searchEl = document.getElementById('tSearch');
+  var yearEl = document.getElementById('tYear');
+  var versionEl = document.getElementById('tVersion');
+  if (!searchEl || !yearEl || !versionEl) return;
+  var search = (searchEl.value||'').toLowerCase();
+  var year = yearEl.value;
+  var version = versionEl.value;
+  var rows = getResults();
+  rows.sort(function(a,b){return new Date(b.timestamp) - new Date(a.timestamp)});
+  var filtered = [];
+  for (var i=0; i<rows.length; i++) {
+    var r = rows[i];
+    if (search && r.name.toLowerCase().indexOf(search) === -1 && (r.className||'').toLowerCase().indexOf(search) === -1) continue;
+    if (year && r.year !== year) continue;
+    if (version && r.version !== version) continue;
+    filtered.push(r);
+  }
+  if (!filtered.length) {
+    box.innerHTML = '<div class="card"><div class="empty-state"><div class="icon">📭</div><p>Үр дүн олдсонгүй.</p></div></div>';
+    return;
+  }
+  var html = '<div class="table-wrap"><table><thead><tr><th>#</th><th>Огноо</th><th>Овог нэр</th><th>Анги</th><th>Жил</th><th>Хувилбар</th><th>Оноо</th><th>Хувь</th><th>Дүн</th><th>Хугацаа</th></tr></thead><tbody>';
+  for (var j=0; j<filtered.length; j++) {
+    var r = filtered[j];
+    var g = gradeOf(r.percent);
+    html += '<tr><td>'+(j+1)+'</td><td>'+fmtDate(r.timestamp)+'</td><td><b>'+esc(r.name)+'</b></td><td>'+esc(r.className)+'</td><td>'+r.year+'</td><td>'+r.version+'</td><td>'+r.score+' / '+r.total+'</td><td><b>'+r.percent+'%</b></td><td><span class="score-chip" style="background:'+g.color+'1a;color:'+g.color+'">'+g.letter+'</span></td><td class="muted">'+(r.timeUsed||'—')+'</td></tr>';
+  }
+  html += '</tbody></table></div><p class="small muted mt-16">Нийт <b>'+filtered.length+'</b> бичлэг.</p>';
+  box.innerHTML = html;
+}
+
+function exportCSV(){
+  var rows = getResults();
+  if (!rows.length) { alert('Өгөгдөл байхгүй.'); return; }
+  rows.sort(function(a,b){return new Date(b.timestamp) - new Date(a.timestamp)});
+  var head = ['Огноо','Овог нэр','Анги','Жил','Хувилбар','Оноо','Нийт','Хувь','Дүн','Хугацаа'];
+  var lines = [head.join(',')];
+  for (var i=0; i<rows.length; i++) {
+    var r = rows[i];
+    var line = [fmtDate(r.timestamp), r.name, r.className, r.year, r.version, r.score, r.total, r.percent+'%', r.grade, r.timeUsed||''].map(function(c){
+      return '"'+String(c).replace(/"/g,'""')+'"';
+    }).join(',');
+    lines.push(line);
+  }
+  var csv = lines.join('\r\n');
+  var blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8;'});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'results_'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+/* ============================================================
+   VOCAB LOGIC
+   ============================================================ */
+var vCurrentCat = 'health';
+var vCurrentWords = [];
+var vCurrentIndex = 0;
+var vMode = 'flash';
+var vDirection = 'en';
+var vQuizOk = 0, vQuizNo = 0, vQuizAnswered = false;
+
+function openVocab(){
+  showScreen('vocab');
+  initCats();
+  selectCat(vCurrentCat);
+}
 
 function initCats(){
-  var box=document.getElementById('cats');box.innerHTML='';
-  for(var k in DATA){
-    var b=document.createElement('button');
-    b.className='cb'+(k===curCat?' active':'');
-    b.textContent=DATA[k].name;
-    b.setAttribute('data-k',k);
-    b.onclick=function(){pickCat(this.getAttribute('data-k'));};
+  var box = document.getElementById('cats');
+  if (!box) return;
+  box.innerHTML = '';
+  for (var k in VOCAB) {
+    var b = document.createElement('button');
+    b.className = 'cat-btn' + (k === vCurrentCat ? ' active' : '');
+    b.textContent = VOCAB[k].name;
+    b.setAttribute('data-k', k);
+    b.onclick = function(){ selectCat(this.getAttribute('data-k')); };
     box.appendChild(b);
   }
 }
 
-function pickCat(k){
-  curCat=k;curWords=DATA[k].words.slice();curIdx=0;back=false;qOk=0;qNo=0;
-  var bs=document.querySelectorAll('.cb');
-  for(var i=0;i<bs.length;i++){
-    if(bs[i].getAttribute('data-k')===k)bs[i].classList.add('active');
+function selectCat(k){
+  vCurrentCat = k;
+  vCurrentWords = VOCAB[k].words.slice();
+  vCurrentIndex = 0;
+  vQuizOk = 0;
+  vQuizNo = 0;
+  vDirection = 'en';
+  var bs = document.querySelectorAll('.cat-btn');
+  for (var i=0; i<bs.length; i++) {
+    if (bs[i].getAttribute('data-k') === k) bs[i].classList.add('active');
     else bs[i].classList.remove('active');
   }
-  if(mode==='flash')renderCard();else renderQuiz();
+  document.getElementById('flashCard').classList.remove('flipped');
+  if (vMode === 'flash') renderCard();
+  else renderQuiz();
 }
 
 function renderCard(){
-  if(!curWords.length)return;
-  var w=curWords[curIdx];
-  var c=document.getElementById('card');
-  if(back){
-    c.classList.add('back');
-    document.getElementById('lbl').textContent='МОНГОЛ';
-    document.getElementById('word').textContent=w.mn;
-    document.getElementById('ex').textContent=w.ex;
-    document.getElementById('hint').textContent='← Дарж буцаах';
-  } else {
-    c.classList.remove('back');
-    document.getElementById('lbl').textContent='ENGLISH';
-    document.getElementById('word').textContent=w.en;
-    document.getElementById('ex').textContent=w.ex;
-    document.getElementById('hint').textContent='Дарж эргүүлэх →';
-  }
-  document.getElementById('counter').textContent=(curIdx+1)+' / '+curWords.length;
+  if (!vCurrentWords.length) return;
+  var w = vCurrentWords[vCurrentIndex];
+  document.getElementById('fWord').textContent = w.en;
+  document.getElementById('fEx').textContent = w.ex;
+  document.getElementById('bWord').textContent = w.mn;
+  document.getElementById('bEx').textContent = w.ex;
+  document.getElementById('vCounter').textContent = (vCurrentIndex+1)+' / '+vCurrentWords.length;
 }
 
-function flip(){back=!back;renderCard();}
-function next(){if(curIdx<curWords.length-1)curIdx++;else curIdx=0;back=false;renderCard();}
-function prev(){if(curIdx>0)curIdx--;else curIdx=curWords.length-1;back=false;renderCard();}
-function shuffle(){
-  for(var i=curWords.length-1;i>0;i--){
-    var j=Math.floor(Math.random()*(i+1));
-    var t=curWords[i];curWords[i]=curWords[j];curWords[j]=t;
-  }
-  curIdx=0;back=false;renderCard();
+function flipCard(e){
+  if (e && e.target.closest('.speak-btn')) return;
+  document.getElementById('flashCard').classList.toggle('flipped');
 }
 
-function speak(e){
-  if(e)e.stopPropagation();
-  var w=curWords[curIdx];
-  var txt=back?w.mn:w.en;
-  var lang=back?'mn-MN':'en-US';
-  if(!('speechSynthesis' in window)){alert('Browser дэмжихгүй');return;}
+function nextCard(){
+  if (vCurrentIndex < vCurrentWords.length - 1) vCurrentIndex++;
+  else vCurrentIndex = 0;
+  document.getElementById('flashCard').classList.remove('flipped');
+  renderCard();
+}
+
+function prevCard(){
+  if (vCurrentIndex > 0) vCurrentIndex--;
+  else vCurrentIndex = vCurrentWords.length - 1;
+  document.getElementById('flashCard').classList.remove('flipped');
+  renderCard();
+}
+
+function shuffleCards(){
+  for (var i=vCurrentWords.length-1; i>0; i--) {
+    var j = Math.floor(Math.random()*(i+1));
+    var t = vCurrentWords[i]; vCurrentWords[i] = vCurrentWords[j]; vCurrentWords[j] = t;
+  }
+  vCurrentIndex = 0;
+  document.getElementById('flashCard').classList.remove('flipped');
+  renderCard();
+}
+
+function speakWord(e){
+  if (e) e.stopPropagation();
+  var w = vCurrentWords[vCurrentIndex];
+  var isFlipped = document.getElementById('flashCard').classList.contains('flipped');
+  var text = isFlipped ? w.mn : w.en;
+  var lang = isFlipped ? 'mn-MN' : 'en-US';
+  if (!('speechSynthesis' in window)) { alert('Таны браузер дуудлагыг дэмжихгүй байна.'); return; }
   window.speechSynthesis.cancel();
-  var u=new SpeechSynthesisUtterance(txt);
-  u.lang=lang;u.rate=0.85;
+  var u = new SpeechSynthesisUtterance(text);
+  u.lang = lang;
+  u.rate = 0.85;
   window.speechSynthesis.speak(u);
 }
 
-function setMode(m){
-  mode=m;
-  document.getElementById('mFlash').classList.toggle('active',m==='flash');
-  document.getElementById('mQuiz').classList.toggle('active',m==='quiz');
-  if(m==='flash'){
-    document.getElementById('flashBox').style.display='block';
-    document.getElementById('quizBox').style.display='none';
+function setVMode(m){
+  vMode = m;
+  document.getElementById('mFlash').classList.toggle('active', m==='flash');
+  document.getElementById('mQuiz').classList.toggle('active', m==='quiz');
+  if (m === 'flash') {
+    document.getElementById('flashBox').style.display = 'block';
+    document.getElementById('quizBox').style.display = 'none';
     renderCard();
   } else {
-    document.getElementById('flashBox').style.display='none';
-    document.getElementById('quizBox').style.display='block';
-    qOk=0;qNo=0;renderQuiz();
+    document.getElementById('flashBox').style.display = 'none';
+    document.getElementById('quizBox').style.display = 'block';
+    vQuizOk = 0; vQuizNo = 0;
+    renderQuiz();
   }
 }
 
 function renderQuiz(){
-  if(!curWords.length)return;
-  qAns=false;
-  var w=curWords[curIdx];
-  document.getElementById('qWord').textContent=w.en;
-  var opts=[w.mn];
-  var pool=curWords.filter(function(x){return x.mn!==w.mn});
-  for(var i=pool.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=pool[i];pool[i]=pool[j];pool[j]=t;}
-  for(var i=0;i<3&&i<pool.length;i++)opts.push(pool[i].mn);
-  for(var i=opts.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=opts[i];opts[i]=opts[j];opts[j]=t;}
-  var box=document.getElementById('qOpts');box.innerHTML='';
-  for(var i=0;i<opts.length;i++){
+  if (!vCurrentWords.length) return;
+  vQuizAnswered = false;
+  var w = vCurrentWords[vCurrentIndex];
+  document.getElementById('quizWord').textContent = w.en;
+  var opts = [w.mn];
+  var pool = vCurrentWords.filter(function(x){ return x.mn !== w.mn; });
+  for (var i=pool.length-1; i>0; i--) {
+    var j = Math.floor(Math.random()*(i+1));
+    var t = pool[i]; pool[i] = pool[j]; pool[j] = t;
+  }
+  for (var i=0; i<3 && i<pool.length; i++) opts.push(pool[i].mn);
+  for (var i=opts.length-1; i>0; i--) {
+    var j = Math.floor(Math.random()*(i+1));
+    var t = opts[i]; opts[i] = opts[j]; opts[j] = t;
+  }
+  var box = document.getElementById('quizOptions');
+  box.innerHTML = '';
+  for (var i=0; i<opts.length; i++) {
     (function(o){
-      var b=document.createElement('button');
-      b.className='qopt';
-      b.textContent=o;
-      b.onclick=function(){checkQ(b,o,w.mn);};
+      var b = document.createElement('button');
+      b.className = 'quiz-opt';
+      b.textContent = o;
+      b.onclick = function(){ checkQuiz(b, o, w.mn); };
       box.appendChild(b);
     })(opts[i]);
   }
-  document.getElementById('qFb').textContent='';
-  document.getElementById('qNext').style.display='none';
-  document.getElementById('qOk').textContent=qOk;
-  document.getElementById('qNo').textContent=qNo;
+  document.getElementById('quizFeedback').textContent = '';
+  document.getElementById('quizNext').style.display = 'none';
+  document.getElementById('quizOk').textContent = vQuizOk;
+  document.getElementById('quizNo').textContent = vQuizNo;
 }
 
-function checkQ(btn,chosen,correct){
-  if(qAns)return;
-  qAns=true;
-  var all=document.querySelectorAll('.qopt');
-  for(var i=0;i<all.length;i++)all[i].style.pointerEvents='none';
-  if(chosen===correct){
-    btn.classList.add('ok');
-    document.getElementById('qFb').textContent='✓ Зөв!';
-    document.getElementById('qFb').style.color='#16a34a';
-    qOk++;
+function checkQuiz(btn, chosen, correct){
+  if (vQuizAnswered) return;
+  vQuizAnswered = true;
+  var all = document.querySelectorAll('.quiz-opt');
+  for (var i=0; i<all.length; i++) all[i].classList.add('disabled');
+  if (chosen === correct) {
+    btn.classList.add('correct');
+    document.getElementById('quizFeedback').textContent = '✓ Зөв!';
+    document.getElementById('quizFeedback').className = 'quiz-feedback ok';
+    vQuizOk++;
   } else {
-    btn.classList.add('no');
-    for(var i=0;i<all.length;i++){if(all[i].textContent===correct)all[i].classList.add('ok');}
-    document.getElementById('qFb').textContent='✗ Буруу. Зөв: '+correct;
-    document.getElementById('qFb').style.color='#dc2626';
-    qNo++;
+    btn.classList.add('wrong');
+    for (var i=0; i<all.length; i++) {
+      if (all[i].textContent === correct) all[i].classList.add('correct');
+    }
+    document.getElementById('quizFeedback').textContent = '✗ Буруу. Зөв: ' + correct;
+    document.getElementById('quizFeedback').className = 'quiz-feedback no';
+    vQuizNo++;
   }
-  document.getElementById('qOk').textContent=qOk;
-  document.getElementById('qNo').textContent=qNo;
-  document.getElementById('qNext').style.display='inline-block';
+  document.getElementById('quizOk').textContent = vQuizOk;
+  document.getElementById('quizNo').textContent = vQuizNo;
+  document.getElementById('quizNext').style.display = 'inline-flex';
 }
 
 function nextQuiz(){
-  if(curIdx<curWords.length-1)curIdx++;else curIdx=0;
+  if (vCurrentIndex < vCurrentWords.length - 1) vCurrentIndex++;
+  else vCurrentIndex = 0;
   renderQuiz();
 }
 
-document.getElementById('card').onclick=flip;
-document.addEventListener('keydown',function(e){
-  if(mode!=='flash')return;
-  if(e.key==='ArrowRight')next();
-  if(e.key==='ArrowLeft')prev();
-  if(e.key===' '){e.preventDefault();flip();}
+/* ============================================================
+   INIT
+   ============================================================ */
+document.addEventListener('DOMContentLoaded', function(){
+  renderExamList();
+  document.getElementById('modalOk').onclick = function(){
+    var a = modalAction;
+    closeModal();
+    if (typeof a === 'function') a();
+  };
+  document.getElementById('modalBack').onclick = function(e){
+    if (e.target === this) closeModal();
+  };
+  document.getElementById('passModalBack').onclick = function(e){
+    if (e.target === this) closePassModal();
+  };
+  document.addEventListener('keydown', function(e){
+    var examScreen = document.querySelector('.screen[data-screen="exam"]');
+    if (examScreen && examScreen.classList.contains('active')) {
+      if (e.key === 'ArrowRight') nextQuestion();
+      if (e.key === 'ArrowLeft') prevQuestion();
+    }
+    var vocabScreen = document.querySelector('.screen[data-screen="vocab"]');
+    if (vocabScreen && vocabScreen.classList.contains('active') && vMode === 'flash') {
+      if (e.key === 'ArrowRight') nextCard();
+      if (e.key === 'ArrowLeft') prevCard();
+      if (e.key === ' ') { e.preventDefault(); flipCard(); }
+    }
+  });
 });
-
-initCats();
-pickCat('health');
 </script>
 </body>
 </html>
