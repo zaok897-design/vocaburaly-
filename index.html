@@ -11,12 +11,12 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 input,select{font-family:inherit}
 .container{max-width:1100px;margin:0 auto;padding:0 18px}
 header{background:#fff;border-bottom:1px solid #e2e8f0;padding:12px 0;position:sticky;top:0;z-index:50}
-.header-inner{display:flex;justify-content:space-between;align-items:center;gap:14px}
+.header-inner{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}
 .brand{display:flex;gap:11px;align-items:center;cursor:pointer}
 .brand-mark{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,#1e3a8a,#2563eb,#0ea5e9);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800}
 .brand-text b{display:block;font-size:15px}
 .brand-text span{display:block;font-size:11px;color:#64748b}
-nav{display:flex;gap:6px}
+nav{display:flex;gap:6px;flex-wrap:wrap}
 .nav-link{padding:8px 14px;border-radius:9px;font-size:14px;font-weight:600;color:#64748b}
 .nav-link:hover{background:#dbeafe;color:#1d4ed8}
 .nav-link.active{background:#2563eb;color:#fff}
@@ -120,14 +120,12 @@ td{padding:12px 14px;border-bottom:1px solid #f1f5f9}
 .flex-between{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}
 .hidden{display:none !important}
 footer{border-top:1px solid #e2e8f0;background:#fff;padding:20px;text-align:center;font-size:13px;color:#64748b}
-
-/* ============ VOCAB STYLES (same design) ============ */
 .cats{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;justify-content:center}
 .cat-btn{padding:8px 16px;border-radius:999px;background:#fff;border:1.5px solid #e2e8f0;font-size:13px;font-weight:600;color:#475569;transition:.2s}
 .cat-btn:hover{border-color:#2563eb;color:#2563eb}
-.cat-btn.active{background:#2563eb;border-color:#2563eb;color:#fff;box-shadow:0 4px 12px rgba(37,99,235,.3)}
+.cat-btn.active{background:#2563eb;border-color:#2563eb;color:#fff}
 .modes{display:flex;gap:8px;justify-content:center;margin-bottom:20px;flex-wrap:wrap}
-.mode-btn{padding:8px 18px;border-radius:999px;background:#fff;border:1.5px solid #e2e8f0;font-size:13px;font-weight:600;color:#475569;transition:.2s}
+.mode-btn{padding:8px 18px;border-radius:999px;background:#fff;border:1.5px solid #e2e8f0;font-size:13px;font-weight:600;color:#475569}
 .mode-btn.active{background:#0f172a;border-color:#0f172a;color:#fff}
 .flash-wrap{perspective:1200px;margin-bottom:20px}
 .flash-card{position:relative;width:100%;min-height:320px;cursor:pointer;transform-style:preserve-3d;transition:transform .6s;border-radius:20px}
@@ -141,16 +139,14 @@ footer{border-top:1px solid #e2e8f0;background:#fff;padding:20px;text-align:cent
 .flash-face .fex{font-size:14px;color:#64748b;font-style:italic;margin-top:14px;padding-top:14px;border-top:1px solid #e2e8f0;max-width:540px}
 .flash-back .fex{color:rgba(255,255,255,.92);border-top-color:rgba(255,255,255,.28)}
 .speak-btn{position:absolute;top:14px;right:14px;width:44px;height:44px;border-radius:50%;background:#dbeafe;display:flex;align-items:center;justify-content:center;font-size:20px;transition:.2s;border:none;cursor:pointer}
-.speak-btn:hover{background:#bfdbfe;transform:scale(1.08)}
+.speak-btn:hover{background:#bfdbfe}
 .flash-back .speak-btn{background:rgba(255,255,255,.25)}
-.flash-back .speak-btn:hover{background:rgba(255,255,255,.4)}
 .fhint{position:absolute;bottom:14px;left:0;right:0;text-align:center;font-size:12px;color:#94a3b8}
 .flash-back .fhint{color:rgba(255,255,255,.78)}
 .vcontrols{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:16px}
 .vinfo{text-align:center;color:#64748b;font-size:13px;margin-top:12px}
 .quiz-box{background:#fff;border-radius:16px;padding:28px;box-shadow:0 4px 16px rgba(15,23,42,.06);text-align:center;border:1px solid #e2e8f0}
 .quiz-box h3{font-size:20px;font-weight:800;margin-bottom:6px;color:#2563eb}
-.quiz-box .q-sub{font-size:13px;color:#64748b;margin-bottom:20px}
 .quiz-word{font-size:30px;font-weight:800;color:#2563eb;margin:16px 0 22px;word-break:break-word}
 .quiz-options{display:flex;flex-direction:column;gap:10px;max-width:520px;margin:0 auto 16px}
 .quiz-opt{padding:14px 18px;border-radius:12px;border:1.5px solid #e2e8f0;background:#fff;font-size:15px;font-weight:600;text-align:left;transition:.18s;color:#0f172a}
@@ -163,7 +159,6 @@ footer{border-top:1px solid #e2e8f0;background:#fff;padding:20px;text-align:cent
 .quiz-feedback.no{color:#dc2626}
 .quiz-score{display:flex;justify-content:center;gap:24px;font-size:14px;color:#64748b;margin-bottom:14px}
 .quiz-score b{color:#2563eb;font-size:17px}
-
 @media(max-width:800px){.exam-layout{grid-template-columns:1fr}.side-card{position:static;order:-1}.qnav{grid-template-columns:repeat(8,1fr)}.hero h1{font-size:32px}}
 @media(max-width:520px){.flash-face .fword{font-size:28px}.quiz-word{font-size:22px}.flash-card{min-height:280px}.flash-face{padding:28px 18px}.hero h1{font-size:26px}}
 </style>
@@ -172,7 +167,7 @@ footer{border-top:1px solid #e2e8f0;background:#fff;padding:20px;text-align:cent
 
 <header>
   <div class="container header-inner">
-    <div class="brand" onclick="showScreen('home')">
+    <div class="brand" onclick="go('home')">
       <div class="brand-mark">EN</div>
       <div class="brand-text">
         <b>English Learning Portal</b>
@@ -180,10 +175,10 @@ footer{border-top:1px solid #e2e8f0;background:#fff;padding:20px;text-align:cent
       </div>
     </div>
     <nav>
-      <button class="nav-link" onclick="showScreen('home')">🏠 Нүүр</button>
-      <button class="nav-link" onclick="showScreen('select')">📝 Шалгалт</button>
-      <button class="nav-link" onclick="openVocab()">📚 Үгсийн сан</button>
-      <button class="nav-link" onclick="openTeacher()">👨‍🏫 Багш</button>
+      <button class="nav-link" data-nav="home" onclick="go('home')">🏠 Нүүр</button>
+      <button class="nav-link" data-nav="select" onclick="go('select')">📝 Шалгалт</button>
+      <button class="nav-link" data-nav="vocab" onclick="openVocab()">📚 Үгсийн сан</button>
+      <button class="nav-link" data-nav="teacher" onclick="openTeacher()">👨‍🏫 Багш</button>
     </nav>
   </div>
 </header>
@@ -198,12 +193,12 @@ footer{border-top:1px solid #e2e8f0;background:#fff;padding:20px;text-align:cent
     <p class="subtitle">Англи хэл сурах цахим платформ</p>
     <p class="desc">Шалгалт өгөх, үгсийн сангаа баяжуулах, дуудлагыг сонсох — бүгд нэг дор.</p>
     <div class="hero-actions">
-      <button class="btn btn-white btn-lg" onclick="showScreen('select')">📝 Шалгалт өгөх</button>
+      <button class="btn btn-white btn-lg" onclick="go('select')">📝 Шалгалт өгөх</button>
       <button class="btn btn-glass btn-lg" onclick="openVocab()">📚 Үгсийн сан</button>
     </div>
   </div>
   <div class="grid grid-3 mt-24">
-    <button class="tile" onclick="showScreen('select')">
+    <button class="tile" onclick="go('select')">
       <div class="tile-icon" style="background:#dbeafe">📝</div>
       <h3>Шалгалт өгөх</h3>
       <p>2021–2025 оны A болон B хувилбараас сонгоно уу.</p>
@@ -213,10 +208,10 @@ footer{border-top:1px solid #e2e8f0;background:#fff;padding:20px;text-align:cent
       <h3>Үгсийн сан</h3>
       <p>10 ангилал · Карт, дуудлага, асуулт хариулт.</p>
     </button>
-    <button class="tile" onclick="showScreen('instructions')">
-      <div class="tile-icon" style="background:#fef3c7">📖</div>
-      <h3>Заавар</h3>
-      <p>Шалгалтын дүрэм, үнэлгээний талаарх мэдээлэл.</p>
+    <button class="tile" onclick="openTeacher()">
+      <div class="tile-icon" style="background:#fef3c7">👨‍🏫</div>
+      <h3>Багшийн хэсэг</h3>
+      <p>Зөвхөн багш нарт зориулсан үр дүнгийн хяналт.</p>
     </button>
   </div>
 </div>
@@ -235,7 +230,7 @@ footer{border-top:1px solid #e2e8f0;background:#fff;padding:20px;text-align:cent
       <div class="step"><div class="step-num">5</div><div><b>Багш үр дүнг харна</b><p class="small muted">Таны оноог зөвхөн багш харна.</p></div></div>
     </div>
     <div class="alert alert-warn mt-16"><span>⚠️</span><div>Шалгалт дууссаны дараа оноо <b>шууд харагдахгүй</b>. Багш таны үр дүнг хянана.</div></div>
-    <div class="mt-24"><button class="btn btn-primary btn-lg" onclick="showScreen('select')">Шалгалт эхлүүлэх →</button></div>
+    <div class="mt-24"><button class="btn btn-primary btn-lg" onclick="go('select')">Шалгалт эхлүүлэх →</button></div>
   </div>
 </div>
 
@@ -246,7 +241,7 @@ footer{border-top:1px solid #e2e8f0;background:#fff;padding:20px;text-align:cent
       <h2 class="section-title">📝 Шалгалт сонгох</h2>
       <p class="section-sub" style="margin-bottom:0">Жил болон хувилбараа сонгоно уу.</p>
     </div>
-    <button class="btn btn-outline btn-sm" onclick="showScreen('home')">← Нүүр</button>
+    <button class="btn btn-outline btn-sm" onclick="go('home')">← Нүүр</button>
   </div>
   <div class="grid grid-2" id="examList"></div>
 </div>
@@ -257,17 +252,11 @@ footer{border-top:1px solid #e2e8f0;background:#fff;padding:20px;text-align:cent
     <h2 class="section-title">Сурагчийн мэдээлэл</h2>
     <p class="section-sub">Шалгалт эхлэхээс өмнө бөглөнө үү.</p>
     <div class="alert alert-info" id="startExamInfo"><span>📋</span><div></div></div>
-    <div class="field">
-      <label>Овог нэр *</label>
-      <input type="text" id="inpName" placeholder="Жишээ: Бат-Эрдэнэ Тэмүүлэн">
-    </div>
-    <div class="field">
-      <label>Анги *</label>
-      <input type="text" id="inpClass" placeholder="Жишээ: 11А">
-    </div>
+    <div class="field"><label>Овог нэр *</label><input type="text" id="inpName" placeholder="Жишээ: Бат-Эрдэнэ Тэмүүлэн"></div>
+    <div class="field"><label>Анги *</label><input type="text" id="inpClass" placeholder="Жишээ: 11А"></div>
     <div id="startError" class="alert alert-err hidden"><span>⚠️</span><div></div></div>
     <div class="modal-actions mt-16">
-      <button class="btn btn-outline" onclick="showScreen('select')">← Буцах</button>
+      <button class="btn btn-outline" onclick="go('select')">← Буцах</button>
       <button class="btn btn-primary" onclick="startExam()">Шалгалт эхлүүлэх →</button>
     </div>
   </div>
@@ -289,9 +278,9 @@ footer{border-top:1px solid #e2e8f0;background:#fff;padding:20px;text-align:cent
       <div class="q-text" id="qText">—</div>
       <div class="options" id="qOptions"></div>
       <div class="exam-actions">
-        <button class="btn btn-outline" id="prevBtn" onclick="prevQuestion()">← Өмнөх</button>
-        <button class="btn btn-primary" id="nextBtn" onclick="nextQuestion()">Дараах →</button>
-        <button class="btn btn-success" id="submitBtn" onclick="confirmSubmit()">✓ Шалгалтыг дуусгах</button>
+        <button class="btn btn-outline" id="prevBtn" onclick="prevQ()">← Өмнөх</button>
+        <button class="btn btn-primary" id="nextBtn" onclick="nextQ()">Дараах →</button>
+        <button class="btn btn-success" onclick="confirmSubmit()">✓ Шалгалтыг дуусгах</button>
       </div>
     </div>
     <div class="card side-card">
@@ -309,12 +298,9 @@ footer{border-top:1px solid #e2e8f0;background:#fff;padding:20px;text-align:cent
     <h2>Баярлалаа!</h2>
     <p style="font-size:16px;color:#64748b;margin-bottom:20px">Та шалгалтаа амжилттай дуусгалаа.</p>
     <div class="alert alert-ok" style="display:inline-flex;text-align:left;max-width:500px">
-      <span>ℹ️</span>
-      <div>Таны үр дүн багшид хүргэгдлээ. <b>Оноог зөвхөн багш харна.</b></div>
+      <span>ℹ️</span><div>Таны үр дүн багшид хүргэгдлээ. <b>Оноог зөвхөн багш харна.</b></div>
     </div>
-    <div class="mt-24">
-      <button class="btn btn-primary btn-lg" onclick="showScreen('home')">🏠 Нүүр хуудас</button>
-    </div>
+    <div class="mt-24"><button class="btn btn-primary btn-lg" onclick="go('home')">🏠 Нүүр хуудас</button></div>
   </div>
 </div>
 
@@ -325,18 +311,14 @@ footer{border-top:1px solid #e2e8f0;background:#fff;padding:20px;text-align:cent
       <h2 class="section-title">📚 Үгсийн сан</h2>
       <p class="section-sub" style="margin-bottom:0">Ангилал сонгон карт эсвэл асуулт хариултын горимд давтана уу.</p>
     </div>
-    <button class="btn btn-outline btn-sm" onclick="showScreen('home')">← Нүүр</button>
+    <button class="btn btn-outline btn-sm" onclick="go('home')">← Нүүр</button>
   </div>
-
   <div class="cats" id="cats"></div>
-
   <div class="modes">
     <button class="mode-btn active" id="mFlash" onclick="setVMode('flash')">📇 Карт</button>
     <button class="mode-btn" id="mQuiz" onclick="setVMode('quiz')">🎯 Асуулт</button>
     <button class="mode-btn" onclick="shuffleCards()">🔀 Холих</button>
   </div>
-
-  <!-- FLASH MODE -->
   <div id="flashBox">
     <div class="flash-wrap">
       <div class="flash-card" id="flashCard" onclick="flipCard(event)">
@@ -361,12 +343,10 @@ footer{border-top:1px solid #e2e8f0;background:#fff;padding:20px;text-align:cent
     </div>
     <div class="vinfo"><span id="vCounter">1 / 1</span></div>
   </div>
-
-  <!-- QUIZ MODE -->
   <div id="quizBox" style="display:none">
     <div class="quiz-box">
       <h3>Асуулт хариулт</h3>
-      <div class="q-sub">Зөв орчуулгыг сонгоно уу</div>
+      <div class="small muted mb-16">Зөв орчуулгыг сонгоно уу</div>
       <div class="quiz-word" id="quizWord">—</div>
       <div class="quiz-options" id="quizOptions"></div>
       <div class="quiz-feedback" id="quizFeedback"></div>
@@ -387,13 +367,10 @@ footer{border-top:1px solid #e2e8f0;background:#fff;padding:20px;text-align:cent
       <h2 class="section-title">Багшийн хэсэг</h2>
       <p class="section-sub">Нууц үгээ оруулна уу.</p>
     </div>
-    <div class="field">
-      <label>Нууц үг</label>
-      <input type="password" id="inpPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')teacherLogin()">
-    </div>
+    <div class="field"><label>Нууц үг</label><input type="password" id="inpPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')teacherLogin()"></div>
     <div id="loginError" class="alert alert-err hidden"><span>⚠️</span><div>Нууц үг буруу байна.</div></div>
     <div class="modal-actions mt-16">
-      <button class="btn btn-outline" onclick="showScreen('home')">← Буцах</button>
+      <button class="btn btn-outline" onclick="go('home')">← Буцах</button>
       <button class="btn btn-primary" onclick="teacherLogin()">Нэвтрэх →</button>
     </div>
   </div>
@@ -445,7 +422,7 @@ footer{border-top:1px solid #e2e8f0;background:#fff;padding:20px;text-align:cent
 
 <footer>
   <div class="container">
-    <p><b>English Learning Portal</b> — Шалгалт & Үгсийн сан</p>
+    <p><b>English Learning Portal</b> — Шалгалт & Үгсийн сан & Багш</p>
     <p class="small">© 2021–2025</p>
   </div>
 </footer>
@@ -466,19 +443,10 @@ footer{border-top:1px solid #e2e8f0;background:#fff;padding:20px;text-align:cent
 <div class="modal-back" id="passModalBack">
   <div class="modal">
     <h3>🔑 Нууц үг солих</h3>
-    <p>Шинэ нууц үгээ оруулна уу. Дараагийн удаа энэ нууц үгээр нэвтэрнэ.</p>
-    <div class="field">
-      <label>Одоогийн нууц үг</label>
-      <input type="password" id="oldPass" placeholder="••••••••">
-    </div>
-    <div class="field">
-      <label>Шинэ нууц үг</label>
-      <input type="password" id="newPass" placeholder="••••••••">
-    </div>
-    <div class="field">
-      <label>Шинэ нууц үг (давтах)</label>
-      <input type="password" id="newPass2" placeholder="••••••••">
-    </div>
+    <p>Шинэ нууц үгээ оруулна уу.</p>
+    <div class="field"><label>Одоогийн нууц үг</label><input type="password" id="oldPass" placeholder="••••••••"></div>
+    <div class="field"><label>Шинэ нууц үг</label><input type="password" id="newPass" placeholder="••••••••"></div>
+    <div class="field"><label>Шинэ нууц үг (давтах)</label><input type="password" id="newPass2" placeholder="••••••••"></div>
     <div id="passChangeMsg" class="alert hidden"></div>
     <div class="modal-actions">
       <button class="btn btn-outline" onclick="closePassModal()">Болих</button>
@@ -488,6 +456,9 @@ footer{border-top:1px solid #e2e8f0;background:#fff;padding:20px;text-align:cent
 </div>
 
 <script>
+/* ============================================================
+   1. CONFIG
+   ============================================================ */
 var CONFIG = {
   DEFAULT_PASSWORD: 'teacher2025',
   PASSWORD_KEY: 'eep_teacher_pass_v1',
@@ -498,8 +469,18 @@ function getTeacherPassword(){
   return localStorage.getItem(CONFIG.PASSWORD_KEY) || CONFIG.DEFAULT_PASSWORD;
 }
 
+var state = {
+  selected:null, student:{name:'',className:''},
+  answers:[], current:0, timerId:null, remaining:0,
+  startTime:0, submitted:false
+};
+
+function $(s){return document.querySelector(s)}
+function $$(s){return Array.prototype.slice.call(document.querySelectorAll(s))}
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+
 /* ============================================================
-   EXAM DATA (2021-2025, A/B) — бүрэн
+   2. EXAMS DATA
    ============================================================ */
 var EXAMS = {
   '2021': {
@@ -684,7 +665,7 @@ var EXAMS = {
 };
 
 /* ============================================================
-   VOCAB DATA — 10 ангилал
+   3. VOCAB DATA
    ============================================================ */
 var VOCAB = {
   'health': { name:'🏥 Эрүүл мэнд', words:[
@@ -994,26 +975,20 @@ var VOCAB = {
 };
 
 /* ============================================================
-   EXAM STATE & LOGIC
+   4. NAVIGATION
    ============================================================ */
-var state = {
-  selected:null, student:{name:'',className:''},
-  answers:[], current:0, timerId:null, remaining:0,
-  startTime:0, submitted:false
-};
-
-function $(s){return document.querySelector(s)}
-function $$(s){return Array.prototype.slice.call(document.querySelectorAll(s))}
-function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
-
-function showScreen(name){
+function go(name){
   var screens = $$('.screen');
   for (var i=0; i<screens.length; i++) {
-    if (screens[i].getAttribute('data-screen') === name) {
-      screens[i].classList.add('active');
-    } else {
-      screens[i].classList.remove('active');
-    }
+    screens[i].classList.toggle('active', screens[i].getAttribute('data-screen') === name);
+  }
+  $$('.nav-link').forEach(function(n){ n.classList.remove('active'); });
+  var map = {home:'home', select:'select', start:'select', exam:'select', thankyou:'select',
+    vocab:'vocab', 'teacher-login':'teacher', teacher:'teacher'};
+  var navKey = map[name];
+  if (navKey) {
+    var nav = document.querySelector('.nav-link[data-nav="'+navKey+'"]');
+    if (nav) nav.classList.add('active');
   }
   if (name !== 'exam') stopTimer();
   window.scrollTo(0,0);
@@ -1022,18 +997,20 @@ function showScreen(name){
 function goHome(){
   if (state.timerId && !state.submitted) {
     openModal('Шалгалтаас гарах уу?', 'Хариултууд хадгалагдахгүй.', 'Тийм, гарах', function(){
-      stopTimer(); state.timerId = null; state.submitted = true; showScreen('home');
+      stopTimer(); state.timerId = null; state.submitted = true; go('home');
     });
     return;
   }
-  showScreen('home');
+  go('home');
 }
 
+/* ============================================================
+   5. HELPERS
+   ============================================================ */
 function fmtTime(sec){
   var m = Math.floor(sec/60), s = sec%60;
   return String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
 }
-
 function gradeOf(p){
   if (p>=90) return {letter:'A',label:'Маш сайн',color:'#16a34a'};
   if (p>=80) return {letter:'B',label:'Сайн',color:'#2563eb'};
@@ -1041,7 +1018,6 @@ function gradeOf(p){
   if (p>=60) return {letter:'D',label:'Хангалттай',color:'#f59e0b'};
   return {letter:'F',label:'Хангалтгүй',color:'#dc2626'};
 }
-
 function fmtDate(iso){
   var d = new Date(iso);
   function p(n){return String(n).padStart(2,'0')}
@@ -1060,7 +1036,6 @@ function closeModal(){
   document.getElementById('modalBack').classList.remove('show');
   modalAction = null;
 }
-
 function openPassModal(){ document.getElementById('passModalBack').classList.add('show'); }
 function closePassModal(){
   document.getElementById('passModalBack').classList.remove('show');
@@ -1100,6 +1075,9 @@ function changePassword(){
   setTimeout(closePassModal, 1500);
 }
 
+/* ============================================================
+   6. EXAM LOGIC
+   ============================================================ */
 function renderExamList(){
   var wrap = document.getElementById('examList');
   if (!wrap) return;
@@ -1135,7 +1113,7 @@ function selectExam(year, version){
   var data = EXAMS[year][version];
   state.selected = {year:year, version:version, duration:30, questions:data};
   document.getElementById('startExamInfo').innerHTML = '<span>📋</span><div><b>'+year+' он · '+version+' хувилбар</b><br>Асуулт: <b>'+data.length+'</b> · Хугацаа: <b>30 минут</b></div>';
-  showScreen('start');
+  go('start');
   setTimeout(function(){document.getElementById('inpName').focus()},250);
 }
 
@@ -1158,7 +1136,7 @@ function startExam(){
   state.remaining = 30 * 60;
   document.getElementById('examTitle').textContent = state.selected.year+' он · '+state.selected.version+' хувилбар — English Test';
   document.getElementById('examStudent').textContent = name+' · '+cls;
-  showScreen('exam');
+  go('exam');
   renderQuestion();
   renderQNav();
   startTimer();
@@ -1180,12 +1158,10 @@ function updateTimerDisplay(){
   var el = document.getElementById('timer');
   if (!el) return;
   el.textContent = fmtTime(Math.max(0, state.remaining));
-  el.classList.remove('warning');
-  el.classList.remove('danger');
+  el.classList.remove('warning'); el.classList.remove('danger');
   if (state.remaining <= 60) el.classList.add('danger');
   else if (state.remaining <= 300) el.classList.add('warning');
 }
-
 function renderQuestion(){
   var qs = state.selected.questions;
   var idx = state.current;
@@ -1208,13 +1184,11 @@ function renderQuestion(){
   document.getElementById('nextBtn').style.display = idx === qs.length-1 ? 'none' : 'inline-flex';
   updateProgress();
 }
-
 function chooseAnswer(i){
   state.answers[state.current] = i;
   renderQuestion();
   renderQNav();
 }
-
 function renderQNav(){
   var nav = document.getElementById('qnav');
   nav.innerHTML = '';
@@ -1232,7 +1206,6 @@ function renderQNav(){
   for (var j=0; j<state.answers.length; j++) if (state.answers[j] !== null) ans++;
   document.getElementById('answeredCount').textContent = 'Хариулсан: '+ans+' / '+state.selected.questions.length;
 }
-
 function updateProgress(){
   var ans = 0;
   for (var j=0; j<state.answers.length; j++) if (state.answers[j] !== null) ans++;
@@ -1240,16 +1213,14 @@ function updateProgress(){
   document.getElementById('progressBar').style.width = ((state.current+1)/total*100)+'%';
   document.getElementById('answeredCount').textContent = 'Хариулсан: '+ans+' / '+total;
 }
-
-function nextQuestion(){
+function nextQ(){
   if (state.current < state.selected.questions.length - 1) {
     state.current++; renderQuestion(); renderQNav();
   }
 }
-function prevQuestion(){
+function prevQ(){
   if (state.current > 0) { state.current--; renderQuestion(); renderQNav(); }
 }
-
 function confirmSubmit(){
   var un = 0;
   for (var i=0; i<state.answers.length; i++) if (state.answers[i] === null) un++;
@@ -1258,11 +1229,9 @@ function confirmSubmit(){
     : 'Бүх асуултад хариулсан. Шалгалтыг дуусгах уу?';
   openModal('Шалгалтыг дуусгах', msg, 'Тийм, дуусгах', finishExam);
 }
-
 function autoSubmit(){
   openModal('Хугацаа дууслаа','Хариултууд автоматаар илгээгдлээ.','Үргэлжлүүлэх', finishExam);
 }
-
 function finishExam(){
   if (state.submitted) return;
   state.submitted = true;
@@ -1288,9 +1257,12 @@ function finishExam(){
     timeUsed: fmtTime(secsUsed)
   };
   saveResult(record);
-  showScreen('thankyou');
+  go('thankyou');
 }
 
+/* ============================================================
+   7. TEACHER LOGIC
+   ============================================================ */
 function getResults(){
   try { return JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEY) || '[]'); }
   catch(e){ return []; }
@@ -1307,20 +1279,18 @@ function clearAllResults(){
     renderTeacherStats();
   });
 }
-
 function openTeacher(){
   if (sessionStorage.getItem('eep_teacher') === '1') {
     renderTeacherStats();
     renderTeacherTable();
-    showScreen('teacher');
+    go('teacher');
   } else {
     document.getElementById('loginError').classList.add('hidden');
     document.getElementById('inpPass').value = '';
-    showScreen('teacher-login');
+    go('teacher-login');
     setTimeout(function(){document.getElementById('inpPass').focus()},200);
   }
 }
-
 function teacherLogin(){
   var pass = document.getElementById('inpPass').value;
   if (pass === getTeacherPassword()) {
@@ -1329,19 +1299,17 @@ function teacherLogin(){
     document.getElementById('loginError').classList.add('hidden');
     renderTeacherStats();
     renderTeacherTable();
-    showScreen('teacher');
+    go('teacher');
   } else {
     document.getElementById('loginError').classList.remove('hidden');
     document.getElementById('inpPass').value = '';
     document.getElementById('inpPass').focus();
   }
 }
-
 function teacherLogout(){
   sessionStorage.removeItem('eep_teacher');
-  showScreen('home');
+  go('home');
 }
-
 function renderTeacherStats(){
   var all = getResults();
   var box = document.getElementById('teacherStats');
@@ -1362,7 +1330,6 @@ function renderTeacherStats(){
     '<div class="card" style="text-align:center"><div style="font-size:30px;font-weight:800;color:#16a34a">'+best+'%</div><div class="muted small" style="font-weight:700">Хамгийн өндөр</div></div>'+
     '<div class="card" style="text-align:center"><div style="font-size:30px;font-weight:800;color:#f59e0b">'+passed+'/'+all.length+'</div><div class="muted small" style="font-weight:700">Тэнцсэн</div></div>';
 }
-
 function renderTeacherTable(){
   var box = document.getElementById('teacherTableBox');
   var searchEl = document.getElementById('tSearch');
@@ -1395,7 +1362,6 @@ function renderTeacherTable(){
   html += '</tbody></table></div><p class="small muted mt-16">Нийт <b>'+filtered.length+'</b> бичлэг.</p>';
   box.innerHTML = html;
 }
-
 function exportCSV(){
   var rows = getResults();
   if (!rows.length) { alert('Өгөгдөл байхгүй.'); return; }
@@ -1419,21 +1385,19 @@ function exportCSV(){
 }
 
 /* ============================================================
-   VOCAB LOGIC
+   8. VOCAB LOGIC
    ============================================================ */
 var vCurrentCat = 'health';
 var vCurrentWords = [];
 var vCurrentIndex = 0;
 var vMode = 'flash';
-var vDirection = 'en';
 var vQuizOk = 0, vQuizNo = 0, vQuizAnswered = false;
 
 function openVocab(){
-  showScreen('vocab');
+  go('vocab');
   initCats();
   selectCat(vCurrentCat);
 }
-
 function initCats(){
   var box = document.getElementById('cats');
   if (!box) return;
@@ -1447,14 +1411,11 @@ function initCats(){
     box.appendChild(b);
   }
 }
-
 function selectCat(k){
   vCurrentCat = k;
   vCurrentWords = VOCAB[k].words.slice();
   vCurrentIndex = 0;
-  vQuizOk = 0;
-  vQuizNo = 0;
-  vDirection = 'en';
+  vQuizOk = 0; vQuizNo = 0;
   var bs = document.querySelectorAll('.cat-btn');
   for (var i=0; i<bs.length; i++) {
     if (bs[i].getAttribute('data-k') === k) bs[i].classList.add('active');
@@ -1464,7 +1425,6 @@ function selectCat(k){
   if (vMode === 'flash') renderCard();
   else renderQuiz();
 }
-
 function renderCard(){
   if (!vCurrentWords.length) return;
   var w = vCurrentWords[vCurrentIndex];
@@ -1474,26 +1434,22 @@ function renderCard(){
   document.getElementById('bEx').textContent = w.ex;
   document.getElementById('vCounter').textContent = (vCurrentIndex+1)+' / '+vCurrentWords.length;
 }
-
 function flipCard(e){
   if (e && e.target.closest('.speak-btn')) return;
   document.getElementById('flashCard').classList.toggle('flipped');
 }
-
 function nextCard(){
   if (vCurrentIndex < vCurrentWords.length - 1) vCurrentIndex++;
   else vCurrentIndex = 0;
   document.getElementById('flashCard').classList.remove('flipped');
   renderCard();
 }
-
 function prevCard(){
   if (vCurrentIndex > 0) vCurrentIndex--;
   else vCurrentIndex = vCurrentWords.length - 1;
   document.getElementById('flashCard').classList.remove('flipped');
   renderCard();
 }
-
 function shuffleCards(){
   for (var i=vCurrentWords.length-1; i>0; i--) {
     var j = Math.floor(Math.random()*(i+1));
@@ -1503,7 +1459,6 @@ function shuffleCards(){
   document.getElementById('flashCard').classList.remove('flipped');
   renderCard();
 }
-
 function speakWord(e){
   if (e) e.stopPropagation();
   var w = vCurrentWords[vCurrentIndex];
@@ -1517,7 +1472,6 @@ function speakWord(e){
   u.rate = 0.85;
   window.speechSynthesis.speak(u);
 }
-
 function setVMode(m){
   vMode = m;
   document.getElementById('mFlash').classList.toggle('active', m==='flash');
@@ -1533,7 +1487,6 @@ function setVMode(m){
     renderQuiz();
   }
 }
-
 function renderQuiz(){
   if (!vCurrentWords.length) return;
   vQuizAnswered = false;
@@ -1566,7 +1519,6 @@ function renderQuiz(){
   document.getElementById('quizOk').textContent = vQuizOk;
   document.getElementById('quizNo').textContent = vQuizNo;
 }
-
 function checkQuiz(btn, chosen, correct){
   if (vQuizAnswered) return;
   vQuizAnswered = true;
@@ -1590,7 +1542,6 @@ function checkQuiz(btn, chosen, correct){
   document.getElementById('quizNo').textContent = vQuizNo;
   document.getElementById('quizNext').style.display = 'inline-flex';
 }
-
 function nextQuiz(){
   if (vCurrentIndex < vCurrentWords.length - 1) vCurrentIndex++;
   else vCurrentIndex = 0;
@@ -1598,7 +1549,7 @@ function nextQuiz(){
 }
 
 /* ============================================================
-   INIT
+   9. INIT
    ============================================================ */
 document.addEventListener('DOMContentLoaded', function(){
   renderExamList();
@@ -1616,8 +1567,8 @@ document.addEventListener('DOMContentLoaded', function(){
   document.addEventListener('keydown', function(e){
     var examScreen = document.querySelector('.screen[data-screen="exam"]');
     if (examScreen && examScreen.classList.contains('active')) {
-      if (e.key === 'ArrowRight') nextQuestion();
-      if (e.key === 'ArrowLeft') prevQuestion();
+      if (e.key === 'ArrowRight') nextQ();
+      if (e.key === 'ArrowLeft') prevQ();
     }
     var vocabScreen = document.querySelector('.screen[data-screen="vocab"]');
     if (vocabScreen && vocabScreen.classList.contains('active') && vMode === 'flash') {
