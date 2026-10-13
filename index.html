@@ -186,7 +186,6 @@ footer{border-top:1px solid #e2e8f0;background:#fff;padding:20px;text-align:cent
 <main>
 <div class="container">
 
-<!-- HOME -->
 <div class="screen active" data-screen="home">
   <div class="hero">
     <h1>English Learning Portal</h1>
@@ -206,7 +205,7 @@ footer{border-top:1px solid #e2e8f0;background:#fff;padding:20px;text-align:cent
     <button class="tile" onclick="openVocab()">
       <div class="tile-icon" style="background:#dcfce7">📚</div>
       <h3>Үгсийн сан</h3>
-      <p>10 ангилал · Карт, дуудлага, асуулт хариулт.</p>
+      <p>2021–2025 оны шалгалтын үгс + 10 ангилал.</p>
     </button>
     <button class="tile" onclick="openTeacher()">
       <div class="tile-icon" style="background:#fef3c7">👨‍🏫</div>
@@ -216,7 +215,6 @@ footer{border-top:1px solid #e2e8f0;background:#fff;padding:20px;text-align:cent
   </div>
 </div>
 
-<!-- INSTRUCTIONS -->
 <div class="screen" data-screen="instructions">
   <div class="card">
     <h2 class="section-title">📖 Шалгалтын заавар</h2>
@@ -234,7 +232,6 @@ footer{border-top:1px solid #e2e8f0;background:#fff;padding:20px;text-align:cent
   </div>
 </div>
 
-<!-- EXAM SELECT -->
 <div class="screen" data-screen="select">
   <div class="flex-between mb-16">
     <div>
@@ -246,7 +243,6 @@ footer{border-top:1px solid #e2e8f0;background:#fff;padding:20px;text-align:cent
   <div class="grid grid-2" id="examList"></div>
 </div>
 
-<!-- START -->
 <div class="screen" data-screen="start">
   <div class="card form-narrow">
     <h2 class="section-title">Сурагчийн мэдээлэл</h2>
@@ -262,7 +258,6 @@ footer{border-top:1px solid #e2e8f0;background:#fff;padding:20px;text-align:cent
   </div>
 </div>
 
-<!-- EXAM -->
 <div class="screen" data-screen="exam">
   <div class="card exam-top">
     <div>
@@ -291,7 +286,6 @@ footer{border-top:1px solid #e2e8f0;background:#fff;padding:20px;text-align:cent
   </div>
 </div>
 
-<!-- THANK YOU -->
 <div class="screen" data-screen="thankyou">
   <div class="card thankyou">
     <div class="big">✅</div>
@@ -304,7 +298,6 @@ footer{border-top:1px solid #e2e8f0;background:#fff;padding:20px;text-align:cent
   </div>
 </div>
 
-<!-- VOCAB -->
 <div class="screen" data-screen="vocab">
   <div class="flex-between mb-16">
     <div>
@@ -359,7 +352,6 @@ footer{border-top:1px solid #e2e8f0;background:#fff;padding:20px;text-align:cent
   </div>
 </div>
 
-<!-- TEACHER LOGIN -->
 <div class="screen" data-screen="teacher-login">
   <div class="card form-narrow">
     <div style="text-align:center;margin-bottom:20px">
@@ -376,7 +368,6 @@ footer{border-top:1px solid #e2e8f0;background:#fff;padding:20px;text-align:cent
   </div>
 </div>
 
-<!-- TEACHER DASHBOARD -->
 <div class="screen" data-screen="teacher">
   <div class="flex-between mb-16">
     <div>
@@ -427,7 +418,6 @@ footer{border-top:1px solid #e2e8f0;background:#fff;padding:20px;text-align:cent
   </div>
 </footer>
 
-<!-- MODAL: Confirm -->
 <div class="modal-back" id="modalBack">
   <div class="modal">
     <h3 id="modalTitle">Баталгаажуулалт</h3>
@@ -439,7 +429,6 @@ footer{border-top:1px solid #e2e8f0;background:#fff;padding:20px;text-align:cent
   </div>
 </div>
 
-<!-- MODAL: Password Change -->
 <div class="modal-back" id="passModalBack">
   <div class="modal">
     <h3>🔑 Нууц үг солих</h3>
@@ -457,12 +446,13 @@ footer{border-top:1px solid #e2e8f0;background:#fff;padding:20px;text-align:cent
 
 <script>
 /* ============================================================
-   1. CONFIG
+   1. CONFIG  (Sheet URL орсон)
    ============================================================ */
 var CONFIG = {
   DEFAULT_PASSWORD: 'teacher2025',
   PASSWORD_KEY: 'eep_teacher_pass_v1',
-  STORAGE_KEY: 'eep_results_v1'
+  STORAGE_KEY: 'eep_results_v1',
+  SHEETS_URL: 'https://script.google.com/macros/s/AKfycbxvhOm-00unTLA6XEnJ97mdZa4R6TCMmgjnhnJzFpjGkegFctAAwow8yws-TaHPJCCt/exec'
 };
 
 function getTeacherPassword(){
@@ -485,37 +475,37 @@ function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&am
 var EXAMS = {
   '2021': {
     A: [
-      {q:'The town was severely damaged by __________ after the heavy rain.',o:['hurricane','flood','snowstorm','forest fire','earthquake'],a:1},
-      {q:'Most young children don\'t read newspapers, they prefer to read __________.',o:['magazines','journals','Comics','newspapers','adverts'],a:2},
-      {q:'There are a lot of __________ in this part of town, so always close the windows and lock the door.',o:['Shoplifters','robberies','thieves','burglars','muggers'],a:3},
-      {q:'The best __________ movie I\'ve ever seen was Star Wars.',o:['action','cartoon','horror','crime','science fiction'],a:4},
-      {q:'A __________ is a large store that sells different things.',o:['department store','toy store','bookstore','hardware store','stationery'],a:0},
-      {q:'My car broke __________ again and I had to go to work on foot.',o:['of','Out','off','down','into'],a:3},
-      {q:'You should check in two hours before your flight is scheduled to take __________.',o:['into','up','for','after','off'],a:4},
-      {q:'Due to the storm, I put __________ to my doctor\'s appointment.',o:['off','on','out','up','down'],a:0},
-      {q:'She came __________ a huge amount of money when her cousin died.',o:['by','out','to','into','up'],a:3},
+      {q:'The town was severely damaged by ________ after the heavy rain.',o:['hurricane','flood','snowstorm','forest fire','earthquake'],a:1},
+      {q:'Most young children don\'t read newspapers, they prefer to read ________.',o:['magazines','journals','Comics','newspapers','adverts'],a:2},
+      {q:'There are a lot of ________ in this part of town, so always close the windows and lock the door.',o:['Shoplifters','robberies','thieves','burglars','muggers'],a:3},
+      {q:'The best ________ movie I\'ve ever seen was Star Wars.',o:['action','cartoon','horror','crime','science fiction'],a:4},
+      {q:'A ________ is a large store that sells different things.',o:['department store','toy store','bookstore','hardware store','stationery'],a:0},
+      {q:'My car broke ________ again and I had to go to work on foot.',o:['of','Out','off','down','into'],a:3},
+      {q:'You should check in two hours before your flight is scheduled to take ________.',o:['into','up','for','after','off'],a:4},
+      {q:'Due to the storm, I put ________ to my doctor\'s appointment.',o:['off','on','out','up','down'],a:0},
+      {q:'She came ________ a huge amount of money when her cousin died.',o:['by','out','to','into','up'],a:3},
       {q:'Device inside a computer that stores large amounts of information.',o:['Modem','Word processor','Disk drive','Spreadsheet','Hard disk'],a:4},
       {q:'An apparatus that allows information to be read from a disk.',o:['Word processor','Hard disk','Disk drive','Spreadsheet','Modem'],a:2},
       {q:'A program or grid to perform mathematical operations.',o:['Word processor','Spreadsheet','Hard disk','Disk drive','Modern'],a:1},
       {q:'Wow! Look outside now. It\'s raining cats and dogs today.',o:['Cats and dogs are falling','I forgot my umbrella','I forgot my cats','It\'s raining heavily','Cats and dogs are outside'],a:3}
     ],
     B: [
-      {q:'The buildings are often destroyed by __________ after violent movement of the ground.',o:['forest fire','flood','snowstorm','earthquake','hurricane'],a:3},
-      {q:'I quite like the __________. There are many interesting adverts.',o:['television commercials','quiz show','soap opera','chat show','documentary'],a:0},
-      {q:'The __________ attack people in a public place.',o:['robberies','Shoplifters','thieves','burglars','Muggers'],a:4},
-      {q:'__________ Jim nor Tom passed the exam.',o:['Either','Both','Neither','All','None'],a:2},
-      {q:'Alex is very __________ of his younger sister.',o:['protect','protection','protected','protective','protector'],a:3},
-      {q:'We must get a __________ of flour, and some eggs and apples.',o:['box','can','tube','bar','bag'],a:4},
-      {q:'The more he exercises, __________ he will be.',o:['the healthier','healthiest','healthier','the healthiest','healthy'],a:0},
-      {q:'Children __________ their necks to see who their mother was talking to.',o:['nodded','spilled','fluttered','craned','ignored'],a:3},
-      {q:'The Professor wanted to __________ the importance of learning foreign languages.',o:['grasp','integrate','damage','extend','emphasize'],a:4},
-      {q:'Regular exercise is good for your body and brain. It __________ your blood with oxygen.',o:['stores','influences','enriches','processes','produces'],a:2},
-      {q:'Millions of birds migrate to the south every year. It is an annual __________.',o:['celebration','phenomenon','perception','motivation','behavior'],a:1},
-      {q:'Under these __________ the kids couldn\'t play.',o:['willingness','basements','decisions','circumstances','cells'],a:3},
-      {q:'Many foreign __________ attended the opening ceremony.',o:['scavengers','failures','abilities','attempts','dignitaries'],a:4},
-      {q:'If I could do it __________ again, I\'d do it differently.',o:['over','without','away','in','with'],a:0},
-      {q:'It\'s getting late, I\'m turning __________.',o:['into','around','in','up','off'],a:2},
-      {q:'Be careful walking in the woods, there are a lot of branches sticking __________.',o:['to','at','by','out','with'],a:3},
+      {q:'The buildings are often destroyed by ________ after violent movement of the ground.',o:['forest fire','flood','snowstorm','earthquake','hurricane'],a:3},
+      {q:'I quite like the ________. There are many interesting adverts.',o:['television commercials','quiz show','soap opera','chat show','documentary'],a:0},
+      {q:'The ________ attack people in a public place.',o:['robberies','Shoplifters','thieves','burglars','Muggers'],a:4},
+      {q:'________ Jim nor Tom passed the exam.',o:['Either','Both','Neither','All','None'],a:2},
+      {q:'Alex is very ________ of his younger sister.',o:['protect','protection','protected','protective','protector'],a:3},
+      {q:'We must get a ________ of flour, and some eggs and apples.',o:['box','can','tube','bar','bag'],a:4},
+      {q:'The more he exercises, ________ he will be.',o:['the healthier','healthiest','healthier','the healthiest','healthy'],a:0},
+      {q:'Children ________ their necks to see who their mother was talking to.',o:['nodded','spilled','fluttered','craned','ignored'],a:3},
+      {q:'The Professor wanted to ________ the importance of learning foreign languages.',o:['grasp','integrate','damage','extend','emphasize'],a:4},
+      {q:'Regular exercise is good for your body and brain. It ________ your blood with oxygen.',o:['stores','influences','enriches','processes','produces'],a:2},
+      {q:'Millions of birds migrate to the south every year. It is an annual ________.',o:['celebration','phenomenon','perception','motivation','behavior'],a:1},
+      {q:'Under these ________ the kids couldn\'t play.',o:['willingness','basements','decisions','circumstances','cells'],a:3},
+      {q:'Many foreign ________ attended the opening ceremony.',o:['scavengers','failures','abilities','attempts','dignitaries'],a:4},
+      {q:'If I could do it ________ again, I\'d do it differently.',o:['over','without','away','in','with'],a:0},
+      {q:'It\'s getting late, I\'m turning ________.',o:['into','around','in','up','off'],a:2},
+      {q:'Be careful walking in the woods, there are a lot of branches sticking ________.',o:['to','at','by','out','with'],a:3},
       {q:'Jake and I lost our jobs yesterday. Now we are in the same boat.',o:['In the broken boat','Have a good situation','Looking for a job','Travelling by boat','In the same bad situation'],a:4},
       {q:'I only got the message by word of mouth.',o:['He read from newspaper','The message was passed by his mom','He opened his mouth','The message passed from person to person','He was only mouthing'],a:3},
       {q:'My girlfriend always acts as if she was born yesterday.',o:['She is naive','She was born yesterday','Her boyfriend doesn\'t know','She believes in experience','His girlfriend is thoughtful'],a:0}
@@ -523,37 +513,37 @@ var EXAMS = {
   },
   '2022': {
     A: [
-      {q:'We can travel to Brighton __________ by bus or by train.',o:['both','none','neither','either','all'],a:3},
-      {q:'The more he looked at her, __________ embarrassed she was.',o:['more','the most','the more','mostly','much'],a:2},
-      {q:'John is __________ and needs help when asked to sign papers.',o:['literate','illiterate','literacy','illiteracy','literally'],a:1},
-      {q:'Could you please buy a __________ of jam for me?',o:['bar','can','bag','jar','carton'],a:3},
-      {q:'My boss __________ this language course to me.',o:['recommended','persuaded','influenced','criticized','maintained'],a:0},
-      {q:'Teaching in a lively way increases students\' __________ to learn.',o:['volunteering','tolerance','diversity','motivation','automation'],a:3},
-      {q:'The forecast is for dry weather with no __________ expected.',o:['degradation','desertification','precipitation','protection','permission'],a:2},
-      {q:'My __________ is that you\'re not getting enough work done.',o:['concentration','concern','occupation','action','attachment'],a:1},
-      {q:'Synthetic fabrics are made from __________ substances.',o:['organic','artificial','unique','modern','combined'],a:1},
-      {q:'The two countries have __________ close ties for centuries.',o:['ignored','distracted','debated','maintained','confused'],a:3},
-      {q:'Because of mistakes in my test, my teacher made me do it __________.',o:['without','with','away','in','over'],a:4},
-      {q:'After the thieves are captured, the stolen items will be turned __________ to the owners.',o:['in','away','into','against','down'],a:0},
-      {q:'Chingee is nearly eight feet tall, so she really sticks __________ in a crowd.',o:['to','down','around','with','out'],a:4},
+      {q:'We can travel to Brighton ________ by bus or by train.',o:['both','none','neither','either','all'],a:3},
+      {q:'The more he looked at her, ________ embarrassed she was.',o:['more','the most','the more','mostly','much'],a:2},
+      {q:'John is ________ and needs help when asked to sign papers.',o:['literate','illiterate','literacy','illiteracy','literally'],a:1},
+      {q:'Could you please buy a ________ of jam for me?',o:['bar','can','bag','jar','carton'],a:3},
+      {q:'My boss ________ this language course to me.',o:['recommended','persuaded','influenced','criticized','maintained'],a:0},
+      {q:'Teaching in a lively way increases students\' ________ to learn.',o:['volunteering','tolerance','diversity','motivation','automation'],a:3},
+      {q:'The forecast is for dry weather with no ________ expected.',o:['degradation','desertification','precipitation','protection','permission'],a:2},
+      {q:'My ________ is that you\'re not getting enough work done.',o:['concentration','concern','occupation','action','attachment'],a:1},
+      {q:'Synthetic fabrics are made from ________ substances.',o:['organic','artificial','unique','modern','combined'],a:1},
+      {q:'The two countries have ________ close ties for centuries.',o:['ignored','distracted','debated','maintained','confused'],a:3},
+      {q:'Because of mistakes in my test, my teacher made me do it ________.',o:['without','with','away','in','over'],a:4},
+      {q:'After the thieves are captured, the stolen items will be turned ________ to the owners.',o:['in','away','into','against','down'],a:0},
+      {q:'Chingee is nearly eight feet tall, so she really sticks ________ in a crowd.',o:['to','down','around','with','out'],a:4},
       {q:'He was desperate to get rid of his car. I was able to buy it for a song.',o:['His car was expensive','He sang a song','He exchanged his car','He bought the car very cheaply','He bought a CD'],a:3},
       {q:'Chingee got it in the neck because she forgot to turn off the car light.',o:['The long drive hurt her','She forgot the light','She was punished for the damage','Her shirt was open','She was punished for the light'],a:2},
       {q:'I was up in the air about selling my house and moving into a bigger one.',o:['He was in the air','He was excited about moving','He always airs his house','He sold his old house','He left the windows open'],a:0}
     ],
     B: [
-      {q:'__________ Jim nor Tom passed the exam.',o:['Either','Both','Neither','All','None'],a:2},
-      {q:'Alex is very __________ of his younger sister.',o:['protect','protection','protected','protective','protector'],a:3},
-      {q:'We must get a __________ of flour, some eggs and apples.',o:['box','can','tube','bar','bag'],a:4},
-      {q:'The more he exercises, __________ he will be.',o:['the healthier','healthiest','healthier','the healthiest','healthy'],a:0},
-      {q:'Children __________ their necks to see who their mother was talking to.',o:['nodded','spilled','fluttered','craned','ignored'],a:3},
-      {q:'The Professor wanted to __________ the importance of learning foreign languages.',o:['grasp','integrate','damage','extend','emphasize'],a:4},
-      {q:'Regular exercise is good for your body and brain. It __________ your blood with oxygen.',o:['stores','influences','enriches','processes','produces'],a:2},
-      {q:'Millions of birds migrate to the south every year. It is an annual __________.',o:['celebration','phenomenon','perception','motivation','behavior'],a:1},
-      {q:'Under these __________ the kids couldn\'t play.',o:['willingness','basements','decisions','circumstances','cells'],a:3},
-      {q:'Many foreign __________ attended the opening ceremony.',o:['scavengers','failures','abilities','attempts','dignitaries'],a:4},
-      {q:'If I could do it __________ again, I\'d do it differently.',o:['over','without','away','in','with'],a:0},
-      {q:'It\'s getting late, I\'m turning __________.',o:['into','around','in','up','off'],a:2},
-      {q:'Be careful walking in the woods, there are a lot of branches sticking __________.',o:['to','at','by','out','with'],a:3},
+      {q:'________ Jim nor Tom passed the exam.',o:['Either','Both','Neither','All','None'],a:2},
+      {q:'Alex is very ________ of his younger sister.',o:['protect','protection','protected','protective','protector'],a:3},
+      {q:'We must get a ________ of flour, some eggs and apples.',o:['box','can','tube','bar','bag'],a:4},
+      {q:'The more he exercises, ________ he will be.',o:['the healthier','healthiest','healthier','the healthiest','healthy'],a:0},
+      {q:'Children ________ their necks to see who their mother was talking to.',o:['nodded','spilled','fluttered','craned','ignored'],a:3},
+      {q:'The Professor wanted to ________ the importance of learning foreign languages.',o:['grasp','integrate','damage','extend','emphasize'],a:4},
+      {q:'Regular exercise is good for your body and brain. It ________ your blood with oxygen.',o:['stores','influences','enriches','processes','produces'],a:2},
+      {q:'Millions of birds migrate to the south every year. It is an annual ________.',o:['celebration','phenomenon','perception','motivation','behavior'],a:1},
+      {q:'Under these ________ the kids couldn\'t play.',o:['willingness','basements','decisions','circumstances','cells'],a:3},
+      {q:'Many foreign ________ attended the opening ceremony.',o:['scavengers','failures','abilities','attempts','dignitaries'],a:4},
+      {q:'If I could do it ________ again, I\'d do it differently.',o:['over','without','away','in','with'],a:0},
+      {q:'It\'s getting late, I\'m turning ________.',o:['into','around','in','up','off'],a:2},
+      {q:'Be careful walking in the woods, there are a lot of branches sticking ________.',o:['to','at','by','out','with'],a:3},
       {q:'Jake and I lost our jobs yesterday. Now we are in the same boat.',o:['In the broken boat','Have a good situation','Looking for a job','Travelling by boat','In the same bad situation'],a:4},
       {q:'I only got the message by word of mouth.',o:['He read from newspaper','The message was passed by his mom','He opened his mouth','The message passed from person to person','He was only mouthing'],a:3},
       {q:'My girlfriend always acts as if she was born yesterday.',o:['She is naive','She was born yesterday','Her boyfriend doesn\'t know','She believes in experience','His girlfriend is thoughtful'],a:0}
@@ -561,35 +551,35 @@ var EXAMS = {
   },
   '2023': {
     A: [
-      {q:'You need to acquire __________ in social work.',o:['application','qualification','necessity','operation','cooperation'],a:1},
-      {q:'He lied to me and to make matters worse, he didn\'t __________ at all.',o:['thank','apologize','reject','admit','accept'],a:1},
-      {q:'The level of junk food __________ was illustrated by statistics.',o:['consideration','compulsion','consumption','combination','compassion'],a:2},
-      {q:'Many groups are working to reduce __________ to protect pastureland.',o:['drought','hazards','blizzard','soil erosion','gale'],a:3},
-      {q:'Jack has already __________ a very good reputation as a talented prosecutor.',o:['made','won','done','gained','achieved'],a:3},
-      {q:'The little boy\'s eyes __________ when he saw his daddy.',o:['lit up','shone','lightened','flowed','darkened'],a:0},
-      {q:'Always __________ your files and any documents you\'re working on.',o:['back up','hack into','log in','click on','crash on'],a:0},
+      {q:'You need to acquire ________ in social work.',o:['application','qualification','necessity','operation','cooperation'],a:1},
+      {q:'He lied to me and to make matters worse, he didn\'t ________ at all.',o:['thank','apologize','reject','admit','accept'],a:1},
+      {q:'The level of junk food ________ was illustrated by statistics.',o:['consideration','compulsion','consumption','combination','compassion'],a:2},
+      {q:'Many groups are working to reduce ________ to protect pastureland.',o:['drought','hazards','blizzard','soil erosion','gale'],a:3},
+      {q:'Jack has already ________ a very good reputation as a talented prosecutor.',o:['made','won','done','gained','achieved'],a:3},
+      {q:'The little boy\'s eyes ________ when he saw his daddy.',o:['lit up','shone','lightened','flowed','darkened'],a:0},
+      {q:'Always ________ your files and any documents you\'re working on.',o:['back up','hack into','log in','click on','crash on'],a:0},
       {q:'Tom: I feel sorry for being tardy. The alarm didn\'t go off.',o:['denying','refusing','making an excuse','requesting','regretting'],a:2},
       {q:'John: She must be Alice\'s daughter. She looks just like her.',o:['criticism','complaint','compliment','assumption','suggestion'],a:3},
       {q:'go on a, balanced, a sensible',o:['date','meal','solution','plan','diet'],a:4},
       {q:'Knowledge, Wisdom, Information',o:['to impart','to conduct','to instruct','to earn','to endure'],a:0},
-      {q:'I recognize a few words in the passage, therefore, I __________.',o:['find it easy','keep my mouth shut','am not eager','try hard to catch meaning','never look up'],a:3},
+      {q:'I recognize a few words in the passage, therefore, I ________.',o:['find it easy','keep my mouth shut','am not eager','try hard to catch meaning','never look up'],a:3},
       {q:'Choose the most possible solution to flood.',o:['stonework','wind turbines','dams and canals','tunnels and subways','sea barrier'],a:2},
       {q:'The department\'s solution hit the nail on the head.',o:['caused by failures','staff did exactly right','was not bad','was quite smart','hit box of nails'],a:1},
       {q:'The computer isn\'t the best, but you shouldn\'t look a gift horse in the mouth.',o:['give back','bad gift','not complain about gift','never receive','receiving horse is hobby'],a:2}
     ],
     B: [
-      {q:'I\'ve got great __________ on my assignment from the teacher.',o:['feedback','portfolio','debate','grant','finance'],a:0},
-      {q:'Roads should have a __________ so people can cross the road safely.',o:['zebra crossing','intersection','dead end','one-way street','lane'],a:0},
-      {q:'Plasmas can __________ electricity.',o:['dissolve','attract','affect','insulate','conduct'],a:4},
-      {q:'When fossil fuels burn, different substances are __________ into the air.',o:['supplied','tapped','trapped','released','accelerated'],a:3},
-      {q:'In the tournament, Hannah __________ all her opponents.',o:['had','gained','beat','granted','rewarded'],a:2},
-      {q:'The cave is in the list of UNESCO world __________ sites.',o:['legacy','representation','heritage','tradition','masterpiece'],a:2},
-      {q:'I was working and suddenly the screen __________ black.',o:['crashed','went','installed','loaded','turned'],a:1},
+      {q:'I\'ve got great ________ on my assignment from the teacher.',o:['feedback','portfolio','debate','grant','finance'],a:0},
+      {q:'Roads should have a ________ so people can cross the road safely.',o:['zebra crossing','intersection','dead end','one-way street','lane'],a:0},
+      {q:'Plasmas can ________ electricity.',o:['dissolve','attract','affect','insulate','conduct'],a:4},
+      {q:'When fossil fuels burn, different substances are ________ into the air.',o:['supplied','tapped','trapped','released','accelerated'],a:3},
+      {q:'In the tournament, Hannah ________ all her opponents.',o:['had','gained','beat','granted','rewarded'],a:2},
+      {q:'The cave is in the list of UNESCO world ________ sites.',o:['legacy','representation','heritage','tradition','masterpiece'],a:2},
+      {q:'I was working and suddenly the screen ________ black.',o:['crashed','went','installed','loaded','turned'],a:1},
       {q:'Anna: Don\'t keep putting it off.',o:['denying','refusing','making an excuse','requesting','regretting'],a:2},
       {q:'Jack: I can\'t drink bitter coffee. Alice: Would you like some black coffee?',o:['demand','promise','offer','prediction','appointment'],a:2},
       {q:'a valuable, rich, a reliable',o:['determination','enthusiasm','source','guarantee','extension'],a:2},
       {q:'tears, laughter, song',o:['to let out','to make','to bump into','to burst into','to cry over'],a:3},
-      {q:'I struggle to speak and say \'Err\' a lot when I __________.',o:['run out of ideas','avoid pronouncing','find fluency','provide feedback','have impact'],a:0},
+      {q:'I struggle to speak and say \'Err\' a lot when I ________.',o:['run out of ideas','avoid pronouncing','find fluency','provide feedback','have impact'],a:0},
       {q:'Choose the most possible solution to air pollution.',o:['temporary shelter','dump sites','organic products','hybrid cars','exhaust fumes'],a:3},
       {q:'He made up some cock-and-bull story about losing his car keys.',o:['upset about being late','people thought true','illegal activities','story about animals','told a fake story'],a:4},
       {q:'The police will arrest the suspect by hook or by crook.',o:['investigate all','use technology','mobilize all','use any method possible','be on duty'],a:3}
@@ -597,38 +587,38 @@ var EXAMS = {
   },
   '2024': {
     A: [
-      {q:'The rain won\'t last long; it\'s only a __________.',o:['hail','breeze','shower','frost','downpour'],a:2},
-      {q:'__________ is a person whose job is riding horses in races.',o:['Fencer','Jockey','Runner','Swimmer','Golfer'],a:1},
-      {q:'The theory of __________ studies the nature and origin of the universe.',o:['chemistry','physics','biology','cosmology','medicine'],a:3},
-      {q:'Always log __________ when you leave your computer.',o:['up','in','on','for','out'],a:4},
-      {q:'Please, print your name and address in __________ letters.',o:['capital','block','clog','bulk','fill'],a:0},
-      {q:'My boyfriend and I live on the same __________.',o:['capital','block','clog','bulk','fill'],a:1},
-      {q:'Every autumn dead leaves __________ the drains.',o:['capital','block','clog','bulk','fill'],a:2},
+      {q:'The rain won\'t last long; it\'s only a ________.',o:['hail','breeze','shower','frost','downpour'],a:2},
+      {q:'________ is a person whose job is riding horses in races.',o:['Fencer','Jockey','Runner','Swimmer','Golfer'],a:1},
+      {q:'The theory of ________ studies the nature and origin of the universe.',o:['chemistry','physics','biology','cosmology','medicine'],a:3},
+      {q:'Always log ________ when you leave your computer.',o:['up','in','on','for','out'],a:4},
+      {q:'Please, print your name and address in ________ letters.',o:['capital','block','clog','bulk','fill'],a:0},
+      {q:'My boyfriend and I live on the same ________.',o:['capital','block','clog','bulk','fill'],a:1},
+      {q:'Every autumn dead leaves ________ the drains.',o:['capital','block','clog','bulk','fill'],a:2},
       {q:'What will you wear when you go hiking?',o:['camping gear','climbing boots','a walking stick','walking boots','a surfing board'],a:3},
       {q:'What expression is used for making others experience pain?',o:['to experience pain','to feel pain','to ease pain','to relieve pain','to inflict pain'],a:4},
-      {q:'The store owner was held __________ by three men wearing ski masks.',o:['down','back','up','in','on'],a:2},
-      {q:'If you don\'t wear an undershirt, you\'ll __________ down with pneumonia.',o:['come','get','put','take','hold'],a:0},
-      {q:'A (an) __________ ageing substance, viral drug, depressant treatment',o:['ante-','pro-','non-','pre-','anti-'],a:4},
-      {q:'A persist (__________) learner',o:['-ance','-ant','-ence','-ent','-ible'],a:3},
-      {q:'Tonya spends a lot of money __________ fancy clothes.',o:['in','over','on','for','onto'],a:2},
-      {q:'I asked our neighbors to keep an eye __________ the house.',o:['with','over','at','for','on'],a:4},
+      {q:'The store owner was held ________ by three men wearing ski masks.',o:['down','back','up','in','on'],a:2},
+      {q:'If you don\'t wear an undershirt, you\'ll ________ down with pneumonia.',o:['come','get','put','take','hold'],a:0},
+      {q:'A (an) ________ ageing substance, viral drug, depressant treatment',o:['ante-','pro-','non-','pre-','anti-'],a:4},
+      {q:'A persist (________) learner',o:['-ance','-ant','-ence','-ent','-ible'],a:3},
+      {q:'Tonya spends a lot of money ________ fancy clothes.',o:['in','over','on','for','onto'],a:2},
+      {q:'I asked our neighbors to keep an eye ________ the house.',o:['with','over','at','for','on'],a:4},
       {q:'It really got Mr Robert\'s goat when he had to wait two hours.',o:['annoyed at long delay','angry couldn\'t get ticket','didn\'t care about line','frustrated was late','didn\'t mind delay'],a:0},
       {q:'Who wears trousers in your family?',o:['caregiver','financially dependent','dominant partner in marriage','most educated','only breadwinner'],a:2}
     ],
     B: [
-      {q:'I would love to be a good __________, but my eyesight isn\'t very good.',o:['high jumper','gymnast','archer','weight lifter','canoeist'],a:2},
-      {q:'It was absolutely pouring down yesterday. It was a real __________.',o:['shower','downpour','gale','hurricane','blizzard'],a:1},
-      {q:'__________ studies the rocks that make up the Earth\'s surface.',o:['Archeology','Geography','Geometry','Geology','Astrology'],a:3},
-      {q:'The ability of zoom __________ is useful when working on detailed diagrams.',o:['over','out','up','on','in'],a:3},
-      {q:'A (an) __________ is a tall bird with long thin legs and a long neck.',o:['crane','ostrich','lever','move','stretch'],a:1},
-      {q:'Finally, the house was put back onto the truck by __________.',o:['crane','ostrich','lever','move','stretch'],a:0},
-      {q:'The boy __________ his neck to get the first glimpse of a celebrity.',o:['craned','ostriched','levered','moved','stretched'],a:0},
+      {q:'I would love to be a good ________, but my eyesight isn\'t very good.',o:['high jumper','gymnast','archer','weight lifter','canoeist'],a:2},
+      {q:'It was absolutely pouring down yesterday. It was a real ________.',o:['shower','downpour','gale','hurricane','blizzard'],a:1},
+      {q:'________ studies the rocks that make up the Earth\'s surface.',o:['Archeology','Geography','Geometry','Geology','Astrology'],a:3},
+      {q:'The ability of zoom ________ is useful when working on detailed diagrams.',o:['over','out','up','on','in'],a:3},
+      {q:'A (an) ________ is a tall bird with long thin legs and a long neck.',o:['crane','ostrich','lever','move','stretch'],a:1},
+      {q:'Finally, the house was put back onto the truck by ________.',o:['crane','ostrich','lever','move','stretch'],a:0},
+      {q:'The boy ________ his neck to get the first glimpse of a celebrity.',o:['craned','ostriched','levered','moved','stretched'],a:0},
       {q:'What will you take when you reach the mountain\'s peak?',o:['hiking boots','climbing gear','a fencing sword','bowling pins','a mountain bike'],a:1},
       {q:'What expression is used for making pain go away?',o:['to complain of pain','to suffer pain','to cause pain','to soothe pain','to inflict pain'],a:3},
-      {q:'A (an) __________ ageing substance, viral drug, depressant treatment',o:['ante-','pro-','non-','pre-','anti-'],a:4},
-      {q:'A persist (__________) learner',o:['-ance','-ant','-ence','-ent','-ible'],a:3},
-      {q:'Tonya spends a lot of money __________ fancy clothes.',o:['in','over','on','for','onto'],a:2},
-      {q:'I asked our neighbors to keep an eye __________ the house.',o:['with','over','at','for','on'],a:4},
+      {q:'A (an) ________ ageing substance, viral drug, depressant treatment',o:['ante-','pro-','non-','pre-','anti-'],a:4},
+      {q:'A persist (________) learner',o:['-ance','-ant','-ence','-ent','-ible'],a:3},
+      {q:'Tonya spends a lot of money ________ fancy clothes.',o:['in','over','on','for','onto'],a:2},
+      {q:'I asked our neighbors to keep an eye ________ the house.',o:['with','over','at','for','on'],a:4},
       {q:'It really got Mr Robert\'s goat when he had to wait two hours.',o:['annoyed at long delay','angry couldn\'t get ticket','didn\'t care about line','frustrated was late','didn\'t mind delay'],a:0},
       {q:'Who wears trousers in your family?',o:['caregiver','financially dependent','dominant partner in marriage','most educated','only breadwinner'],a:2}
     ]
@@ -636,27 +626,27 @@ var EXAMS = {
   '2025': {
     A: [
       {q:'Which item is made from cotton?',o:['a raincoat','a shirt','a wristband','nylons','a jumper'],a:1},
-      {q:'A young horse is called? A __________.',o:['fawn','kid','cub','lamb','foal'],a:4},
-      {q:'A __________ is a part of the building where a vehicle is kept.',o:['garage','patio','garden','shade','concrete'],a:0},
+      {q:'A young horse is called? A ________.',o:['fawn','kid','cub','lamb','foal'],a:4},
+      {q:'A ________ is a part of the building where a vehicle is kept.',o:['garage','patio','garden','shade','concrete'],a:0},
       {q:'Name the means of a transport the front part of which is a cockpit.',o:['coach','aircraft','caravan','train','ferry'],a:1},
-      {q:'A __________ uses a computer or smartphone to commit crimes.',o:['kidnapper','fraudster','vandal','mugger','cybercriminal'],a:4},
-      {q:'As soon as Lydia and I met, we knew we were going to get __________ well.',o:['up','(a) round','at','on','in'],a:3},
+      {q:'A ________ uses a computer or smartphone to commit crimes.',o:['kidnapper','fraudster','vandal','mugger','cybercriminal'],a:4},
+      {q:'As soon as Lydia and I met, we knew we were going to get ________ well.',o:['up','(a) round','at','on','in'],a:3},
       {q:'It was sunny and hot.',o:['a bit of drizzle','a few sunny showers','very overcast','quite a breeze','a bit of heat wave'],a:4},
-      {q:'Public transport is excellent - it\'s cheap and __________.',o:['useful','efficient','cosmopolitan','stressful','crowded'],a:1},
+      {q:'Public transport is excellent - it\'s cheap and ________.',o:['useful','efficient','cosmopolitan','stressful','crowded'],a:1},
       {q:'They won two nil.',o:['year somebody was born','the temperature','a telephone number','the score in a tennis match','the result of the football match'],a:4},
-      {q:'Ron was arrested by the police, who (26) __________ him of being involved in a robbery.',o:['suspected','heard','questioned','charged','convicted'],a:0},
-      {q:'He had been (27) __________ previously of petty crime, but never anything serious.',o:['suspected','heard','questioned','charged','convicted'],a:4},
-      {q:'The police (28) __________ him for several hours',o:['suspected','heard','questioned','charged','convicted'],a:2},
-      {q:'and finally (29) __________ him with robbery.',o:['suspected','heard','questioned','charged','convicted'],a:3},
-      {q:'His case would be (30) __________.',o:['suspected','heard','questioned','charged','convicted'],a:1},
+      {q:'Ron was arrested by the police, who (26) ________ him of being involved in a robbery.',o:['suspected','heard','questioned','charged','convicted'],a:0},
+      {q:'He had been (27) ________ previously of petty crime, but never anything serious.',o:['suspected','heard','questioned','charged','convicted'],a:4},
+      {q:'The police (28) ________ him for several hours',o:['suspected','heard','questioned','charged','convicted'],a:2},
+      {q:'and finally (29) ________ him with robbery.',o:['suspected','heard','questioned','charged','convicted'],a:3},
+      {q:'His case would be (30) ________.',o:['suspected','heard','questioned','charged','convicted'],a:1},
       {q:'In which sentence does "to take off" mean "to remove something from a surface"?',o:['Take off your shoes','You need to take the old wax off the floor','Our plane took off an hour late','If this business takes off, we could make money'],a:1}
     ],
     B: [
-      {q:'It was absolutely pouring down yesterday. It was a real __________.',o:['shower','downpour','gale','hurricane','blizzard'],a:1},
+      {q:'It was absolutely pouring down yesterday. It was a real ________.',o:['shower','downpour','gale','hurricane','blizzard'],a:1},
       {q:'Jack: I can\'t drink bitter coffee. Alice: Would you like some black coffee?',o:['take','promise','offer','prediction','appointment'],a:2},
       {q:'a valuable, rich, a reliable',o:['determination','enthusiasm','source','guarantee','extension'],a:2},
       {q:'tears, laughter, song',o:['to let out','to make','to bump into','to burst into','to cry over'],a:3},
-      {q:'I recognize a few words in the passage, therefore, I __________.',o:['find it easy','keep my mouth shut','am not eager','try hard to catch meaning','never look up'],a:3},
+      {q:'I recognize a few words in the passage, therefore, I ________.',o:['find it easy','keep my mouth shut','am not eager','try hard to catch meaning','never look up'],a:3},
       {q:'Choose the most possible solution to flood.',o:['stonework','wind turbines','dams and canals','tunnels and subways','sea barrier'],a:2},
       {q:'The department\'s solution hit the nail on the head.',o:['caused by failures','staff did exactly right','was not bad','was quite smart','hit box of nails'],a:1},
       {q:'The computer isn\'t the best, but you shouldn\'t look a gift horse in the mouth.',o:['give back','bad gift','not complain about gift','never receive','receiving horse is hobby'],a:2}
@@ -668,6 +658,150 @@ var EXAMS = {
    3. VOCAB DATA
    ============================================================ */
 var VOCAB = {
+  'exam2021': { name:'📅 2021 Vocabulary', words:[
+    {en:'hurricane',mn:'хар салхи',ex:'The hurricane destroyed many homes.'},
+    {en:'flood',mn:'үер',ex:'The flood damaged the town.'},
+    {en:'snowstorm',mn:'цасан шуурга',ex:'The snowstorm blocked the roads.'},
+    {en:'forest fire',mn:'ойн түймэр',ex:'A forest fire broke out yesterday.'},
+    {en:'earthquake',mn:'газар хөдлөлт',ex:'The earthquake destroyed buildings.'},
+    {en:'magazine',mn:'сэтгүүл',ex:'She reads fashion magazines.'},
+    {en:'journal',mn:'эрдэм шинжилгээний сэтгүүл',ex:'He published in a journal.'},
+    {en:'comic',mn:'хүүхэлдэйн ном',ex:'Children love comics.'},
+    {en:'newspaper',mn:'сонин',ex:'I read the newspaper daily.'},
+    {en:'advert',mn:'зар',ex:'There are many adverts on TV.'},
+    {en:'shoplifter',mn:'дэлгүүрээс хулгайч',ex:'The shoplifter was caught.'},
+    {en:'robbery',mn:'дээрэм',ex:'The bank robbery shocked everyone.'},
+    {en:'thief',mn:'хулгайч',ex:'The thief stole my bag.'},
+    {en:'burglar',mn:'гэр хулгайч',ex:'The burglar broke into the house.'},
+    {en:'mugger',mn:'гудамжны дээрэмчин',ex:'Muggers attack at night.'},
+    {en:'department store',mn:'их дэлгүүр',ex:'I bought it at a department store.'},
+    {en:'bookstore',mn:'номын дэлгүүр',ex:'There is a bookstore nearby.'},
+    {en:'stationery',mn:'бичгийн хэрэгсэл',ex:'I need to buy stationery.'},
+    {en:'modem',mn:'модем',ex:'The modem connects to the internet.'},
+    {en:'word processor',mn:'үг боловсруулагч',ex:'Use a word processor to write.'},
+    {en:'disk drive',mn:'диск уншигч',ex:'The disk drive is broken.'},
+    {en:'spreadsheet',mn:'хүснэгт программ',ex:'She made a spreadsheet.'},
+    {en:'hard disk',mn:'хатуу диск',ex:'The hard disk stores data.'},
+    {en:'break down',mn:'эвдрэх',ex:'My car broke down yesterday.'},
+    {en:'take off',mn:'хөөрөх / тайлах',ex:'The plane took off on time.'},
+    {en:'put off',mn:'хойшлуулах',ex:'Don\'t put off your homework.'},
+    {en:'come into',mn:'өвлөх',ex:'She came into a fortune.'},
+    {en:'rain cats and dogs',mn:'аадар бороо орох',ex:'It\'s raining cats and dogs.'}
+  ]},
+  'exam2022': { name:'📅 2022 Vocabulary', words:[
+    {en:'either',mn:'аль нэг нь',ex:'You can take either bus.'},
+    {en:'neither',mn:'аль нь ч биш',ex:'Neither answer is correct.'},
+    {en:'both',mn:'хоёулаа',ex:'Both students passed.'},
+    {en:'literate',mn:'бичиг үсэгтэй',ex:'She is highly literate.'},
+    {en:'illiterate',mn:'бичиг үсэггүй',ex:'Many adults are illiterate.'},
+    {en:'literacy',mn:'бичиг үсэг',ex:'Literacy rates are rising.'},
+    {en:'jar',mn:'шилэн лонх',ex:'A jar of jam, please.'},
+    {en:'carton',mn:'хайрцаг',ex:'Buy a carton of milk.'},
+    {en:'recommend',mn:'санал болгох',ex:'I recommend this book.'},
+    {en:'persuade',mn:'ятгах',ex:'He persuaded me to go.'},
+    {en:'influence',mn:'нөлөөлөх',ex:'Teachers influence students.'},
+    {en:'criticize',mn:'шүүмжлэх',ex:'Don\'t criticize others.'},
+    {en:'motivation',mn:'урам зориг',ex:'Motivation drives success.'},
+    {en:'tolerance',mn:'хүлцэл',ex:'Show tolerance to others.'},
+    {en:'diversity',mn:'олон янз байдал',ex:'Cultural diversity is valuable.'},
+    {en:'precipitation',mn:'хур тунадас',ex:'Precipitation is expected today.'},
+    {en:'degradation',mn:'доройтол',ex:'Environmental degradation is serious.'},
+    {en:'desertification',mn:'цөлжилт',ex:'Desertification affects farming.'},
+    {en:'concentration',mn:'анхаарал',ex:'Concentration is key to study.'},
+    {en:'concern',mn:'санаа зовнил',ex:'My concern is your health.'},
+    {en:'occupation',mn:'мэргэжил',ex:'What is your occupation?'},
+    {en:'artificial',mn:'хиймэл',ex:'Artificial flowers never die.'},
+    {en:'maintain',mn:'хадгалах',ex:'Maintain a healthy lifestyle.'},
+    {en:'buy for a song',mn:'хямд худалдаж авах',ex:'I bought it for a song.'},
+    {en:'get it in the neck',mn:'шийтгэгдэх',ex:'He got it in the neck.'},
+    {en:'up in the air',mn:'эргэлзээтэй',ex:'The plan is up in the air.'}
+  ]},
+  'exam2023': { name:'📅 2023 Vocabulary', words:[
+    {en:'qualification',mn:'мэргэшил',ex:'She has good qualifications.'},
+    {en:'application',mn:'өргөдөл',ex:'Submit your application today.'},
+    {en:'necessity',mn:'шаардлага',ex:'Water is a necessity.'},
+    {en:'apologize',mn:'уучлалт гуйх',ex:'He apologized for being late.'},
+    {en:'consumption',mn:'хэрэглээ',ex:'Junk food consumption is high.'},
+    {en:'drought',mn:'ган',ex:'The drought lasted months.'},
+    {en:'hazard',mn:'аюул',ex:'Smoking is a health hazard.'},
+    {en:'blizzard',mn:'цасан шуурга',ex:'The blizzard closed schools.'},
+    {en:'soil erosion',mn:'хөрсний эвдрэл',ex:'Soil erosion damages farmland.'},
+    {en:'gale',mn:'хүчтэй салхи',ex:'A gale blew down trees.'},
+    {en:'reputation',mn:'нэр хүнд',ex:'He has a good reputation.'},
+    {en:'gain',mn:'олж авах',ex:'He gained a lot of experience.'},
+    {en:'feedback',mn:'санал шүүмж',ex:'Thank you for your feedback.'},
+    {en:'portfolio',mn:'багц',ex:'She showed her portfolio.'},
+    {en:'heritage',mn:'өв уламжлал',ex:'UNESCO protects our heritage.'},
+    {en:'tradition',mn:'уламжлал',ex:'It\'s a family tradition.'},
+    {en:'masterpiece',mn:'шилдэг бүтээл',ex:'This painting is a masterpiece.'},
+    {en:'zebra crossing',mn:'явган хүний гарц',ex:'Use the zebra crossing.'},
+    {en:'intersection',mn:'уулзвар',ex:'Turn right at the intersection.'},
+    {en:'dead end',mn:'мухар гудамж',ex:'The street is a dead end.'},
+    {en:'one-way street',mn:'нэг чиглэлийн гудамж',ex:'This is a one-way street.'},
+    {en:'lane',mn:'эгнээ',ex:'Stay in your lane.'},
+    {en:'hybrid car',mn:'холимог хөдөлгүүрт машин',ex:'Hybrid cars are eco-friendly.'},
+    {en:'exhaust fumes',mn:'яндангийн хий',ex:'Exhaust fumes pollute the air.'},
+    {en:'cock-and-bull story',mn:'хуурамч түүх',ex:'He told a cock-and-bull story.'},
+    {en:'by hook or by crook',mn:'ямар ч аргаар',ex:'She\'ll do it by hook or by crook.'}
+  ]},
+  'exam2024': { name:'📅 2024 Vocabulary', words:[
+    {en:'hail',mn:'мөндөр',ex:'The hail damaged the crops.'},
+    {en:'breeze',mn:'сэвэлзүүр салхи',ex:'A gentle breeze blew.'},
+    {en:'shower',mn:'богино бороо',ex:'A light shower passed.'},
+    {en:'frost',mn:'хяруу',ex:'Frost covered the fields.'},
+    {en:'downpour',mn:'аадар бороо',ex:'What a sudden downpour!'},
+    {en:'jockey',mn:'морин уралдааны жокей',ex:'The jockey won the race.'},
+    {en:'archer',mn:'нум сумч',ex:'The archer hit the target.'},
+    {en:'gymnast',mn:'гимнастикч',ex:'She is a talented gymnast.'},
+    {en:'weight lifter',mn:'хүндийн өргөлтийн тамирчин',ex:'He is a strong weight lifter.'},
+    {en:'cosmology',mn:'сансар судлал',ex:'Cosmology studies the universe.'},
+    {en:'geology',mn:'геологи',ex:'Geology studies the Earth.'},
+    {en:'capital letters',mn:'том үсэг',ex:'Write in capital letters.'},
+    {en:'block',mn:'блок / хороолол',ex:'They live on the same block.'},
+    {en:'clog',mn:'бөглөх',ex:'Leaves clog the drains.'},
+    {en:'bulk',mn:'их хэмжээ',ex:'Buy in bulk to save money.'},
+    {en:'inflict pain',mn:'өвдөлт учруулах',ex:'He didn\'t mean to inflict pain.'},
+    {en:'soothe pain',mn:'өвдөлтийг намжаах',ex:'This medicine soothes pain.'},
+    {en:'camping gear',mn:'аяллын хэрэгсэл',ex:'Pack your camping gear.'},
+    {en:'climbing boots',mn:'авирах гутал',ex:'Wear climbing boots for the hike.'},
+    {en:'walking stick',mn:'алхах саваа',ex:'Grandpa uses a walking stick.'},
+    {en:'get someone\'s goat',mn:'хүнийг уурлуулах',ex:'It really got his goat.'},
+    {en:'wears the trousers',mn:'гэр бүлийн тэргүүн',ex:'She wears the trousers in the family.'},
+    {en:'hold up',mn:'дээрэмдэх',ex:'They held up the store.'},
+    {en:'come down with',mn:'өвдөх',ex:'He came down with a cold.'},
+    {en:'keep an eye on',mn:'хянах',ex:'Keep an eye on the kids.'}
+  ]},
+  'exam2025': { name:'📅 2025 Vocabulary', words:[
+    {en:'raincoat',mn:'борооны цув',ex:'Wear a raincoat today.'},
+    {en:'wristband',mn:'бугуйвч',ex:'She wears a silver wristband.'},
+    {en:'jumper',mn:'цамц',ex:'This jumper is warm.'},
+    {en:'nylons',mn:'найлон оймс',ex:'She bought new nylons.'},
+    {en:'foal',mn:'унага',ex:'The foal is running.'},
+    {en:'fawn',mn:'зээрэнцэр',ex:'A baby deer is a fawn.'},
+    {en:'kid',mn:'ишиг',ex:'A young goat is a kid.'},
+    {en:'cub',mn:'барын зулзага',ex:'A baby lion is a cub.'},
+    {en:'lamb',mn:'хурга',ex:'A baby sheep is a lamb.'},
+    {en:'garage',mn:'гараж',ex:'Park the car in the garage.'},
+    {en:'patio',mn:'дэнж',ex:'We ate dinner on the patio.'},
+    {en:'aircraft',mn:'нисэх онгоц',ex:'The aircraft took off smoothly.'},
+    {en:'coach',mn:'алсын автобус',ex:'We took a coach to the city.'},
+    {en:'ferry',mn:'гатлага онгоц',ex:'Take the ferry across the river.'},
+    {en:'caravan',mn:'чиргүүл байшин',ex:'They travel in a caravan.'},
+    {en:'cybercriminal',mn:'кибер гэмт хэрэгтэн',ex:'Cybercriminals steal data.'},
+    {en:'kidnapper',mn:'хүн барьцаалагч',ex:'The kidnapper was arrested.'},
+    {en:'fraudster',mn:'залиланчин',ex:'The fraudster tricked many.'},
+    {en:'vandal',mn:'хор хөнөөл учруулагч',ex:'Vandals damaged the wall.'},
+    {en:'mugger',mn:'дээрэмчин',ex:'A mugger stole her purse.'},
+    {en:'suspected',mn:'сэжиглэсэн',ex:'Police suspected him.'},
+    {en:'questioned',mn:'байцаасан',ex:'They questioned him for hours.'},
+    {en:'charged',mn:'ялласан',ex:'He was charged with robbery.'},
+    {en:'convicted',mn:'ял шийтгүүлсэн',ex:'He was convicted of theft.'},
+    {en:'efficient',mn:'үр ашигтай',ex:'Public transport is efficient.'},
+    {en:'cosmopolitan',mn:'олон улсын',ex:'It\'s a cosmopolitan city.'},
+    {en:'heat wave',mn:'халуун долгион',ex:'A heat wave hit the city.'},
+    {en:'drizzle',mn:'шиврээ бороо',ex:'There was a bit of drizzle.'},
+    {en:'overcast',mn:'үүлэрхэг',ex:'It was very overcast today.'}
+  ]},
   'health': { name:'🏥 Эрүүл мэнд', words:[
     {en:'nutrition',mn:'тэжээл',ex:'Good nutrition is key to a healthy life.'},
     {en:'diagnose',mn:'оношлох',ex:'The doctor diagnosed him with the flu.'},
@@ -994,16 +1128,6 @@ function go(name){
   window.scrollTo(0,0);
 }
 
-function goHome(){
-  if (state.timerId && !state.submitted) {
-    openModal('Шалгалтаас гарах уу?', 'Хариултууд хадгалагдахгүй.', 'Тийм, гарах', function(){
-      stopTimer(); state.timerId = null; state.submitted = true; go('home');
-    });
-    return;
-  }
-  go('home');
-}
-
 /* ============================================================
    5. HELPERS
    ============================================================ */
@@ -1019,7 +1143,9 @@ function gradeOf(p){
   return {letter:'F',label:'Хангалтгүй',color:'#dc2626'};
 }
 function fmtDate(iso){
+  if (!iso) return '—';
   var d = new Date(iso);
+  if (isNaN(d.getTime())) return String(iso);
   function p(n){return String(n).padStart(2,'0')}
   return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes());
 }
@@ -1232,7 +1358,8 @@ function confirmSubmit(){
 function autoSubmit(){
   openModal('Хугацаа дууслаа','Хариултууд автоматаар илгээгдлээ.','Үргэлжлүүлэх', finishExam);
 }
-function finishExam(){
+
+async function finishExam(){
   if (state.submitted) return;
   state.submitted = true;
   stopTimer();
@@ -1256,27 +1383,94 @@ function finishExam(){
     grade: grade.letter, gradeLabel: grade.label,
     timeUsed: fmtTime(secsUsed)
   };
-  saveResult(record);
+  await saveResult(record);
   go('thankyou');
 }
 
 /* ============================================================
-   7. TEACHER LOGIC
+   7. GOOGLE SHEETS + LOCAL STORAGE
    ============================================================ */
 function getResults(){
   try { return JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEY) || '[]'); }
   catch(e){ return []; }
 }
-function saveResult(r){
+
+async function saveResult(r){
   var all = getResults();
   all.push(r);
   try { localStorage.setItem(CONFIG.STORAGE_KEY, JSON.stringify(all)); } catch(e){}
+
+  if (CONFIG.SHEETS_URL) {
+    try {
+      var res = await fetch(CONFIG.SHEETS_URL, {
+        method: 'POST',
+        headers: {'Content-Type':'text/plain;charset=utf-8'},
+        body: JSON.stringify(r)
+      });
+      var json = await res.json();
+      if (!json.ok) throw new Error(json.error || 'Алдаа');
+      console.log('✓ Sheet рүү илгээгдлээ');
+    } catch(e) {
+      console.warn('Sheet рүү илгээж чадсангүй, дараа дахин оролдоно:', e);
+      var q = JSON.parse(localStorage.getItem('eep_unsent') || '[]');
+      q.push(r);
+      localStorage.setItem('eep_unsent', JSON.stringify(q));
+    }
+  }
 }
+
+async function syncUnsent(){
+  if (!CONFIG.SHEETS_URL) return;
+  var q = JSON.parse(localStorage.getItem('eep_unsent') || '[]');
+  if (!q.length) return;
+  var remaining = [];
+  for (var i=0; i<q.length; i++) {
+    try {
+      var res = await fetch(CONFIG.SHEETS_URL, {
+        method:'POST',
+        headers:{'Content-Type':'text/plain;charset=utf-8'},
+        body: JSON.stringify(q[i])
+      });
+      var j = await res.json();
+      if (!j.ok) throw new Error();
+    } catch(e) { remaining.push(q[i]); }
+  }
+  localStorage.setItem('eep_unsent', JSON.stringify(remaining));
+}
+
+async function fetchResultsFromServer(){
+  if (!CONFIG.SHEETS_URL) {
+    return {source:'local', data: getResults()};
+  }
+  try {
+    var res = await fetch(CONFIG.SHEETS_URL);
+    var json = await res.json();
+    if (!json.ok) throw new Error(json.error || 'Алдаа');
+    return {source:'server', data: json.data || []};
+  } catch(e) {
+    console.error('Sheet-с татаж чадсангүй:', e);
+    return {source:'local-fallback', data: getResults(), error: e.message};
+  }
+}
+
+/* ============================================================
+   8. TEACHER LOGIC
+   ============================================================ */
 function clearAllResults(){
-  openModal('Бүх үр дүнг устгах','Энэ үйлдлийг буцаах боломжгүй.','Тийм, устгах', function(){
+  openModal('Бүх үр дүнг устгах','Энэ үйлдлийг буцаах боломжгүй.','Тийм, устгах', async function(){
     localStorage.removeItem(CONFIG.STORAGE_KEY);
-    renderTeacherTable();
+    localStorage.removeItem('eep_unsent');
+    if (CONFIG.SHEETS_URL) {
+      try {
+        await fetch(CONFIG.SHEETS_URL, {
+          method: 'POST',
+          headers: {'Content-Type':'text/plain;charset=utf-8'},
+          body: JSON.stringify({action:'clear'})
+        });
+      } catch(e) { console.warn(e); }
+    }
     renderTeacherStats();
+    renderTeacherTable();
   });
 }
 function openTeacher(){
@@ -1310,9 +1504,14 @@ function teacherLogout(){
   sessionStorage.removeItem('eep_teacher');
   go('home');
 }
-function renderTeacherStats(){
-  var all = getResults();
+
+async function renderTeacherStats(){
   var box = document.getElementById('teacherStats');
+  box.innerHTML = '<div class="card" style="grid-column:1/-1;text-align:center;padding:30px"><p class="muted">⏳ Ачаалж байна...</p></div>';
+
+  var res = await fetchResultsFromServer();
+  var all = res.data;
+
   if (!all.length) {
     box.innerHTML = '<div class="card" style="grid-column:1/-1"><div class="empty-state"><div class="icon">📭</div><p>Одоогоор үр дүн байхгүй.</p></div></div>';
     return;
@@ -1324,35 +1523,49 @@ function renderTeacherStats(){
     if (all[i].percent >= 60) passed++;
   }
   var avg = Math.round(sum/all.length);
+  var srcLabel = res.source === 'server' ? '☁️ Google Sheet' :
+                 res.source === 'local'  ? '💾 Локал (Sheet URL хоосон)' :
+                                           '⚠️ Локал (Sheet-с холбогдсонгүй)';
   box.innerHTML =
     '<div class="card" style="text-align:center"><div style="font-size:30px;font-weight:800;color:#2563eb">'+all.length+'</div><div class="muted small" style="font-weight:700">Нийт шалгалт</div></div>'+
     '<div class="card" style="text-align:center"><div style="font-size:30px;font-weight:800;color:#0ea5e9">'+avg+'%</div><div class="muted small" style="font-weight:700">Дундаж</div></div>'+
     '<div class="card" style="text-align:center"><div style="font-size:30px;font-weight:800;color:#16a34a">'+best+'%</div><div class="muted small" style="font-weight:700">Хамгийн өндөр</div></div>'+
-    '<div class="card" style="text-align:center"><div style="font-size:30px;font-weight:800;color:#f59e0b">'+passed+'/'+all.length+'</div><div class="muted small" style="font-weight:700">Тэнцсэн</div></div>';
+    '<div class="card" style="text-align:center"><div style="font-size:30px;font-weight:800;color:#f59e0b">'+passed+'/'+all.length+'</div><div class="muted small" style="font-weight:700">Тэнцсэн</div></div>'+
+    '<div class="card" style="grid-column:1/-1;text-align:center;padding:10px"><span class="small muted">Эх сурвалж: '+srcLabel+'</span></div>';
 }
-function renderTeacherTable(){
+
+async function renderTeacherTable(){
   var box = document.getElementById('teacherTableBox');
+  box.innerHTML = '<div class="card" style="text-align:center;padding:30px"><p class="muted">⏳ Ачаалж байна...</p></div>';
+
   var searchEl = document.getElementById('tSearch');
   var yearEl = document.getElementById('tYear');
   var versionEl = document.getElementById('tVersion');
   if (!searchEl || !yearEl || !versionEl) return;
+
   var search = (searchEl.value||'').toLowerCase();
   var year = yearEl.value;
   var version = versionEl.value;
-  var rows = getResults();
+
+  var res = await fetchResultsFromServer();
+  var rows = res.data.slice();
   rows.sort(function(a,b){return new Date(b.timestamp) - new Date(a.timestamp)});
+
   var filtered = [];
   for (var i=0; i<rows.length; i++) {
     var r = rows[i];
-    if (search && r.name.toLowerCase().indexOf(search) === -1 && (r.className||'').toLowerCase().indexOf(search) === -1) continue;
-    if (year && r.year !== year) continue;
+    if (search && (r.name||'').toLowerCase().indexOf(search) === -1 &&
+        (r.className||'').toLowerCase().indexOf(search) === -1) continue;
+    if (year && String(r.year) !== year) continue;
     if (version && r.version !== version) continue;
     filtered.push(r);
   }
+
   if (!filtered.length) {
     box.innerHTML = '<div class="card"><div class="empty-state"><div class="icon">📭</div><p>Үр дүн олдсонгүй.</p></div></div>';
     return;
   }
+
   var html = '<div class="table-wrap"><table><thead><tr><th>#</th><th>Огноо</th><th>Овог нэр</th><th>Анги</th><th>Жил</th><th>Хувилбар</th><th>Оноо</th><th>Хувь</th><th>Дүн</th><th>Хугацаа</th></tr></thead><tbody>';
   for (var j=0; j<filtered.length; j++) {
     var r = filtered[j];
@@ -1362,8 +1575,10 @@ function renderTeacherTable(){
   html += '</tbody></table></div><p class="small muted mt-16">Нийт <b>'+filtered.length+'</b> бичлэг.</p>';
   box.innerHTML = html;
 }
-function exportCSV(){
-  var rows = getResults();
+
+async function exportCSV(){
+  var res = await fetchResultsFromServer();
+  var rows = res.data;
   if (!rows.length) { alert('Өгөгдөл байхгүй.'); return; }
   rows.sort(function(a,b){return new Date(b.timestamp) - new Date(a.timestamp)});
   var head = ['Огноо','Овог нэр','Анги','Жил','Хувилбар','Оноо','Нийт','Хувь','Дүн','Хугацаа'];
@@ -1385,9 +1600,9 @@ function exportCSV(){
 }
 
 /* ============================================================
-   8. VOCAB LOGIC
+   9. VOCAB LOGIC
    ============================================================ */
-var vCurrentCat = 'health';
+var vCurrentCat = 'exam2021';
 var vCurrentWords = [];
 var vCurrentIndex = 0;
 var vMode = 'flash';
@@ -1549,7 +1764,7 @@ function nextQuiz(){
 }
 
 /* ============================================================
-   9. INIT
+   10. INIT
    ============================================================ */
 document.addEventListener('DOMContentLoaded', function(){
   renderExamList();
@@ -1577,6 +1792,12 @@ document.addEventListener('DOMContentLoaded', function(){
       if (e.key === ' ') { e.preventDefault(); flipCard(); }
     }
   });
+
+  syncUnsent();
+  window.addEventListener('online', syncUnsent);
+
+  console.log('✓ English Learning Portal ачаалагдлаа');
+  console.log('Sheet URL:', CONFIG.SHEETS_URL ? 'Тохируулагдсан' : 'Хоосон');
 });
 </script>
 </body>
