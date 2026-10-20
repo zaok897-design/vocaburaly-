@@ -183,7 +183,7 @@ questions:[
 /* ===================== ТОХИРГОО ===================== */
 const CONFIG = {
   // Google Apps Script "Web app" URL
-  API_URL: "https://script.google.com/macros/s/AKfycbxvhOm-00unTLA6XEnJ97mdZa4R6TCMmgjnhnJzFpjGkegFctAAwow8yws-TaHPJCCt/exec",
+  API_URL: "https://script.google.com/macros/s/AKfycbyLZjuIbQVKpclnIa8GyZZd490PuyxhiQ6WWaVDpEMYKKRk-Z1XnyACUtb6qmXsjFdN_Q/exec",
   DAILY_NEW: 10 // өдөрт нэмж үзэх шинэ үгийн тоо
 };
 
@@ -212,9 +212,10 @@ const topicName = id => (D.topics.find(t => t.id === id) || {}).mn || id;
 
 async function api(action, data) {
   if (!CONFIG.API_URL) throw new Error("Сервер холбогдоогүй байна (index.html доторх CONFIG.API_URL хоосон).");
-  const ac = new AbortController(), to = setTimeout(() => ac.abort(), 30000);
+  let timer;
+  const timeout = new Promise((_, rej) => { timer = setTimeout(() => rej(Object.assign(new Error("timeout"), { name: "AbortError" })), 30000); });
   try {
-    const r = await fetch(CONFIG.API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action, ...data }), signal: ac.signal });
+    const r = await Promise.race([fetch(CONFIG.API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action, ...data }) }), timeout]);
     const j = await r.json();
     if (!j.ok) { const e = new Error(j.error || "Серверийн алдаа"); e.auth = j.auth; throw e; }
     return j;
@@ -222,7 +223,7 @@ async function api(action, data) {
     if (e.name === "AbortError") throw new Error("Сервер хариу өгсөнгүй (хугацаа дууслаа). Дахин оролдоно уу.");
     if (e instanceof TypeError) throw new Error("Сервертэй холбогдож чадсангүй. Интернэтээ шалгана уу.");
     throw e;
-  } finally { clearTimeout(to); }
+  } finally { clearTimeout(timer); }
 }
 
 /* ===================== ДУУДЛАГА (Web Speech API) ===================== */
@@ -573,9 +574,11 @@ views.progress = () => {
 };
 
 /* ---------- Багшийн тайлан ---------- */
-const TC = { token: SS.get("tok", null), rows: [], cls: "all", set: "all", q: "", err: "", loading: false };
+const TC = { token: SS.get("tok", null), rows: [], kind: "all", cls: "all", set: "all", q: "", err: "", loading: false };
 function csvCell(v) { let s = String(v ?? ""); if (/^[=+\-@]/.test(s)) s = "'" + s; return '"' + s.replace(/"/g, '""') + '"'; }
-function teacherFiltered() { const q = TC.q.trim().toLowerCase(); return TC.rows.filter(r => (TC.cls === "all" || r.cls === TC.cls) && (TC.set === "all" || r.setId === TC.set) && (!q || r.name.toLowerCase().includes(q))); }
+const isVocab = r => String(r.setId || "").startsWith("VOCAB");
+const kindOk = r => TC.kind === "all" || (TC.kind === "vocab") === isVocab(r);
+function teacherFiltered() { const q = TC.q.trim().toLowerCase(); return TC.rows.filter(r => kindOk(r) && (TC.cls === "all" || r.cls === TC.cls) && (TC.set === "all" || r.setId === TC.set) && (!q || r.name.toLowerCase().includes(q))); }
 views.teacher = () => {
   if (!TC.token) {
     app.innerHTML = `<h1>🔐 Багшийн дүнгийн тайлан</h1><div class="card"><form data-form="tlogin"><label for="tpw">Багшийн нууц үг</label><input id="tpw" type="password" required autocomplete="current-password">
@@ -585,11 +588,14 @@ views.teacher = () => {
     return;
   }
   const rows = teacherFiltered().slice().sort((a, b) => b.date.localeCompare(a.date));
-  const classes = [...new Set(TC.rows.map(r => r.cls))].sort(), sets = [...new Set(TC.rows.map(r => r.setId))].sort();
+  const kr = TC.rows.filter(kindOk), classes = [...new Set(kr.map(r => r.cls))].sort(), sets = [...new Set(kr.map(r => r.setId))].sort();
+  const nE = TC.rows.filter(r => !isVocab(r)).length, nV = TC.rows.filter(isVocab).length;
+  const tab = (k, t) => `<button class="chip ${TC.kind === k ? "on" : ""}" data-act="tkind" data-v="${k}">${t}</button>`;
   const avg = rows.length ? Math.round(rows.reduce((a, r) => a + r.percent, 0) / rows.length * 10) / 10 : 0;
   const byCls = {}; rows.forEach(r => { (byCls[r.cls] = byCls[r.cls] || []).push(r.percent); });
   app.innerHTML = `<div class="row sp"><h1>🔐 Багшийн тайлан</h1><div class="row"><button class="btn g" data-act="trefresh">⟳ Шинэчлэх</button><button class="btn g" data-act="tlogout">Гарах</button></div></div>
   ${TC.err ? `<div class="alert e">${esc(TC.err)}</div>` : ""}
+  <div class="row" style="margin:8px 0">${tab("all", "Бүгд (" + TC.rows.length + ")")}${tab("ese", "📝 ЭЕШ тест (" + nE + ")")}${tab("vocab", "📚 Vocabulary (" + nV + ")")}</div>
   <div class="card"><div class="grid"><div><label>Анги</label><select id="tcls"><option value="all">Бүгд</option>${classes.map(c => `<option ${TC.cls === c ? "selected" : ""} value="${esc(c)}">${esc(c)}</option>`).join("")}</select></div>
   <div><label>Багц</label><select id="tset"><option value="all">Бүгд</option>${sets.map(c => `<option ${TC.set === c ? "selected" : ""} value="${esc(c)}">${esc(c)}</option>`).join("")}</select></div>
   <div><label>Нэрээр хайх</label><input id="tq" value="${esc(TC.q)}"></div></div></div>
@@ -648,6 +654,7 @@ const A = {
   wipe: () => { if (!confirm("Таны төхөөрөмж дээр хадгалсан бүх ахиц, нэр, ангийг устгах уу?")) return; ["cards", "newToday", "history", "tr", "student", "accent", "rate"].forEach(k => LS.del(k)); toast("Устгалаа."); views.progress(); },
   // teacher
   tlogout: async () => { const tk = TC.token; TC.token = null; TC.rows = []; SS.del("tok"); try { await api("teacherLogout", { token: tk }); } catch (e) {} views.teacher(); },
+  tkind: t => { TC.kind = t.dataset.v; TC.cls = "all"; TC.set = "all"; views.teacher(); },
   trefresh: () => teacherLoad(),
   tcsv: () => {
     const rows = teacherFiltered(), head = ["Огноо", "Нэр", "Анги", "Багц", "Нийт", "Зөв", "Буруу", "Хоосон", "Хувь"];
@@ -689,6 +696,272 @@ app.addEventListener("submit", async e => {
 theme();
 if (!D.sets.length && !D.vocab.length) app.innerHTML = `<div class="alert e">Өгөгдлийн файлууд (data/*.js) ачаалагдсангүй. index.html-тэй хамт data хавтсыг байршуулсан эсэхээ шалгана уу.</div>`;
 else { if (TC.token) teacherLoad(); route(); }
+</script>
+<script>
+/* ===== Монгол↔Англи дасгалын нэмэлт: Vocabulary эх сурвалж + Сонгох тест ===== */
+(function(){
+  for (const d of ["mn-en","en-mn"]) Object.assign(TR[d], { src:"tr", fmt:"type", topic:"all", n:10, opts:[], pick:null, correct:"" });
+
+  const vocabItems = topic => D.vocab.filter(v => topic==="all" || v.t.includes(topic)).map(v => {
+    const e = D.ex[v.w], parts = v.m.split(/[,;]/).map(s=>s.trim()).filter(Boolean);
+    return { id:"v:"+v.w, l:(e&&e.l)||"?", t:"word", en:[v.w], mn:[...new Set([v.m,...parts])],
+             note: v.t.map(topicName).join(" · "), ex:e?e.ex:"", exMn:e?e.mn:"" };
+  });
+  const trPool = S => S.src==="vocab" ? vocabItems(S.topic) : S.src==="ese" ? vocabItems("ese")
+    : D.tr.filter(x => (S.level==="all"||x.l===S.level) && (S.type==="all"||x.t===S.type));
+  const txt = (dir,it) => dir==="mn-en" ? it.en[0] : it.mn[0];
+  const chip = (on,act,d,v,t) => `<button class="chip ${on?"on":""}" data-act="${act}" data-d="${d}" data-v="${v}">${t}</button>`;
+
+  function mkOpts(dir, S, it){
+    S.correct = txt(dir,it);
+    let pool = S.src==="vocab" ? vocabItems("all") : S.src==="ese" ? vocabItems("ese") : D.tr.filter(x=>x.t===it.t);
+    let wrong = [...new Set(shuffle(pool).filter(x=>x.id!==it.id).map(x=>txt(dir,x)))].filter(x=>x!==S.correct);
+    if (wrong.length<3) wrong = [...new Set([...wrong, ...shuffle(vocabItems("all")).map(x=>txt(dir,x))])].filter(x=>x!==S.correct);
+    return shuffle([S.correct, ...wrong.slice(0,3)]);
+  }
+
+  trView = function(dir){
+    const S = TR[dir], title = dir==="mn-en" ? "🇲🇳 Монгол → Англи 🇬🇧" : "🇬🇧 Англи → Монгол 🇲🇳";
+    if (!D.tr.length && !D.vocab.length){ app.innerHTML = `<div class="alert e">Өгөгдөл ачаалагдсангүй.</div>`; return; }
+
+    if (!S.started || !S.q.length){
+      const n = trPool(S).length;
+      app.innerHTML = `<h1>${title}</h1><p class="mu">Дасгалын эх сурвалж, хэлбэрээ сонгоно уу.</p>
+      <div class="card">
+        <label>Эх сурвалж</label><div class="row">${chip(S.src==="tr","trsrc",dir,"tr","📝 Дасгалын сан (үг + өгүүлбэр)")}${chip(S.src==="vocab","trsrc",dir,"vocab","📚 Vocabulary-ийн үгс")}${chip(S.src==="ese","trsrc",dir,"ese","🎓 ЭЕШ-ийн үг, хэллэг (2021–2025)")}</div>
+        <label>Хэлбэр</label><div class="row">${chip(S.fmt==="type","trfmt",dir,"type","✍️ Бичиж хариулах")}${chip(S.fmt==="mcq","trfmt",dir,"mcq","✅ Сонгох тест")}</div>
+        ${S.src==="vocab"
+          ? `<label for="trtopic">Сэдэв</label><select id="trtopic" data-d="${dir}"><option value="all">Бүх сэдэв</option>${D.topics.map(t=>`<option value="${t.id}" ${S.topic===t.id?"selected":""}>${esc(t.mn)}</option>`).join("")}</select>`
+          : `<label>Түвшин</label><div class="row">${["all",...LEVELS].map(l=>chip(S.level===l,"trlevel",dir,l,l==="all"?"Бүх түвшин":l)).join("")}</div>
+             <label>Төрөл</label><div class="row">${[["all","Үг + өгүүлбэр"],["word","Зөвхөн үг"],["sentence","Зөвхөн өгүүлбэр"]].map(([v,t])=>chip(S.type===v,"trtype",dir,v,t)).join("")}</div>`}
+        <label>Асуултын тоо</label><div class="row">${[10,20,40,"all"].map(v=>chip(S.n===v,"trn",dir,v,v==="all"?"Бүгд":v)).join("")}</div>
+        <p class="sm mu" style="margin-top:10px">Тохирох дасгал: <b>${n}</b></p>
+        <button class="btn full" data-act="trstart" data-d="${dir}" ${n?"":"disabled"}>Эхлэх →</button>
+      </div>`;
+      return;
+    }
+    if (S.i >= S.q.length){
+      app.innerHTML = `<h1>${title}</h1><div class="card c"><h2>Дасгал дууслаа 🎉</h2><p class="mu">Ахицыг "Миний ахиц" хэсгээс харна уу.</p>
+      <div class="row" style="justify-content:center"><button class="btn" data-act="trstart" data-d="${dir}">Дахин (шинэ дараалал)</button><button class="btn g" data-act="trrestart" data-d="${dir}">Тохиргоо</button></div></div>`;
+      return;
+    }
+    const it = S.q[S.i], ask = dir==="mn-en" ? it.mn[0] : it.en[0], ans = dir==="mn-en" ? it.en : it.mn, r = S.res, mcq = S.fmt==="mcq";
+    if (mcq && !S.opts.length) S.opts = mkOpts(dir,S,it);
+
+    const answerCard = r ? `<div class="card"><b>Зөв хариултууд:</b><ul style="margin:6px 0 6px 18px;padding:0">${ans.map(a=>`<li>${esc(a)} ${dir==="mn-en"?`<button class="icon" style="width:30px;height:30px" data-act="sayt" data-t="${esc(a)}">🔊</button>`:""}</li>`).join("")}</ul>
+      ${it.note?`<p class="sm mu" style="margin:4px 0">💡 ${esc(it.note)}</p>`:""}
+      ${it.ex?`<p class="sm" style="margin:4px 0"><b>Жишээ:</b> <i>${esc(it.ex)}</i> — ${esc(it.exMn)}</p>`:""}</div>` : "";
+
+    const body = mcq
+      ? `${S.opts.map((o,k)=>`<button class="opt ${r?(o===S.correct?"good":(k===S.pick?"wrong":"")):""}" data-act="trpick" data-d="${dir}" data-k="${k}" ${r?"disabled":""}><i>${L[k]}</i><span>${esc(o)}</span></button>`).join("")}
+         ${r?`<div class="alert ${r.st==="ok"?"s":"e"}"><b>${r.st==="ok"?"✅ Зөв!":"❌ Буруу"}</b></div>${answerCard}<div class="row"><button class="btn" data-act="trnext" data-d="${dir}">Дараагийнх →</button></div>`:""}`
+      : `<form data-form="trcheck" data-d="${dir}">
+          <textarea id="trin" rows="2" placeholder="${dir==="mn-en"?"Англиар бичнэ үү…":"Монголоор бичнэ үү…"}" ${r?"disabled":""} autocomplete="off" autocapitalize="off">${r?esc(r.input):""}</textarea>
+          ${r?"":`<div class="row" style="margin-top:8px"><button class="btn" type="submit">Шалгах</button><button class="btn g" type="button" data-act="trskip" data-d="${dir}">Алгасах</button></div>`}</form>
+         ${r?`<div class="alert ${r.st==="ok"?"s":r.st==="near"?"w":"e"}"><b>${r.st==="ok"?"✅ Зөв!":r.st==="near"?"🟡 Бараг зөв (жижиг зөрүүтэй)":"❌ Таарсангүй"}</b></div>${answerCard}
+         ${r.st!=="ok"&&!r.rec?`<p class="sm mu">Миний хариулт өөр боловч зөв утгатай байсан уу?</p><div class="row"><button class="btn ok" data-act="trself" data-d="${dir}" data-v="1">Тийм, зөв</button><button class="btn bad" data-act="trself" data-d="${dir}" data-v="0">Үгүй, алдсан</button></div>`:""}
+         <div class="row" style="margin-top:10px"><button class="btn" data-act="trnext" data-d="${dir}">Дараагийнх →</button></div>`:""}`;
+
+    app.innerHTML = `<h1>${title}</h1>
+    <div class="row sp sm mu"><span>${S.i+1} / ${S.q.length}</span><span><span class="badge">${it.l}</span> ${mcq?"тест":"бичих"} · <button class="chip" data-act="trrestart" data-d="${dir}">Тохиргоо</button></span></div>
+    <div class="bar" style="margin:6px 0"><div style="width:${S.i/S.q.length*100}%"></div></div>
+    <div class="card"><div class="row"><div style="flex:1;font-size:20px;font-weight:600">${esc(ask)}</div>${dir==="en-mn"?`<button class="icon" data-act="sayt" data-t="${esc(ask)}" aria-label="Сонсох">🔊</button>`:""}</div></div>${body}`;
+    const t = $("#trin"); if (t && !r) t.focus();
+  };
+
+  Object.assign(A, {
+    trsrc:  t => { const S=TR[t.dataset.d]; S.src=t.dataset.v; S.started=false; trView(t.dataset.d); },
+    trfmt:  t => { const S=TR[t.dataset.d]; S.fmt=t.dataset.v; S.started=false; trView(t.dataset.d); },
+    trn:    t => { const S=TR[t.dataset.d]; S.n=t.dataset.v==="all"?"all":+t.dataset.v; trView(t.dataset.d); },
+    trstart:t => { const d=t.dataset.d, S=TR[d]; let q=shuffle(trPool(S)); if(S.n!=="all") q=q.slice(0,S.n);
+                   S.q=q; S.i=0; S.res=null; S.opts=[]; S.pick=null; S.started=true; trView(d); },
+    trpick: t => { const d=t.dataset.d, S=TR[d]; if(S.res) return; S.pick=+t.dataset.k;
+                   const ok=S.opts[S.pick]===S.correct; trRecord(S.q[S.i],ok); S.res={st:ok?"ok":"no",input:"",rec:true}; trView(d); },
+    trnext: t => { const d=t.dataset.d, S=TR[d]; if(S.res&&S.res.st!=="ok"&&!S.res.rec) trRecord(S.q[S.i],false);
+                   S.i++; S.res=null; S.opts=[]; S.pick=null; trView(d); window.scrollTo(0,0); }
+  });
+  app.addEventListener("change", e => { if (e.target.id==="trtopic"){ const S=TR[e.target.dataset.d]; S.topic=e.target.value; trView(e.target.dataset.d); } });
+})();
+</script>
+<script>
+/* ===== Vocabulary-аар шалгалт өгөх (сонгох тест) ===== */
+(function(){
+  const VQ = { phase:"setup", topic:"all", dir:"en-mn", n:10, q:[], ans:[], i:0, res:null, t0:0, err:"", name:(LS.get("student",{}).name||""), cls:(LS.get("student",{}).cls||"") };
+  const chip = (on,act,v,t) => `<button class="chip ${on?"on":""}" data-act="${act}" data-v="${v}">${t}</button>`;
+  const poolOf = () => D.vocab.filter(v => VQ.topic==="all" || v.t.includes(VQ.topic));
+  const tname = () => VQ.topic==="all" ? "Бүх сэдэв" : topicName(VQ.topic);
+
+  const ow = views.vocab;
+  views.vocab = function(){
+    ow();
+    const h = app.querySelector("h1,h2");
+    if (h) h.insertAdjacentHTML("afterend", `<div class="row" style="margin:8px 0"><button class="btn" data-act="vquiz">🧪 Шалгалт өгөх</button></div>`);
+  };
+
+  function build(){
+    const pool = poolOf(), en = VQ.dir==="en-mn", key = v => en ? v.m : v.w;
+    let items = shuffle(pool); if (VQ.n!=="all") items = items.slice(0, VQ.n);
+    VQ.q = items.map(v => {
+      const c = key(v), wrong = [];
+      for (const x of shuffle(pool).concat(shuffle(D.vocab)).map(key)) { if (x!==c && !wrong.includes(x)) { wrong.push(x); if (wrong.length===3) break; } }
+      const opts = shuffle([c, ...wrong]);
+      return { v, opts, ci: opts.indexOf(c) };
+    });
+    VQ.ans = VQ.q.map(() => null); VQ.i = 0; VQ.res = null;
+  }
+
+  views.vquiz = function(){
+    const en = VQ.dir==="en-mn";
+    if (VQ.phase==="sending"){ app.innerHTML = `<div class="card c"><h2>Илгээж байна…</h2><p class="mu">Хариултыг багшид илгээж байна.</p></div>`; return; }
+    if (VQ.phase==="setup"){
+      const n = poolOf().length;
+      app.innerHTML = `<h1>🧪 Vocabulary шалгалт</h1><p class="mu">Үгсийн сангаас 4 сонголттой шалгалт өгнө. Дүн сурагчид харагдахгүй, зөвхөн багшид илгээгдэнэ.</p>
+      <div class="card"><label for="vqtopic">Сэдэв</label><select id="vqtopic"><option value="all">Бүх сэдэв</option>${D.topics.map(t=>`<option value="${t.id}" ${VQ.topic===t.id?"selected":""}>${esc(t.mn)}</option>`).join("")}</select>
+      <label>Чиглэл</label><div class="row">${chip(en,"vqdir","en-mn","🇬🇧 Англи → Монгол")}${chip(!en,"vqdir","mn-en","🇲🇳 Монгол → Англи")}</div>
+      <label>Асуултын тоо</label><div class="row">${[10,20,40,"all"].map(v=>chip(VQ.n===v,"vqn",v,v==="all"?"Бүгд":v)).join("")}</div>
+      <p class="sm mu" style="margin-top:10px">Сонгосон сэдвийн үг: <b>${n}</b></p>
+      <label for="vqname">Нэр (бүтнээр)</label><input id="vqname" maxlength="60" autocomplete="name" value="${esc(VQ.name)}">
+      <label for="vqcls">Анги</label><input id="vqcls" maxlength="20" placeholder="Жишээ: 12А" value="${esc(VQ.cls)}">
+      <p class="sm mu">Нэр, анги, дүн зөвхөн багшид илгээгдэнэ. Бусад сурагч харахгүй.</p>
+      <button class="btn full" data-act="vqstart" ${n?"":"disabled"}>Шалгалт эхлэх →</button></div>`;
+      return;
+    }
+    if (VQ.phase==="run"){
+      const q = VQ.q[VQ.i], sel = VQ.ans[VQ.i], done = VQ.ans.filter(a=>a!==null).length;
+      app.innerHTML = `<div class="row sp sm mu"><span>${esc(tname())}</span><span>${VQ.i+1}/${VQ.q.length}</span></div>
+      <div class="bar" style="margin:6px 0"><div style="width:${done/VQ.q.length*100}%"></div></div>
+      <div class="card"><div class="sm mu">${en?"Утгыг нь сонго":"Англи үгийг сонго"}</div>
+      <div class="row"><div style="flex:1;font-size:22px;font-weight:700">${esc(en?q.v.w:q.v.m)}</div>${en?`<button class="icon" data-act="sayw" data-w="${esc(q.v.w)}" aria-label="Сонсох">🔊</button>`:""}</div></div>
+      ${q.opts.map((o,k)=>`<button class="opt ${sel===k?"sel":""}" data-act="vqpick" data-k="${k}"><i>${L[k]}</i><span>${esc(o)}</span></button>`).join("")}
+      <div class="row sp" style="margin-top:10px"><button class="btn g" data-act="vqprev" ${VQ.i===0?"disabled":""}>← Өмнөх</button>
+      ${VQ.i<VQ.q.length-1?`<button class="btn" data-act="vqnext">Дараах →</button>`:`<button class="btn ok" data-act="vqfinish">Дуусгах ✔</button>`}</div>
+      <div class="qm">${VQ.q.map((x,k)=>`<button data-act="vqjump" data-i="${k}" class="${VQ.ans[k]!==null?"a":""} ${k===VQ.i?"cur":""}">${k+1}</button>`).join("")}</div>
+      <div class="row"><button class="btn ok" data-act="vqfinish">Дуусгах ✔</button><button class="btn g" data-act="vqsetup">Болих</button></div>`;
+      return;
+    }
+    app.innerHTML = `<div class="card c"><h2>✅ Хариулт илгээгдлээ</h2><p class="mu">Таны шалгалтын дүн багшид хүргэгдлээ. Дүнг багш танд мэдэгдэнэ.</p>
+    <div class="row" style="justify-content:center"><button class="btn" data-act="vqretry">Дахин өгөх</button><button class="btn g" data-act="vqsetup">Тохиргоо</button></div></div>`;
+  };
+
+  async function finish(){
+    const blank = VQ.ans.filter(a=>a===null).length;
+    if (blank && !confirm(`${blank} асуулт хоосон байна. Дуусгах уу?`)) return;
+    const total = VQ.q.length, correct = VQ.q.filter((q,k)=>VQ.ans[k]===q.ci).length, wrong = total-correct-blank;
+    const percent = Math.round(correct/total*1000)/10, dur = Math.round((Date.now()-VQ.t0)/1000);
+    VQ.phase = "sending"; VQ.err = ""; views.vquiz();
+    try {
+      await api("submitVocab", { setId:"VOCAB · "+tname()+" · "+(VQ.dir==="en-mn"?"EN→MN":"MN→EN"), name:VQ.name.trim(), cls:VQ.cls.trim(), total, correct, wrong, blank, percent, durationSec:dur });
+      const h = LS.get("history", []); h.push({ d:new Date().toISOString(), set:"Vocabulary: "+tname() }); LS.set("history", h.slice(-100));
+      VQ.phase = "result";
+    } catch(e) { VQ.phase = "run"; VQ.err = e.message; toast("Илгээж чадсангүй: "+e.message, 6000); }
+    views.vquiz(); window.scrollTo(0,0);
+    if (VQ.err) app.insertAdjacentHTML("afterbegin", `<div class="alert e">Дүнг илгээж чадсангүй: ${esc(VQ.err)}<br>Хариултууд хадгалагдсан хэвээр байна — "Дуусгах"-ыг дахин дарна уу.</div>`);
+  }
+
+  Object.assign(A, {
+    vquiz:   () => { VQ.phase="setup"; if (typeof VS!=="undefined" && VS.topic) VQ.topic=VS.topic; go("vquiz"); },
+    vqsetup: () => { VQ.phase="setup"; views.vquiz(); },
+    vqdir:   t => { VQ.dir=t.dataset.v; views.vquiz(); },
+    vqn:     t => { VQ.n = t.dataset.v==="all" ? "all" : +t.dataset.v; views.vquiz(); },
+    vqstart: () => { if (CONFIG.API_URL) { if (VQ.name.trim().length<2 || !VQ.cls.trim()) return toast("Нэр, ангиа бөглөнө үү."); LS.set("student",{name:VQ.name.trim(),cls:VQ.cls.trim()}); } build(); VQ.t0=Date.now(); if (!VQ.q.length) return; VQ.phase="run"; views.vquiz(); },
+    vqretry: () => { build(); VQ.t0=Date.now(); VQ.err=""; VQ.phase="run"; views.vquiz(); window.scrollTo(0,0); },
+    vqpick:  t => { VQ.ans[VQ.i]=+t.dataset.k; views.vquiz(); },
+    vqprev:  () => { VQ.i=Math.max(0,VQ.i-1); views.vquiz(); window.scrollTo(0,0); },
+    vqnext:  () => { VQ.i=Math.min(VQ.q.length-1,VQ.i+1); views.vquiz(); window.scrollTo(0,0); },
+    vqjump:  t => { VQ.i=+t.dataset.i; views.vquiz(); window.scrollTo(0,0); },
+    vqfinish: () => finish(),
+    vqcards: () => {
+      const st = cardStore(), td = dstr();
+      VQ.q.forEach((q,k) => { if (VQ.ans[k]!==q.ci) { const c = st[q.v.w] || { b:0, k:0, a:0 }; c.b=0; c.a++; c.d=td; c.r=0; c.l=td; st[q.v.w]=c; } });
+      LS.set("cards", st); toast("Алдсан үгс картын давтах жагсаалтад нэмэгдлээ.");
+    }
+  });
+  app.addEventListener("input", e => { if (e.target.id==="vqname") VQ.name=e.target.value; if (e.target.id==="vqcls") VQ.cls=e.target.value; });
+  app.addEventListener("change", e => { if (e.target.id==="vqtopic"){ VQ.topic=e.target.value; views.vquiz(); } });
+})();
+</script>
+<script>
+/* ===== Орчуулгын нэмэлт сан: A1–C2 тус бүр 20 дасгал (10 үг + 10 өгүүлбэр) ===== */
+(function(){
+  const W="word", S="sentence";
+  const R=[
+  ["A1",W,["apple"],["алим"]],["A1",W,["house"],["байшин","гэр"]],["A1",W,["friend"],["найз"]],["A1",W,["school"],["сургууль"]],["A1",W,["mother"],["ээж"]],
+  ["A1",W,["red"],["улаан"]],["A1",W,["eat"],["идэх","хооллох"]],["A1",W,["big"],["том"]],["A1",W,["cat"],["муур"]],["A1",W,["sun"],["нар"]],
+  ["A1",S,["I am a student."],["Би сурагч.","Би оюутан."]],
+  ["A1",S,["She has a red bag."],["Түүнд улаан цүнх байна.","Тэр улаан цүнхтэй."]],
+  ["A1",S,["We live in Ulaanbaatar."],["Бид Улаанбаатарт амьдардаг.","Бид Улаанбаатарт амьдарч байна."]],
+  ["A1",S,["The cat is on the table."],["Муур ширээн дээр байна.","Муур ширээн дээр байгаа."]],
+  ["A1",S,["I like apples."],["Би алимд дуртай.","Надад алим таалагддаг.","Би алим дуртай."]],
+  ["A1",S,["He is my friend.","He's my friend."],["Тэр бол миний найз.","Тэр миний найз."]],
+  ["A1",S,["It is hot today.","It's hot today."],["Өнөөдөр халуун байна.","Өнөөдөр халуун."]],
+  ["A1",S,["Open the door, please.","Please open the door."],["Хаалгаа нээнэ үү.","Хаалгыг нээгээч.","Хаалгаа нээгээрэй."]],
+  ["A1",S,["What is your name?","What's your name?"],["Таны нэр хэн бэ?","Чиний нэр хэн бэ?","Таныг хэн гэдэг вэ?"]],
+  ["A1",S,["I have two dogs.","I've got two dogs."],["Надад хоёр нохой бий.","Надад хоёр нохой байна."]],
+  ["A2",W,["weather"],["цаг агаар"]],["A2",W,["hungry"],["өлсөсөн","өлссөн"]],["A2",W,["holiday"],["амралт","баяр"]],["A2",W,["cheap"],["хямд"]],["A2",W,["ticket"],["тасалбар"]],
+  ["A2",W,["visit"],["зочлох","айлчлах"]],["A2",W,["kitchen"],["гал тогоо"]],["A2",W,["neighbour","neighbor"],["хөрш"]],["A2",W,["borrow"],["зээлэх","зээлж авах"]],["A2",W,["wedding"],["хуримын ёслол","хурим"]],
+  ["A2",S,["I went to the market yesterday."],["Би өчигдөр зах дээр очсон.","Би өчигдөр зах явсан."]],
+  ["A2",S,["Can you help me, please?"],["Та надад тусалж чадах уу?","Надад тусалж өгөхгүй юу?","Надад тусална уу?"]],
+  ["A2",S,["There are many people in the park."],["Цэцэрлэгт хүрээлэнд олон хүн байна.","Паркт олон хүн байна."]],
+  ["A2",S,["I am going to visit my grandmother.","I'm going to visit my grandmother."],["Би эмээдээ зочлох гэж байна.","Би эмээгийндээ очих гэж байна."]],
+  ["A2",S,["How much is this jacket?"],["Энэ хүрэм хэд вэ?","Энэ хүрэм хэдэн төгрөг вэ?","Энэ хүрэм хэдтэй вэ?"]],
+  ["A2",S,["She doesn't like coffee.","She does not like coffee."],["Тэр кофенд дургүй.","Тэр кофе дургүй."]],
+  ["A2",S,["We must leave before six."],["Бид зургаан цагаас өмнө гарах ёстой.","Бид 6 цагаас өмнө гарах ёстой."]],
+  ["A2",S,["My phone is in my bag."],["Миний утас цүнхэнд байна.","Миний утас цүнхэн дотор байна."]],
+  ["A2",S,["It was raining when I woke up."],["Би сэрэхэд бороо орж байсан.","Намайг сэрэхэд бороо орж байсан."]],
+  ["A2",S,["Do you want some tea?"],["Та цай уумаар байна уу?","Чи цай уумаар байна уу?","Цай уух уу?"]],
+  ["B1",W,["advice"],["зөвлөгөө"]],["B1",W,["expensive"],["үнэтэй"]],["B1",W,["opinion"],["үзэл бодол","санал бодол","бодол санал"]],["B1",W,["attend"],["оролцох","хичээллэх"]],["B1",W,["reduce"],["багасгах","бууруулах"]],
+  ["B1",W,["appointment"],["товлосон уулзалт","уулзалт","цаг товлол"]],["B1",W,["mention"],["дурдах","дурьдах"]],["B1",W,["manage"],["удирдах","амжуулах"]],["B1",W,["improve"],["сайжруулах","сайжрах"]],["B1",W,["lazy"],["залхуу"]],
+  ["B1",S,["I would like to book a table for four."],["Би дөрвөн хүний ширээ захиалмаар байна.","Би дөрвөн хүний ширээ захиалахыг хүсч байна."]],
+  ["B1",S,["If I had more time, I would learn French."],["Надад илүү цаг байсан бол франц хэл сурна.","Хэрэв надад илүү цаг байсан бол би франц хэл сурна."]],
+  ["B1",S,["She has lived here since 2015."],["Тэр 2015 оноос хойш энд амьдарч байна.","Тэр энд 2015 оноос хойш амьдарч байна."]],
+  ["B1",S,["The film was so boring that I fell asleep."],["Кино үнэхээр уйтгартай байсан тул би унтчихсан.","Кино маш уйтгартай байсан болохоор би унтсан."]],
+  ["B1",S,["You should drink more water."],["Чи илүү их ус уух хэрэгтэй.","Та илүү их ус уух хэрэгтэй."]],
+  ["B1",S,["I am used to getting up early.","I'm used to getting up early."],["Би эрт босоход дассан.","Би эрт босдог зуршилтай."]],
+  ["B1",S,["He told me that he was busy."],["Тэр надад завгүй байна гэж хэлсэн.","Тэр завгүй гэж надад хэлсэн."]],
+  ["B1",S,["The meeting has been postponed until Monday."],["Уулзалтыг даваа гараг хүртэл хойшлуулсан.","Хурлыг даваа гараг хүртэл хойшлуулсан."]],
+  ["B1",S,["Although it was cold, we went swimming."],["Хүйтэн байсан ч бид усанд сэлсэн.","Хүйтэн байсан ч бид сэлэхээр явсан."]],
+  ["B1",S,["I forgot to lock the door."],["Би хаалгаа түгжихээ мартсан.","Би хаалгыг түгжихээ мартсан."]],
+  ["B2",W,["consequence"],["үр дагавар"]],["B2",W,["approach"],["хандлага","арга барил","хандах арга"]],["B2",W,["ensure"],["баталгаажуулах","хангах"]],["B2",W,["obstacle"],["саад бэрхшээл","саад"]],["B2",W,["reputation"],["нэр хүнд","нэр төр"]],
+  ["B2",W,["overcome"],["даван туулах"]],["B2",W,["implement"],["хэрэгжүүлэх"]],["B2",W,["issue"],["асуудал"]],["B2",W,["reliable"],["найдвартай"]],["B2",W,["gradually"],["аажмаар","дараалан","тэр чигээрээ"]],
+  ["B2",S,["The government has introduced new measures to reduce pollution."],["Засгийн газар бохирдлыг бууруулах шинэ арга хэмжээ нэвтрүүлсэн.","Засгийн газар бохирдлыг багасгах шинэ арга хэмжээ авсан."]],
+  ["B2",S,["He insisted on paying for the meal."],["Тэр хоолны мөнгийг өөрөө төлөхийг шаардсан.","Тэр хоолны мөнгийг заавал өөрөө төлнө гэж зүтгэсэн."]],
+  ["B2",S,["Had it not been for your help, I would have failed.","If it had not been for your help, I would have failed."],["Таны тусламж байгаагүй бол би бүтэлгүйтэх байсан.","Таны тусламжгүйгээр би бүтэлгүйтэх байсан."]],
+  ["B2",S,["The more you practise, the better you become.","The more you practice, the better you become."],["Хичээх тусам илүү сайн болно.","Чи хичээх тусам сайжирна."]],
+  ["B2",S,["She is believed to be the best player in the country."],["Тэр улсдаа хамгийн шилдэг тоглогч гэж үздэг.","Түүнийг улсдаа хамгийн шилдэг тоглогч гэж үздэг."]],
+  ["B2",S,["We are looking forward to hearing from you."],["Бид таны хариуг тэсэн ядан хүлээж байна.","Бид таны мэдээг хүлээж байна."]],
+  ["B2",S,["Despite his age, he is very active."],["Настай ч гэсэн тэр маш идэвхтэй.","Тэр настай хэдий ч маш идэвхтэй."]],
+  ["B2",S,["It is high time we took action."],["Бид арга хэмжээ авах цаг болсон.","Арга хэмжээ авах цаг нэгэнт болсон."]],
+  ["B2",S,["The company is expected to announce its results next week."],["Тус компани ирэх долоо хоногт үр дүнгээ зарлах төлөвтэй байна.","Компани ирэх долоо хоногт дүнгээ зарлана гэж найдаж байна."]],
+  ["B2",S,["I regret not studying harder."],["Би илүү сайн хичээгээгүйдээ харамсаж байна.","Би илүү их хичээгээгүйдээ харамсдаг."]],
+  ["C1",W,["inevitable"],["зайлшгүй","зайлшгүй тохиолдох","яалт ч үгүй"]],["C1",W,["ambiguous"],["хоёрдмол утгатай","хоёрдмол"]],["C1",W,["mitigate"],["сааруулах","бууруулах","багасгах"]],["C1",W,["scrutiny"],["нарийн хяналт","нарийвчилсан шалгалт","шалгалт"]],["C1",W,["reluctant"],["дурамжхан","дургүйцсэн"]],
+  ["C1",W,["comprehensive"],["иж бүрэн","цогц","бүрэн"]],["C1",W,["undermine"],["сулруулах","доройтуулах","үндсийг нь сулруулах"]],["C1",W,["coherent"],["уялдаатай","логиктой"]],["C1",W,["pragmatic"],["бодит","практик","бодитой"]],["C1",W,["allocate"],["хуваарилах","тусгаарлан хуваарилах"]],
+  ["C1",S,["The negotiations broke down due to irreconcilable differences."],["Эвлэршгүй санал зөрөлдөөнөөс болж хэлэлцээр тасарсан.","Эвлэршгүй зөрөлдөөнөөс болж хэлэлцээр тасалдсан."]],
+  ["C1",S,["Only after the meeting did I realize my mistake."],["Хурлын дараа л би алдаагаа ойлгосон.","Хурлын дараа л алдаагаа мэдсэн."]],
+  ["C1",S,["The policy has come under intense scrutiny."],["Энэ бодлого ширүүн шүүмжлэлд өртсөн.","Энэ бодлого нарийн шалгалт, хяналтад орсон."]],
+  ["C1",S,["She managed to strike a balance between work and family."],["Тэр ажил, гэр бүлийнхээ хооронд тэнцвэр олж чадсан.","Тэр ажил болон гэр бүлээ тэнцвэржүүлж чадсан."]],
+  ["C1",S,["The findings are consistent with previous research."],["Эдгээр үр дүн өмнөх судалгаатай нийцэж байна.","Эдгээр дүгнэлт өмнөх судалгаатай нийцтэй байна."]],
+  ["C1",S,["Little did he know what awaited him."],["Түүнийг юу хүлээж байгааг тэр мэдээгүй.","Түүнийг юу хүлээж байгааг тэр огт мэдээгүй."]],
+  ["C1",S,["It goes without saying that honesty matters."],["Шударга байдал чухал гэдэг нь хэлэлгүйгээр ойлгомжтой.","Шударга байх нь чухал гэдэг нь хэлэлгүй ойлгомжтой."]],
+  ["C1",S,["The project was abandoned for lack of funding."],["Төсөл санхүүжилт дутсанаас болж зогссон.","Төслийг санхүүжилтгүйгээс болж зогсоосон."]],
+  ["C1",S,["He was reluctant to admit his responsibility."],["Тэр хариуцлагаа хүлээн зөвшөөрөхөөс дурамжхан байсан.","Тэр өөрийн хариуцлагыг хүлээн зөвшөөрөхөөс дургүйцэж байсан."]],
+  ["C1",S,["The outcome hinges on public support."],["Үр дүн нь олон нийтийн дэмжлэгээс шалтгаална.","Үр дүн олон нийтийн дэмжлэгээс хамаарна."]],
+  ["C2",W,["sycophant"],["зусардагч","хоншоорч","дагаж зусардагч"]],["C2",W,["ostensible"],["гаднах харагдах","гаднаа харагдаж буй","илтэд мэт харагдах"]],["C2",W,["esoteric"],["нарийн мэргэжлийн","хаалттай","цөөхөд л ойлгогдох"]],["C2",W,["perfunctory"],["өнгөц","албаны хэлбэрийн","дэмий хийсэн"]],["C2",W,["obfuscate"],["будлиулах","бүрхэг болгох","тодорхойгүй болгох"]],
+  ["C2",W,["magnanimous"],["өргөн цээжтэй","өгөөмөр сэтгэлтэй","өгөөмөр"]],["C2",W,["juxtapose"],["зэрэгцүүлэн тавих","зэрэгцүүлэх"]],["C2",W,["quintessential"],["сонгодог","жинхэнэ жишиг","жинхэнэ"]],["C2",W,["recalcitrant"],["зөрүүд","дуулгаваргүй"]],["C2",W,["equivocal"],["хоёрдмол","тодорхой бус"]],
+  ["C2",S,["Notwithstanding the setbacks, the team persevered."],["Саад бэрхшээл тохиолдсон ч баг тэвчээртэй үргэлжлүүлсэн.","Бүтэлгүйтэл гарсан ч баг зүтгэсээр байсан."]],
+  ["C2",S,["Were it not for his tenacity, the venture would have collapsed."],["Түүний тэвчээр байгаагүй бол бизнес сүйрэх байсан.","Түүний тэсвэр хатуужил байгаагүй бол санаачилга бүтэлгүйтэх байсан."]],
+  ["C2",S,["The author's prose is at once lucid and deeply evocative."],["Зохиолчийн хэллэг нэгэн зэрэг тодорхой бөгөөд гүн мэдрэмж төрүүлдэг.","Зохиолчийн бичлэг тод бөгөөд сэтгэл хөдлөм."]],
+  ["C2",S,["His remarks were construed as an implicit criticism."],["Түүний үгийг далд шүүмжлэл гэж ойлгосон.","Түүний хэлсэн үгийг далд шүүмжлэл гэж тайлбарласан."]],
+  ["C2",S,["The treaty was ratified amid widespread controversy."],["Гэрээг өргөн маргааны дунд соёрхон баталсан.","Гэрээг их маргаантай нөхцөлд соёрхон баталсан."]],
+  ["C2",S,["She possesses an uncanny knack for anticipating trends."],["Тэр чиг хандлагыг таамаглах гайхалтай авьяастай.","Тэр чиг хандлагыг урьдчилан харах гайхалтай авьяастай."]],
+  ["C2",S,["Such behaviour is anathema to our values.","Such behavior is anathema to our values."],["Ийм үйлдэл бидний үнэт зүйлд харш.","Ийм зан үйл бидний үнэт зүйлсэд огт нийцэхгүй."]],
+  ["C2",S,["The legislation is fraught with ambiguity."],["Энэ хууль хоёрдмол утгаар дүүрэн.","Хууль хоёрдмол утгаар дүүрэн байна."]],
+  ["C2",S,["Scarcely had he arrived when the storm broke."],["Тэр ирэнгүүт шуурга дэгдсэн.","Тэр дөнгөж ирсэн байтал шуурга эхэлсэн."]],
+  ["C2",S,["Her reticence belied a formidable intellect."],["Түүний цөөн үг хэлэх нь гайхалтай оюун ухааныг нуун дарагдуулсан байсан.","Түүний чимээгүй байдал хүчирхэг оюун ухааныг нуусан байв."]]
+  ];
+  const have = new Set(D.tr.map(x => x.en[0].toLowerCase()));
+  R.forEach((r,i) => { if (have.has(r[2][0].toLowerCase())) return;
+    D.tr.push({ id:"n"+String(i+1).padStart(3,"0"), l:r[0], t:r[1], en:r[2], mn:r[3], note:"", ex:"", exMn:"" }); });
+})();
 </script>
 </body>
 </html>
