@@ -690,5 +690,1219 @@ theme();
 if (!D.sets.length && !D.vocab.length) app.innerHTML = `<div class="alert e">Өгөгдлийн файлууд (data/*.js) ачаалагдсангүй. index.html-тэй хамт data хавтсыг байршуулсан эсэхээ шалгана уу.</div>`;
 else { if (TC.token) teacherLoad(); route(); }
 </script>
+<script>
+/* ===== Монгол↔Англи дасгалын нэмэлт: Vocabulary эх сурвалж + Сонгох тест ===== */
+(function(){
+  for (const d of ["mn-en","en-mn"]) Object.assign(TR[d], { src:"tr", fmt:"type", topic:"all", n:10, opts:[], pick:null, correct:"" });
+
+  const vocabItems = topic => D.vocab.filter(v => topic==="all" || v.t.includes(topic)).map(v => {
+    const e = D.ex[v.w], parts = v.m.split(/[,;]/).map(s=>s.trim()).filter(Boolean);
+    return { id:"v:"+v.w, l:(e&&e.l)||"?", t:"word", en:[v.w], mn:[...new Set([v.m,...parts])],
+             note: v.t.map(topicName).join(" · "), ex:e?e.ex:"", exMn:e?e.mn:"" };
+  });
+  const trPool = S => S.src==="vocab" ? vocabItems(S.topic) : S.src==="ese" ? vocabItems("ese")
+    : D.tr.filter(x => (S.level==="all"||x.l===S.level) && (S.type==="all"||x.t===S.type));
+  const txt = (dir,it) => dir==="mn-en" ? it.en[0] : it.mn[0];
+  const chip = (on,act,d,v,t) => `<button class="chip ${on?"on":""}" data-act="${act}" data-d="${d}" data-v="${v}">${t}</button>`;
+
+  function mkOpts(dir, S, it){
+    S.correct = txt(dir,it);
+    let pool = S.src==="vocab" ? vocabItems("all") : S.src==="ese" ? vocabItems("ese") : D.tr.filter(x=>x.t===it.t);
+    let wrong = [...new Set(shuffle(pool).filter(x=>x.id!==it.id).map(x=>txt(dir,x)))].filter(x=>x!==S.correct);
+    if (wrong.length<3) wrong = [...new Set([...wrong, ...shuffle(vocabItems("all")).map(x=>txt(dir,x))])].filter(x=>x!==S.correct);
+    return shuffle([S.correct, ...wrong.slice(0,3)]);
+  }
+
+  trView = function(dir){
+    const S = TR[dir], title = dir==="mn-en" ? "🇲🇳 Монгол → Англи 🇬🇧" : "🇬🇧 Англи → Монгол 🇲🇳";
+    if (!D.tr.length && !D.vocab.length){ app.innerHTML = `<div class="alert e">Өгөгдөл ачаалагдсангүй.</div>`; return; }
+
+    if (!S.started || !S.q.length){
+      const n = trPool(S).length;
+      app.innerHTML = `<h1>${title}</h1><p class="mu">Дасгалын эх сурвалж, хэлбэрээ сонгоно уу.</p>
+      <div class="card">
+        <label>Эх сурвалж</label><div class="row">${chip(S.src==="tr","trsrc",dir,"tr","📝 Дасгалын сан (үг + өгүүлбэр)")}${chip(S.src==="vocab","trsrc",dir,"vocab","📚 Vocabulary-ийн үгс")}${chip(S.src==="ese","trsrc",dir,"ese","🎓 ЭЕШ-ийн үг, хэллэг (2021–2025)")}</div>
+        <label>Хэлбэр</label><div class="row">${chip(S.fmt==="type","trfmt",dir,"type","✍️ Бичиж хариулах")}${chip(S.fmt==="mcq","trfmt",dir,"mcq","✅ Сонгох тест")}</div>
+        ${S.src==="vocab"
+          ? `<label for="trtopic">Сэдэв</label><select id="trtopic" data-d="${dir}"><option value="all">Бүх сэдэв</option>${D.topics.map(t=>`<option value="${t.id}" ${S.topic===t.id?"selected":""}>${esc(t.mn)}</option>`).join("")}</select>`
+          : `<label>Түвшин</label><div class="row">${["all",...LEVELS].map(l=>chip(S.level===l,"trlevel",dir,l,l==="all"?"Бүх түвшин":l)).join("")}</div>
+             <label>Төрөл</label><div class="row">${[["all","Үг + өгүүлбэр"],["word","Зөвхөн үг"],["sentence","Зөвхөн өгүүлбэр"]].map(([v,t])=>chip(S.type===v,"trtype",dir,v,t)).join("")}</div>`}
+        <label>Асуултын тоо</label><div class="row">${[10,20,40,"all"].map(v=>chip(S.n===v,"trn",dir,v,v==="all"?"Бүгд":v)).join("")}</div>
+        <p class="sm mu" style="margin-top:10px">Тохирох дасгал: <b>${n}</b></p>
+        <button class="btn full" data-act="trstart" data-d="${dir}" ${n?"":"disabled"}>Эхлэх →</button>
+      </div>`;
+      return;
+    }
+    if (S.i >= S.q.length){
+      app.innerHTML = `<h1>${title}</h1><div class="card c"><h2>Дасгал дууслаа 🎉</h2><p class="mu">Ахицыг "Миний ахиц" хэсгээс харна уу.</p>
+      <div class="row" style="justify-content:center"><button class="btn" data-act="trstart" data-d="${dir}">Дахин (шинэ дараалал)</button><button class="btn g" data-act="trrestart" data-d="${dir}">Тохиргоо</button></div></div>`;
+      return;
+    }
+    const it = S.q[S.i], ask = dir==="mn-en" ? it.mn[0] : it.en[0], ans = dir==="mn-en" ? it.en : it.mn, r = S.res, mcq = S.fmt==="mcq";
+    if (mcq && !S.opts.length) S.opts = mkOpts(dir,S,it);
+
+    const answerCard = r ? `<div class="card"><b>Зөв хариултууд:</b><ul style="margin:6px 0 6px 18px;padding:0">${ans.map(a=>`<li>${esc(a)} ${dir==="mn-en"?`<button class="icon" style="width:30px;height:30px" data-act="sayt" data-t="${esc(a)}">🔊</button>`:""}</li>`).join("")}</ul>
+      ${it.note?`<p class="sm mu" style="margin:4px 0">💡 ${esc(it.note)}</p>`:""}
+      ${it.ex?`<p class="sm" style="margin:4px 0"><b>Жишээ:</b> <i>${esc(it.ex)}</i> — ${esc(it.exMn)}</p>`:""}</div>` : "";
+
+    const body = mcq
+      ? `${S.opts.map((o,k)=>`<button class="opt ${r?(o===S.correct?"good":(k===S.pick?"wrong":"")):""}" data-act="trpick" data-d="${dir}" data-k="${k}" ${r?"disabled":""}><i>${L[k]}</i><span>${esc(o)}</span></button>`).join("")}
+         ${r?`<div class="alert ${r.st==="ok"?"s":"e"}"><b>${r.st==="ok"?"✅ Зөв!":"❌ Буруу"}</b></div>${answerCard}<div class="row"><button class="btn" data-act="trnext" data-d="${dir}">Дараагийнх →</button></div>`:""}`
+      : `<form data-form="trcheck" data-d="${dir}">
+          <textarea id="trin" rows="2" placeholder="${dir==="mn-en"?"Англиар бичнэ үү…":"Монголоор бичнэ үү…"}" ${r?"disabled":""} autocomplete="off" autocapitalize="off">${r?esc(r.input):""}</textarea>
+          ${r?"":`<div class="row" style="margin-top:8px"><button class="btn" type="submit">Шалгах</button><button class="btn g" type="button" data-act="trskip" data-d="${dir}">Алгасах</button></div>`}</form>
+         ${r?`<div class="alert ${r.st==="ok"?"s":r.st==="near"?"w":"e"}"><b>${r.st==="ok"?"✅ Зөв!":r.st==="near"?"🟡 Бараг зөв (жижиг зөрүүтэй)":"❌ Таарсангүй"}</b></div>${answerCard}
+         ${r.st!=="ok"&&!r.rec?`<p class="sm mu">Миний хариулт өөр боловч зөв утгатай байсан уу?</p><div class="row"><button class="btn ok" data-act="trself" data-d="${dir}" data-v="1">Тийм, зөв</button><button class="btn bad" data-act="trself" data-d="${dir}" data-v="0">Үгүй, алдсан</button></div>`:""}
+         <div class="row" style="margin-top:10px"><button class="btn" data-act="trnext" data-d="${dir}">Дараагийнх →</button></div>`:""}`;
+
+    app.innerHTML = `<h1>${title}</h1>
+    <div class="row sp sm mu"><span>${S.i+1} / ${S.q.length}</span><span><span class="badge">${it.l}</span> ${mcq?"тест":"бичих"} · <button class="chip" data-act="trrestart" data-d="${dir}">Тохиргоо</button></span></div>
+    <div class="bar" style="margin:6px 0"><div style="width:${S.i/S.q.length*100}%"></div></div>
+    <div class="card"><div class="row"><div style="flex:1;font-size:20px;font-weight:600">${esc(ask)}</div>${dir==="en-mn"?`<button class="icon" data-act="sayt" data-t="${esc(ask)}" aria-label="Сонсох">🔊</button>`:""}</div></div>${body}`;
+    const t = $("#trin"); if (t && !r) t.focus();
+  };
+
+  Object.assign(A, {
+    trsrc:  t => { const S=TR[t.dataset.d]; S.src=t.dataset.v; S.started=false; trView(t.dataset.d); },
+    trfmt:  t => { const S=TR[t.dataset.d]; S.fmt=t.dataset.v; S.started=false; trView(t.dataset.d); },
+    trn:    t => { const S=TR[t.dataset.d]; S.n=t.dataset.v==="all"?"all":+t.dataset.v; trView(t.dataset.d); },
+    trstart:t => { const d=t.dataset.d, S=TR[d]; let q=shuffle(trPool(S)); if(S.n!=="all") q=q.slice(0,S.n);
+                   S.q=q; S.i=0; S.res=null; S.opts=[]; S.pick=null; S.started=true; trView(d); },
+    trpick: t => { const d=t.dataset.d, S=TR[d]; if(S.res) return; S.pick=+t.dataset.k;
+                   const ok=S.opts[S.pick]===S.correct; trRecord(S.q[S.i],ok); S.res={st:ok?"ok":"no",input:"",rec:true}; trView(d); },
+    trnext: t => { const d=t.dataset.d, S=TR[d]; if(S.res&&S.res.st!=="ok"&&!S.res.rec) trRecord(S.q[S.i],false);
+                   S.i++; S.res=null; S.opts=[]; S.pick=null; trView(d); window.scrollTo(0,0); }
+  });
+  app.addEventListener("change", e => { if (e.target.id==="trtopic"){ const S=TR[e.target.dataset.d]; S.topic=e.target.value; trView(e.target.dataset.d); } });
+})();
+</script>
+<script>
+/* ===== Vocabulary-аар шалгалт өгөх (сонгох тест) ===== */
+(function(){
+  const VQ = { phase:"setup", topic:"all", dir:"en-mn", n:10, q:[], ans:[], i:0, res:null };
+  const chip = (on,act,v,t) => `<button class="chip ${on?"on":""}" data-act="${act}" data-v="${v}">${t}</button>`;
+  const poolOf = () => D.vocab.filter(v => VQ.topic==="all" || v.t.includes(VQ.topic));
+  const tname = () => VQ.topic==="all" ? "Бүх сэдэв" : topicName(VQ.topic);
+
+  const ow = views.vocab;
+  views.vocab = function(){
+    ow();
+    const h = app.querySelector("h1,h2");
+    if (h) h.insertAdjacentHTML("afterend", `<div class="row" style="margin:8px 0"><button class="btn" data-act="vquiz">🧪 Шалгалт өгөх</button></div>`);
+  };
+
+  function build(){
+    const pool = poolOf(), en = VQ.dir==="en-mn", key = v => en ? v.m : v.w;
+    let items = shuffle(pool); if (VQ.n!=="all") items = items.slice(0, VQ.n);
+    VQ.q = items.map(v => {
+      const c = key(v), wrong = [];
+      for (const x of shuffle(pool).concat(shuffle(D.vocab)).map(key)) { if (x!==c && !wrong.includes(x)) { wrong.push(x); if (wrong.length===3) break; } }
+      const opts = shuffle([c, ...wrong]);
+      return { v, opts, ci: opts.indexOf(c) };
+    });
+    VQ.ans = VQ.q.map(() => null); VQ.i = 0; VQ.res = null;
+  }
+
+  views.vquiz = function(){
+    const en = VQ.dir==="en-mn";
+    if (VQ.phase==="setup"){
+      const n = poolOf().length;
+      app.innerHTML = `<h1>🧪 Vocabulary шалгалт</h1><p class="mu">Үгсийн сангаас 4 сонголттой шалгалт өгнө. Дүн нь шалгалт дуусаад харагдана.</p>
+      <div class="card"><label for="vqtopic">Сэдэв</label><select id="vqtopic"><option value="all">Бүх сэдэв</option>${D.topics.map(t=>`<option value="${t.id}" ${VQ.topic===t.id?"selected":""}>${esc(t.mn)}</option>`).join("")}</select>
+      <label>Чиглэл</label><div class="row">${chip(en,"vqdir","en-mn","🇬🇧 Англи → Монгол")}${chip(!en,"vqdir","mn-en","🇲🇳 Монгол → Англи")}</div>
+      <label>Асуултын тоо</label><div class="row">${[10,20,40,"all"].map(v=>chip(VQ.n===v,"vqn",v,v==="all"?"Бүгд":v)).join("")}</div>
+      <p class="sm mu" style="margin-top:10px">Сонгосон сэдвийн үг: <b>${n}</b></p>
+      <button class="btn full" data-act="vqstart" ${n?"":"disabled"}>Шалгалт эхлэх →</button></div>`;
+      return;
+    }
+    if (VQ.phase==="run"){
+      const q = VQ.q[VQ.i], sel = VQ.ans[VQ.i], done = VQ.ans.filter(a=>a!==null).length;
+      app.innerHTML = `<div class="row sp sm mu"><span>${esc(tname())}</span><span>${VQ.i+1}/${VQ.q.length}</span></div>
+      <div class="bar" style="margin:6px 0"><div style="width:${done/VQ.q.length*100}%"></div></div>
+      <div class="card"><div class="sm mu">${en?"Утгыг нь сонго":"Англи үгийг сонго"}</div>
+      <div class="row"><div style="flex:1;font-size:22px;font-weight:700">${esc(en?q.v.w:q.v.m)}</div>${en?`<button class="icon" data-act="sayw" data-w="${esc(q.v.w)}" aria-label="Сонсох">🔊</button>`:""}</div></div>
+      ${q.opts.map((o,k)=>`<button class="opt ${sel===k?"sel":""}" data-act="vqpick" data-k="${k}"><i>${L[k]}</i><span>${esc(o)}</span></button>`).join("")}
+      <div class="row sp" style="margin-top:10px"><button class="btn g" data-act="vqprev" ${VQ.i===0?"disabled":""}>← Өмнөх</button>
+      ${VQ.i<VQ.q.length-1?`<button class="btn" data-act="vqnext">Дараах →</button>`:`<button class="btn ok" data-act="vqfinish">Дуусгах ✔</button>`}</div>
+      <div class="qm">${VQ.q.map((x,k)=>`<button data-act="vqjump" data-i="${k}" class="${VQ.ans[k]!==null?"a":""} ${k===VQ.i?"cur":""}">${k+1}</button>`).join("")}</div>
+      <div class="row"><button class="btn ok" data-act="vqfinish">Дуусгах ✔</button><button class="btn g" data-act="vqsetup">Болих</button></div>`;
+      return;
+    }
+    const r = VQ.res, bad = VQ.q.map((q,k)=>({q,k,a:VQ.ans[k]})).filter(x=>x.a!==x.q.ci);
+    app.innerHTML = `<div class="card c"><div class="sm mu">${esc(tname())} · ${en?"Англи → Монгол":"Монгол → Англи"}</div><div class="big-pct">${r.percent}%</div>
+    <p>${r.total} асуултаас <b>${r.correct}</b> зөв · ${r.wrong} буруу · ${r.blank} хоосон</p>
+    <div class="row" style="justify-content:center"><button class="btn" data-act="vqretry">Дахин өгөх</button><button class="btn g" data-act="vqsetup">Тохиргоо</button></div></div>
+    ${bad.length?`<div class="row sp"><h2>Алдсан үгс (${bad.length})</h2><button class="btn g" data-act="vqcards">🃏 Картанд нэмэх</button></div>`+bad.map(({q,a})=>`<div class="card"><div class="row sp"><b>${esc(q.v.w)}</b><button class="icon" data-act="sayw" data-w="${esc(q.v.w)}">🔊</button></div>
+      <p style="margin:6px 0">Зөв: <b>${esc(q.opts[q.ci])}</b>${a===null?" · хоосон":` · Таны хариулт: ${esc(q.opts[a])}`}</p>
+      ${D.ex[q.v.w]?`<p class="sm mu" style="margin:0"><i>${esc(D.ex[q.v.w].ex)}</i> — ${esc(D.ex[q.v.w].mn)}</p>`:""}</div>`).join(""):`<div class="alert s">🎉 Бүгд зөв!</div>`}`;
+  };
+
+  function finish(){
+    const blank = VQ.ans.filter(a=>a===null).length;
+    if (blank && !confirm(`${blank} асуулт хоосон байна. Дуусгах уу?`)) return;
+    const total = VQ.q.length, correct = VQ.q.filter((q,k)=>VQ.ans[k]===q.ci).length;
+    VQ.res = { total, correct, blank, wrong: total-correct-blank, percent: Math.round(correct/total*1000)/10 };
+    const h = LS.get("history", []); h.push({ d:new Date().toISOString(), set:"Vocabulary: "+tname(), c:correct, t:total, p:VQ.res.percent }); LS.set("history", h.slice(-100));
+    VQ.phase = "result"; views.vquiz(); window.scrollTo(0,0);
+  }
+
+  Object.assign(A, {
+    vquiz:   () => { VQ.phase="setup"; if (typeof VS!=="undefined" && VS.topic) VQ.topic=VS.topic; go("vquiz"); },
+    vqsetup: () => { VQ.phase="setup"; views.vquiz(); },
+    vqdir:   t => { VQ.dir=t.dataset.v; views.vquiz(); },
+    vqn:     t => { VQ.n = t.dataset.v==="all" ? "all" : +t.dataset.v; views.vquiz(); },
+    vqstart: () => { build(); if (!VQ.q.length) return; VQ.phase="run"; views.vquiz(); },
+    vqretry: () => { build(); VQ.phase="run"; views.vquiz(); window.scrollTo(0,0); },
+    vqpick:  t => { VQ.ans[VQ.i]=+t.dataset.k; views.vquiz(); },
+    vqprev:  () => { VQ.i=Math.max(0,VQ.i-1); views.vquiz(); window.scrollTo(0,0); },
+    vqnext:  () => { VQ.i=Math.min(VQ.q.length-1,VQ.i+1); views.vquiz(); window.scrollTo(0,0); },
+    vqjump:  t => { VQ.i=+t.dataset.i; views.vquiz(); window.scrollTo(0,0); },
+    vqfinish: () => finish(),
+    vqcards: () => {
+      const st = cardStore(), td = dstr();
+      VQ.q.forEach((q,k) => { if (VQ.ans[k]!==q.ci) { const c = st[q.v.w] || { b:0, k:0, a:0 }; c.b=0; c.a++; c.d=td; c.r=0; c.l=td; st[q.v.w]=c; } });
+      LS.set("cards", st); toast("Алдсан үгс картын давтах жагсаалтад нэмэгдлээ.");
+    }
+  });
+  app.addEventListener("change", e => { if (e.target.id==="vqtopic"){ VQ.topic=e.target.value; views.vquiz(); } });
+})();
+</script>
+<script>
+/* ===== Орчуулгын нэмэлт сан: A1–C2 тус бүр 20 дасгал (10 үг + 10 өгүүлбэр) ===== */
+(function(){
+  const W="word", S="sentence";
+  const R=[
+  ["A1",W,["apple"],["алим"]],["A1",W,["house"],["байшин","гэр"]],["A1",W,["friend"],["найз"]],["A1",W,["school"],["сургууль"]],["A1",W,["mother"],["ээж"]],
+  ["A1",W,["red"],["улаан"]],["A1",W,["eat"],["идэх","хооллох"]],["A1",W,["big"],["том"]],["A1",W,["cat"],["муур"]],["A1",W,["sun"],["нар"]],
+  ["A1",S,["I am a student."],["Би сурагч.","Би оюутан."]],
+  ["A1",S,["She has a red bag."],["Түүнд улаан цүнх байна.","Тэр улаан цүнхтэй."]],
+  ["A1",S,["We live in Ulaanbaatar."],["Бид Улаанбаатарт амьдардаг.","Бид Улаанбаатарт амьдарч байна."]],
+  ["A1",S,["The cat is on the table."],["Муур ширээн дээр байна.","Муур ширээн дээр байгаа."]],
+  ["A1",S,["I like apples."],["Би алимд дуртай.","Надад алим таалагддаг.","Би алим дуртай."]],
+  ["A1",S,["He is my friend.","He's my friend."],["Тэр бол миний найз.","Тэр миний найз."]],
+  ["A1",S,["It is hot today.","It's hot today."],["Өнөөдөр халуун байна.","Өнөөдөр халуун."]],
+  ["A1",S,["Open the door, please.","Please open the door."],["Хаалгаа нээнэ үү.","Хаалгыг нээгээч.","Хаалгаа нээгээрэй."]],
+  ["A1",S,["What is your name?","What's your name?"],["Таны нэр хэн бэ?","Чиний нэр хэн бэ?","Таныг хэн гэдэг вэ?"]],
+  ["A1",S,["I have two dogs.","I've got two dogs."],["Надад хоёр нохой бий.","Надад хоёр нохой байна."]],
+  ["A2",W,["weather"],["цаг агаар"]],["A2",W,["hungry"],["өлсөсөн","өлссөн"]],["A2",W,["holiday"],["амралт","баяр"]],["A2",W,["cheap"],["хямд"]],["A2",W,["ticket"],["тасалбар"]],
+  ["A2",W,["visit"],["зочлох","айлчлах"]],["A2",W,["kitchen"],["гал тогоо"]],["A2",W,["neighbour","neighbor"],["хөрш"]],["A2",W,["borrow"],["зээлэх","зээлж авах"]],["A2",W,["wedding"],["хуримын ёслол","хурим"]],
+  ["A2",S,["I went to the market yesterday."],["Би өчигдөр зах дээр очсон.","Би өчигдөр зах явсан."]],
+  ["A2",S,["Can you help me, please?"],["Та надад тусалж чадах уу?","Надад тусалж өгөхгүй юу?","Надад тусална уу?"]],
+  ["A2",S,["There are many people in the park."],["Цэцэрлэгт хүрээлэнд олон хүн байна.","Паркт олон хүн байна."]],
+  ["A2",S,["I am going to visit my grandmother.","I'm going to visit my grandmother."],["Би эмээдээ зочлох гэж байна.","Би эмээгийндээ очих гэж байна."]],
+  ["A2",S,["How much is this jacket?"],["Энэ хүрэм хэд вэ?","Энэ хүрэм хэдэн төгрөг вэ?","Энэ хүрэм хэдтэй вэ?"]],
+  ["A2",S,["She doesn't like coffee.","She does not like coffee."],["Тэр кофенд дургүй.","Тэр кофе дургүй."]],
+  ["A2",S,["We must leave before six."],["Бид зургаан цагаас өмнө гарах ёстой.","Бид 6 цагаас өмнө гарах ёстой."]],
+  ["A2",S,["My phone is in my bag."],["Миний утас цүнхэнд байна.","Миний утас цүнхэн дотор байна."]],
+  ["A2",S,["It was raining when I woke up."],["Би сэрэхэд бороо орж байсан.","Намайг сэрэхэд бороо орж байсан."]],
+  ["A2",S,["Do you want some tea?"],["Та цай уумаар байна уу?","Чи цай уумаар байна уу?","Цай уух уу?"]],
+  ["B1",W,["advice"],["зөвлөгөө"]],["B1",W,["expensive"],["үнэтэй"]],["B1",W,["opinion"],["үзэл бодол","санал бодол","бодол санал"]],["B1",W,["attend"],["оролцох","хичээллэх"]],["B1",W,["reduce"],["багасгах","бууруулах"]],
+  ["B1",W,["appointment"],["товлосон уулзалт","уулзалт","цаг товлол"]],["B1",W,["mention"],["дурдах","дурьдах"]],["B1",W,["manage"],["удирдах","амжуулах"]],["B1",W,["improve"],["сайжруулах","сайжрах"]],["B1",W,["lazy"],["залхуу"]],
+  ["B1",S,["I would like to book a table for four."],["Би дөрвөн хүний ширээ захиалмаар байна.","Би дөрвөн хүний ширээ захиалахыг хүсч байна."]],
+  ["B1",S,["If I had more time, I would learn French."],["Надад илүү цаг байсан бол франц хэл сурна.","Хэрэв надад илүү цаг байсан бол би франц хэл сурна."]],
+  ["B1",S,["She has lived here since 2015."],["Тэр 2015 оноос хойш энд амьдарч байна.","Тэр энд 2015 оноос хойш амьдарч байна."]],
+  ["B1",S,["The film was so boring that I fell asleep."],["Кино үнэхээр уйтгартай байсан тул би унтчихсан.","Кино маш уйтгартай байсан болохоор би унтсан."]],
+  ["B1",S,["You should drink more water."],["Чи илүү их ус уух хэрэгтэй.","Та илүү их ус уух хэрэгтэй."]],
+  ["B1",S,["I am used to getting up early.","I'm used to getting up early."],["Би эрт босоход дассан.","Би эрт босдог зуршилтай."]],
+  ["B1",S,["He told me that he was busy."],["Тэр надад завгүй байна гэж хэлсэн.","Тэр завгүй гэж надад хэлсэн."]],
+  ["B1",S,["The meeting has been postponed until Monday."],["Уулзалтыг даваа гараг хүртэл хойшлуулсан.","Хурлыг даваа гараг хүртэл хойшлуулсан."]],
+  ["B1",S,["Although it was cold, we went swimming."],["Хүйтэн байсан ч бид усанд сэлсэн.","Хүйтэн байсан ч бид сэлэхээр явсан."]],
+  ["B1",S,["I forgot to lock the door."],["Би хаалгаа түгжихээ мартсан.","Би хаалгыг түгжихээ мартсан."]],
+  ["B2",W,["consequence"],["үр дагавар"]],["B2",W,["approach"],["хандлага","арга барил","хандах арга"]],["B2",W,["ensure"],["баталгаажуулах","хангах"]],["B2",W,["obstacle"],["саад бэрхшээл","саад"]],["B2",W,["reputation"],["нэр хүнд","нэр төр"]],
+  ["B2",W,["overcome"],["даван туулах"]],["B2",W,["implement"],["хэрэгжүүлэх"]],["B2",W,["issue"],["асуудал"]],["B2",W,["reliable"],["найдвартай"]],["B2",W,["gradually"],["аажмаар","дараалан","тэр чигээрээ"]],
+  ["B2",S,["The government has introduced new measures to reduce pollution."],["Засгийн газар бохирдлыг бууруулах шинэ арга хэмжээ нэвтрүүлсэн.","Засгийн газар бохирдлыг багасгах шинэ арга хэмжээ авсан."]],
+  ["B2",S,["He insisted on paying for the meal."],["Тэр хоолны мөнгийг өөрөө төлөхийг шаардсан.","Тэр хоолны мөнгийг заавал өөрөө төлнө гэж зүтгэсэн."]],
+  ["B2",S,["Had it not been for your help, I would have failed.","If it had not been for your help, I would have failed."],["Таны тусламж байгаагүй бол би бүтэлгүйтэх байсан.","Таны тусламжгүйгээр би бүтэлгүйтэх байсан."]],
+  ["B2",S,["The more you practise, the better you become.","The more you practice, the better you become."],["Хичээх тусам илүү сайн болно.","Чи хичээх тусам сайжирна."]],
+  ["B2",S,["She is believed to be the best player in the country."],["Тэр улсдаа хамгийн шилдэг тоглогч гэж үздэг.","Түүнийг улсдаа хамгийн шилдэг тоглогч гэж үздэг."]],
+  ["B2",S,["We are looking forward to hearing from you."],["Бид таны хариуг тэсэн ядан хүлээж байна.","Бид таны мэдээг хүлээж байна."]],
+  ["B2",S,["Despite his age, he is very active."],["Настай ч гэсэн тэр маш идэвхтэй.","Тэр настай хэдий ч маш идэвхтэй."]],
+  ["B2",S,["It is high time we took action."],["Бид арга хэмжээ авах цаг болсон.","Арга хэмжээ авах цаг нэгэнт болсон."]],
+  ["B2",S,["The company is expected to announce its results next week."],["Тус компани ирэх долоо хоногт үр дүнгээ зарлах төлөвтэй байна.","Компани ирэх долоо хоногт дүнгээ зарлана гэж найдаж байна."]],
+  ["B2",S,["I regret not studying harder."],["Би илүү сайн хичээгээгүйдээ харамсаж байна.","Би илүү их хичээгээгүйдээ харамсдаг."]],
+  ["C1",W,["inevitable"],["зайлшгүй","зайлшгүй тохиолдох","яалт ч үгүй"]],["C1",W,["ambiguous"],["хоёрдмол утгатай","хоёрдмол"]],["C1",W,["mitigate"],["сааруулах","бууруулах","багасгах"]],["C1",W,["scrutiny"],["нарийн хяналт","нарийвчилсан шалгалт","шалгалт"]],["C1",W,["reluctant"],["дурамжхан","дургүйцсэн"]],
+  ["C1",W,["comprehensive"],["иж бүрэн","цогц","бүрэн"]],["C1",W,["undermine"],["сулруулах","доройтуулах","үндсийг нь сулруулах"]],["C1",W,["coherent"],["уялдаатай","логиктой"]],["C1",W,["pragmatic"],["бодит","практик","бодитой"]],["C1",W,["allocate"],["хуваарилах","тусгаарлан хуваарилах"]],
+  ["C1",S,["The negotiations broke down due to irreconcilable differences."],["Эвлэршгүй санал зөрөлдөөнөөс болж хэлэлцээр тасарсан.","Эвлэршгүй зөрөлдөөнөөс болж хэлэлцээр тасалдсан."]],
+  ["C1",S,["Only after the meeting did I realize my mistake."],["Хурлын дараа л би алдаагаа ойлгосон.","Хурлын дараа л алдаагаа мэдсэн."]],
+  ["C1",S,["The policy has come under intense scrutiny."],["Энэ бодлого ширүүн шүүмжлэлд өртсөн.","Энэ бодлого нарийн шалгалт, хяналтад орсон."]],
+  ["C1",S,["She managed to strike a balance between work and family."],["Тэр ажил, гэр бүлийнхээ хооронд тэнцвэр олж чадсан.","Тэр ажил болон гэр бүлээ тэнцвэржүүлж чадсан."]],
+  ["C1",S,["The findings are consistent with previous research."],["Эдгээр үр дүн өмнөх судалгаатай нийцэж байна.","Эдгээр дүгнэлт өмнөх судалгаатай нийцтэй байна."]],
+  ["C1",S,["Little did he know what awaited him."],["Түүнийг юу хүлээж байгааг тэр мэдээгүй.","Түүнийг юу хүлээж байгааг тэр огт мэдээгүй."]],
+  ["C1",S,["It goes without saying that honesty matters."],["Шударга байдал чухал гэдэг нь хэлэлгүйгээр ойлгомжтой.","Шударга байх нь чухал гэдэг нь хэлэлгүй ойлгомжтой."]],
+  ["C1",S,["The project was abandoned for lack of funding."],["Төсөл санхүүжилт дутсанаас болж зогссон.","Төслийг санхүүжилтгүйгээс болж зогсоосон."]],
+  ["C1",S,["He was reluctant to admit his responsibility."],["Тэр хариуцлагаа хүлээн зөвшөөрөхөөс дурамжхан байсан.","Тэр өөрийн хариуцлагыг хүлээн зөвшөөрөхөөс дургүйцэж байсан."]],
+  ["C1",S,["The outcome hinges on public support."],["Үр дүн нь олон нийтийн дэмжлэгээс шалтгаална.","Үр дүн олон нийтийн дэмжлэгээс хамаарна."]],
+  ["C2",W,["sycophant"],["зусардагч","хоншоорч","дагаж зусардагч"]],["C2",W,["ostensible"],["гаднах харагдах","гаднаа харагдаж буй","илтэд мэт харагдах"]],["C2",W,["esoteric"],["нарийн мэргэжлийн","хаалттай","цөөхөд л ойлгогдох"]],["C2",W,["perfunctory"],["өнгөц","албаны хэлбэрийн","дэмий хийсэн"]],["C2",W,["obfuscate"],["будлиулах","бүрхэг болгох","тодорхойгүй болгох"]],
+  ["C2",W,["magnanimous"],["өргөн цээжтэй","өгөөмөр сэтгэлтэй","өгөөмөр"]],["C2",W,["juxtapose"],["зэрэгцүүлэн тавих","зэрэгцүүлэх"]],["C2",W,["quintessential"],["сонгодог","жинхэнэ жишиг","жинхэнэ"]],["C2",W,["recalcitrant"],["зөрүүд","дуулгаваргүй"]],["C2",W,["equivocal"],["хоёрдмол","тодорхой бус"]],
+  ["C2",S,["Notwithstanding the setbacks, the team persevered."],["Саад бэрхшээл тохиолдсон ч баг тэвчээртэй үргэлжлүүлсэн.","Бүтэлгүйтэл гарсан ч баг зүтгэсээр байсан."]],
+  ["C2",S,["Were it not for his tenacity, the venture would have collapsed."],["Түүний тэвчээр байгаагүй бол бизнес сүйрэх байсан.","Түүний тэсвэр хатуужил байгаагүй бол санаачилга бүтэлгүйтэх байсан."]],
+  ["C2",S,["The author's prose is at once lucid and deeply evocative."],["Зохиолчийн хэллэг нэгэн зэрэг тодорхой бөгөөд гүн мэдрэмж төрүүлдэг.","Зохиолчийн бичлэг тод бөгөөд сэтгэл хөдлөм."]],
+  ["C2",S,["His remarks were construed as an implicit criticism."],["Түүний үгийг далд шүүмжлэл гэж ойлгосон.","Түүний хэлсэн үгийг далд шүүмжлэл гэж тайлбарласан."]],
+  ["C2",S,["The treaty was ratified amid widespread controversy."],["Гэрээг өргөн маргааны дунд соёрхон баталсан.","Гэрээг их маргаантай нөхцөлд соёрхон баталсан."]],
+  ["C2",S,["She possesses an uncanny knack for anticipating trends."],["Тэр чиг хандлагыг таамаглах гайхалтай авьяастай.","Тэр чиг хандлагыг урьдчилан харах гайхалтай авьяастай."]],
+  ["C2",S,["Such behaviour is anathema to our values.","Such behavior is anathema to our values."],["Ийм үйлдэл бидний үнэт зүйлд харш.","Ийм зан үйл бидний үнэт зүйлсэд огт нийцэхгүй."]],
+  ["C2",S,["The legislation is fraught with ambiguity."],["Энэ хууль хоёрдмол утгаар дүүрэн.","Хууль хоёрдмол утгаар дүүрэн байна."]],
+  ["C2",S,["Scarcely had he arrived when the storm broke."],["Тэр ирэнгүүт шуурга дэгдсэн.","Тэр дөнгөж ирсэн байтал шуурга эхэлсэн."]],
+  ["C2",S,["Her reticence belied a formidable intellect."],["Түүний цөөн үг хэлэх нь гайхалтай оюун ухааныг нуун дарагдуулсан байсан.","Түүний чимээгүй байдал хүчирхэг оюун ухааныг нуусан байв."]]
+  ];
+  const have = new Set(D.tr.map(x => x.en[0].toLowerCase()));
+  R.forEach((r,i) => { if (have.has(r[2][0].toLowerCase())) return;
+    D.tr.push({ id:"n"+String(i+1).padStart(3,"0"), l:r[0], t:r[1], en:r[2], mn:r[3], note:"", ex:"", exMn:"" }); });
+})();
+</script>
+</body>
+</html>
+<!doctype html>
+<html lang="mn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ЭЕШ Vocabulary</title>
+<style>
+:root{--bg:#f4f8ff;--bg2:#ffffff;--card:#ffffff;--tx:#0f172a;--mu:#64748b;--bd:#e2e8f0;--pri:#2563eb;--pri2:#06b6d4;--ok:#059669;--okbg:#d1fae5;--bad:#e11d48;--badbg:#ffe4e6;--warn:#b45309;--warnbg:#fef3c7;--chip:#eef2ff;--sh:0 1px 3px rgba(15,23,42,.08)}
+:root[data-theme=dark]{--bg:#020617;--bg2:#0b1220;--card:#0f172a;--tx:#e2e8f0;--mu:#94a3b8;--bd:#1e293b;--pri:#3b82f6;--pri2:#22d3ee;--ok:#34d399;--okbg:#064e3b;--bad:#fb7185;--badbg:#4c0519;--warn:#fbbf24;--warnbg:#451a03;--chip:#172033;--sh:none}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:linear-gradient(135deg,var(--bg),var(--bg2));min-height:100vh;color:var(--tx);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+header{max-width:820px;margin:0 auto;padding:12px 16px 4px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.logo{font-weight:800;font-size:18px;background:linear-gradient(90deg,var(--pri),var(--pri2));-webkit-background-clip:text;background-clip:text;color:transparent;border:0;cursor:pointer;padding:0}
+nav{max-width:820px;margin:0 auto;padding:4px 16px 8px;display:flex;gap:6px;overflow-x:auto;scrollbar-width:thin}
+nav a{white-space:nowrap;text-decoration:none;color:var(--tx);background:var(--card);border:1px solid var(--bd);border-radius:999px;padding:6px 12px;font-size:14px}
+nav a.on{background:linear-gradient(90deg,var(--pri),var(--pri2));color:#fff;border-color:transparent}
+main{max-width:820px;margin:0 auto;padding:8px 16px 48px}
+h1{font-size:24px;margin:8px 0}h2{font-size:19px;margin:16px 0 8px}h3{font-size:16px;margin:12px 0 6px}
+.mu{color:var(--mu)}.sm{font-size:13px}.c{text-align:center}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:16px;box-shadow:var(--sh);margin:10px 0}
+.grid{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+.grid.w2{grid-template-columns:repeat(auto-fill,minmax(230px,1fr))}
+.tile{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:14px;text-align:left;color:var(--tx);cursor:pointer;font:inherit;text-decoration:none;display:block}
+.tile:hover{border-color:var(--pri2)}
+.tile b{display:block}
+.btn{background:linear-gradient(90deg,var(--pri),var(--pri2));color:#fff;border:0;border-radius:12px;padding:11px 18px;font:inherit;font-weight:600;font-size:15px;cursor:pointer}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.g{background:var(--card);color:var(--tx);border:1px solid var(--bd)}
+.btn.ok{background:var(--ok)}.btn.bad{background:var(--bad)}
+.btn.full{width:100%}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.row.sp{justify-content:space-between}
+.chip{border:1px solid var(--bd);background:var(--chip);color:var(--tx);border-radius:999px;padding:5px 12px;font:inherit;font-size:14px;cursor:pointer}
+.chip.on{background:var(--pri);color:#fff;border-color:var(--pri)}
+.chip:disabled{opacity:.4;cursor:not-allowed}
+.badge{display:inline-block;background:var(--chip);border-radius:6px;padding:0 7px;font-size:12px;font-weight:700;color:var(--pri)}
+input,select,textarea{font:inherit;color:var(--tx);background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:10px 12px;width:100%}
+input:focus,textarea:focus,select:focus{outline:2px solid var(--pri2);outline-offset:0}
+label{display:block;font-size:14px;margin:10px 0 4px;color:var(--mu)}
+.opt{display:flex;gap:10px;align-items:center;width:100%;text-align:left;background:var(--card);color:var(--tx);border:1.5px solid var(--bd);border-radius:12px;padding:11px;margin:7px 0;font:inherit;cursor:pointer}
+.opt:hover{border-color:var(--pri2)}
+.opt.sel{border-color:var(--pri);background:var(--chip)}
+.opt.good{border-color:var(--ok);background:var(--okbg)}.opt.wrong{border-color:var(--bad);background:var(--badbg)}
+.opt i{font-style:normal;font-weight:700;background:var(--chip);border-radius:8px;min-width:30px;height:30px;display:grid;place-items:center;flex:none}
+.bar{height:8px;background:var(--bd);border-radius:99px;overflow:hidden}.bar>div{height:100%;background:linear-gradient(90deg,var(--pri),var(--pri2));transition:width .25s}
+.alert{border-radius:12px;padding:12px;margin:10px 0;font-size:14px}
+.alert.w{background:var(--warnbg);color:var(--warn)}.alert.e{background:var(--badbg);color:var(--bad)}.alert.s{background:var(--okbg);color:var(--ok)}
+.fc{min-height:210px;display:grid;place-items:center;text-align:center;cursor:pointer;user-select:none}
+.fc .big{font-size:34px;font-weight:800;word-break:break-word}
+.icon{border:1px solid var(--bd);background:var(--card);border-radius:10px;width:38px;height:38px;cursor:pointer;font-size:16px;flex:none}
+.wr{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--bd)}
+.wr:last-child{border:0}
+.qm{display:flex;gap:5px;flex-wrap:wrap;margin:8px 0}
+.qm button{width:34px;height:34px;border-radius:8px;border:1px solid var(--bd);background:var(--card);color:var(--tx);cursor:pointer;font:inherit;font-size:13px}
+.qm button.a{background:var(--chip);border-color:var(--pri)}.qm button.cur{outline:2px solid var(--pri2)}
+.big-pct{font-size:56px;font-weight:800;background:linear-gradient(90deg,var(--pri),var(--pri2));-webkit-background-clip:text;background-clip:text;color:transparent}
+table{width:100%;border-collapse:collapse;font-size:14px}th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--bd)}th{color:var(--mu);font-weight:600;white-space:nowrap}
+.tw{overflow-x:auto}
+#toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#0f172a;color:#fff;padding:10px 16px;border-radius:12px;font-size:14px;max-width:90vw;display:none;z-index:9}
+a{color:var(--pri)}
+@media(max-width:480px){h1{font-size:21px}.fc .big{font-size:28px}}
+</style>
+</head>
+<body>
+<header>
+  <button class="logo" id="logo" type="button">Vocabulary · ЭЕШ</button>
+  <button class="chip" id="theme" type="button"></button>
+</header>
+<nav id="nav" aria-label="Үндсэн цэс"></nav>
+<main id="app"></main>
+<div id="toast" role="status"></div>
+
+<!-- Өгөгдөл: нийтэд харагдана. ЗӨВ ХАРИУЛТ ЭНД БАЙХГҮЙ (демо багцаас бусад). -->
+<script>
+// Автоматаар үүссэн (tools/build_data.js). Зөв хариулт ЭНД БАЙХГҮЙ.
+window.QSETS=[{"id":"2021-A","year":2021,"variant":"A","source":"Хэрэглэгчийн өгсөн ЭЕШ 2021 оны материал, A хувилбар","questions":[{"n":20,"q":"The town was severely damaged by __ after the heavy rain.","o":["hurricane","flood","snowstorm","forest fire","earthquake"]},{"n":21,"q":"Most young children don't read newspapers, they prefer to read __.","o":["magazines","journals","comics","newspapers","adverts"]},{"n":22,"q":"There are lot of __ in this part of town, so always close the windows and lock the door.","o":["shoplifters","robberies","thieves","burglars","muggers"]},{"n":23,"q":"The best __ movie I've ever seen was Star Wars. It was about the space mission.","o":["action","cartoon","horror","crime","science fiction"]},{"n":24,"q":"A __ is a large store that sells different things.","o":["department store","toy store","bookstore","hardware store","stationery"]},{"n":25,"q":"My car broke __ again and I had to go to work on foot.","o":["of","out","off","down","into"]},{"n":26,"q":"You should check in two hours before your flight is scheduled to take __.","o":["into","up","for","after","off"]},{"n":27,"q":"Due to the storm, I put __ to my doctor's appointment until the following week.","o":["off","on","out","up","down"]},{"n":28,"q":"She came __ a huge amount of money when her cousin died.","o":["by","out","to","into","up"]},{"n":29,"q":"Device inside a computer that stores large amounts of information.","o":["Modem","Word processor","Disk drive","Spreadsheet","Hard disk"]},{"n":30,"q":"An apparatus that allows information to be read from a disk or stored.","o":["Word processor","Hard disk","Disk drive","Spreadsheet","Modem"]},{"n":31,"q":"A program or the grid you create with it to perform mathematical operations.","o":["Word processor","Spreadsheet","Hard disk","Disk drive","Modem"]},{"n":32,"q":"Wow! It's raining cats and dogs today. (idiom)","o":["Cats and dogs are falling from the sky.","I forgot my umbrella today","I forgot my cats and dogs.","It's raining heavily","Cats and dogs are outside"]}]},{"id":"2021-B","year":2021,"variant":"B","source":"Хэрэглэгчийн өгсөн ЭЕШ 2021 оны материал, B хувилбар","questions":[{"n":20,"q":"The buildings are often destroyed by __ after violent movement of the ground.","o":["forest fire","flood","snowstorm","earthquake","hurricane"]},{"n":21,"q":"I quite like the __. There are many interesting adverts.","o":["television commercials","quiz show","soap opera","chat show","documentary"]},{"n":22,"q":"The __ attack people in a public place.","o":["robberies","shoplifters","thieves","burglars","muggers"]},{"n":23,"q":"The young people like to read __ with interesting words and pictures about a new product to make people buy it.","o":["newspapers","adverts","magazines","journals","papers"]},{"n":24,"q":"A __ is a small place that sells most things but especially food and household goods.","o":["department store","toy store","bookstore","hardware store","supermarket"]},{"n":25,"q":"The truck broke __ on the motorway and caused a major traffic jam.","o":["away","over","into","down","out"]},{"n":26,"q":"My husband has beautiful blue eyes. I hope our children will take __ him.","o":["to","after","up","off","for"]},{"n":27,"q":"She didn't put __ her jacket as it wasn't cold outside.","o":["down","up","away","on","off"]},{"n":28,"q":"As he was cleaning his attic he came __ an old photograph of his grandmother.","o":["back","round","up","out","across"]},{"n":29,"q":"He reports on events in other countries.","o":["A sub-editor","A critic","An artist","A foreign correspondent","A continuity person"]},{"n":30,"q":"He lays out and adds headlines to newspaper pages.","o":["A sub-editor","A foreign correspondent","A critic","A continuity person","A make-up artist"]},{"n":31,"q":"Someone puts special paint on the faces of people who are to appear on TV.","o":["A critic","A continuity person","A sub-editor","A make-up artist","A foreign correspondent"]},{"n":32,"q":"They have been in seventh heaven. (idiom)","o":["to get a good condition","to be extremely boring","to get a big award","to win easily","to be extremely happy"]}]},{"id":"2022-A","year":2022,"variant":"A","source":"Хэрэглэгчийн өгсөн ЭЕШ 2022 оны материал, A хувилбар","questions":[{"n":18,"q":"We can travel to Brighton __ by bus or by train; the fare is almost the same.","o":["both","none","neither","either","all"]},{"n":19,"q":"The more he looked at her, __ embarrassed she was.","o":["more","the most","the more","mostly","much"]},{"n":20,"q":"John is __ and needs help when asked to sign papers.","o":["literate","illiterate","literacy","illiteracy","literally"]},{"n":21,"q":"When you go to the town, could you please buy a __ of jam for me?","o":["bar","can","bag","jar","carton"]},{"n":22,"q":"My boss __ this language course to me.","o":["recommended","persuaded","influenced","criticized","maintained"]},{"n":23,"q":"Teaching English in a lively way increases students' __ to learn.","o":["volunteering","tolerance","diversity","motivation","automation"]},{"n":24,"q":"The forecast is for dry, sunny weather with no __ expected.","o":["degradation","desertification","precipitation","protection","permission"]},{"n":25,"q":"My __ is that you're not getting enough work done.","o":["concentration","concern","occupation","action","attachment"]},{"n":26,"q":"Synthetic fabrics are made from __ substances, not natural ones.","o":["organic","artificial","unique","modern","combined"]},{"n":27,"q":"The two countries have __ close ties for centuries.","o":["confused","distracted","debated","maintained","ignored"]},{"n":28,"q":"Because of some mistakes in my test, my teacher made me do it __.","o":["without","with","away","in","over"]},{"n":29,"q":"After the thieves are captured, the stolen items will be turned __ to the rightful owners.","o":["in","away","into","against","down"]},{"n":30,"q":"Chimgee is nearly eight feet tall, so she really sticks __ in a crowd.","o":["to","down","around","with","out"]},{"n":31,"q":"I was able to buy it for a song. (idiom)","o":["His car was expensive.","He sang a song in his car.","He exchanged his car for a different one.","He bought the car very cheaply.","He bought a CD with his favorite songs."]},{"n":32,"q":"Chimgee got it in the neck because she forgot to turn off the car light. (idiom)","o":["The long drive hurt her neck.","She forgot to turn off the car light.","She was punished for the damage to the car battery.","Her shirt was open at the neck.","She was punished for the damage to the car light."]},{"n":33,"q":"I was up in the air about selling my house and moving into a bigger one. (idiom)","o":["He was in the air when his wife was moving her house.","He was excited about moving into a big house.","He always airs his house.","He sold his old house and moved into a big one.","He left the windows open to let the room air a bit."]}]},{"id":"2022-B","year":2022,"variant":"B","source":"Хэрэглэгчийн өгсөн ЭЕШ 2022 оны материал, B хувилбар","questions":[{"n":18,"q":"__ Jim nor Tom passed the exam.","o":["Either","Both","Neither","All","None"]},{"n":19,"q":"Alex is very __ of his younger sister.","o":["protect","protection","protected","protective","protector"]},{"n":20,"q":"We must get a __ of flour, and some eggs and apples.","o":["box","can","tube","bar","bag"]},{"n":21,"q":"The more he exercises, __ he will be.","o":["the healthier","healthiest","healthier","the healthiest","healthy"]},{"n":22,"q":"Children __ their necks to see who their mother was talking to.","o":["nodded","spilled","fluttered","craned","emphasized"]},{"n":23,"q":"The Professor just wanted to __ the importance of learning foreign languages.","o":["grasp","integrate","damage","extend","emphasize"]},{"n":24,"q":"Regular exercise __ your blood with oxygen.","o":["stores","influences","enriches","processes","produces"]},{"n":25,"q":"Millions of birds migrate to the south every year. It is an annual __.","o":["celebration","phenomenon","perception","motivation","behavior"]},{"n":26,"q":"Under these __ the kids couldn't play.","o":["willingness","basements","decisions","circumstances","cells"]},{"n":27,"q":"Many foreign __ attended the opening ceremony.","o":["scavengers","failures","abilities","attempts","dignitaries"]},{"n":28,"q":"If I could do it __ again, I'd do it differently.","o":["over","without","away","in","with"]},{"n":29,"q":"It's getting late, I'm turning __.","o":["into","around","in","up","off"]},{"n":30,"q":"There are a lot of branches sticking __.","o":["to","at","by","out","with"]},{"n":31,"q":"Jake and I lost our jobs. Now we are in the same boat. (idiom)","o":["They are in the broken boat.","They have a good situation.","They are looking for a job.","They are travelling by boat.","They are in the same bad situation."]},{"n":32,"q":"I only got the message by word of mouth. (idiom)","o":["He read the message from the newspaper.","The message was passed by his mom.","He opened his mouth while reading.","The message passed from person to person.","He was only mouthing the message."]},{"n":33,"q":"My girlfriend always acts as if she was born yesterday. (idiom)","o":["She is naive because she doesn't have much experience in life.","She was born yesterday.","Her boyfriend doesn't know what she wants.","She believes the best way to learn is by experience.","His girlfriend is very thoughtful."]}]},{"id":"2023-A","year":2023,"variant":"A","source":"Хэрэглэгчийн өгсөн ЭЕШ 2023 оны материал, A хувилбар","questions":[{"n":19,"q":"You need to acquire __ in social work.","o":["application","qualification","necessity","operation","cooperation"]},{"n":20,"q":"He lied to me and to make matters worse, he didn't __ at all.","o":["thank","apologize","reject","admit","accept"]},{"n":21,"q":"The level of junk food __ was illustrated by statistics.","o":["consideration","compulsion","consumption","combination","compassion"]},{"n":22,"q":"Many groups are working to reduce __ to protect pastureland in the Gobi region.","o":["drought","hazards","blizzard","soil erosion","gale"]},{"n":23,"q":"Jack has already __ a very good reputation as a talented prosecutor.","o":["made","won","done","gained","achieved"]},{"n":24,"q":"The little boy's eyes __ when he saw his daddy.","o":["lit up","shone","lightened","flowed","darkened"]},{"n":25,"q":"Always __ your files and any documents you're working on.","o":["back up","hack into","log in","click on","crash on"]},{"n":26,"q":"Alice: You were late! Tom: I feel sorry for being tardy. The alarm didn't go off.","o":["denying","refusing","making an excuse","requesting","regretting"]},{"n":27,"q":"Sharon: Who is the girl? John: She must be Alice's daughter. She looks just like her.","o":["criticism","complaint","compliment","assumption","suggestion"]},{"n":28,"q":"go on a / balanced / a sensible ➡️ ?","o":["date","meal","solution","plan","diet"]},{"n":29,"q":"Knowledge / Wisdom / Information ➡️ ?","o":["to impart","to conduct","to instruct","to earn","to endure"]},{"n":30,"q":"I recognize a few words in the passage, therefore, I __.","o":["find it easy to understand the whole content","keep my mouth shut like a fish","am not eager to learn new words","try hard to catch the meaning of every word","never look up a new word in a dictionary"]},{"n":31,"q":"Choose the most possible solution to flood.","o":["stonework","wind turbines","dams and canals","tunnels and subways","sea barrier"]},{"n":32,"q":"The department's solution hit the nail on the head. (idiom)","o":["The accident was caused by the failures.","The staff did exactly right.","The staff's solution was not bad.","The staff's act was quite smart.","The staff hit the box of nails."]},{"n":33,"q":"You shouldn't look a gift horse in the mouth. (idiom)","o":["You should give back the computer to him.","The computer is a bad gift.","You should not complain about the gift given to you.","Never receive a gift you don't like.","Receiving a horse as a gift is his hobby."]}]},{"id":"2023-B","year":2023,"variant":"B","source":"Хэрэглэгчийн өгсөн ЭЕШ 2023 оны материал, B хувилбар","questions":[{"n":19,"q":"I've got great __ on my assignment from the teacher.","o":["feedback","portfolio","debate","grant","finance"]},{"n":20,"q":"Roads should have a __ so that people can cross the road safely.","o":["zebra crossing","intersection","dead end","one-way street","lane"]},{"n":21,"q":"Plasmas have electric charges, so plasmas can __ electricity.","o":["dissolve","attract","affect","insulate","conduct"]},{"n":22,"q":"When fossil fuels burn, different substances are __ into the air.","o":["supplied","tapped","trapped","released","accelerated"]},{"n":23,"q":"In the tournament, Hannah __ all her opponents and won the gold medal.","o":["had","gained","beat","granted","rewarded"]},{"n":24,"q":"The cave of the Apocalypse in Greece is in the list of UNESCO world __ sites.","o":["legacy","representation","heritage","tradition","masterpiece"]},{"n":25,"q":"I was working on my presentation and suddenly the screen __ black.","o":["crashed","went","installed","loaded","turned"]},{"n":26,"q":"Anna: You must come and visit us. Tom: I'll come and see you in the not too distant future.","o":["demand","promise","offer","prediction","appointment"]},{"n":27,"q":"Alice: Would you like some black coffee? Jack: I can't drink bitter coffee.","o":["offer","opinion","refusal","confusion","excuse"]},{"n":28,"q":"a valuable / rich / a reliable ➡️ ?","o":["determination","enthusiasm","source","guarantee","extension"]},{"n":29,"q":"tears / laughter / song ➡️ ?","o":["to let out","to make","to bump into","to burst into","to cry over"]},{"n":30,"q":"I struggle to speak for a long time and say 'Err' a lot when I __.","o":["run out of ideas","avoid pronouncing words","find my spoken fluency","provide feedback on the grammatical accuracy","have a significant impact"]},{"n":31,"q":"Choose the most possible solution to air pollution.","o":["temporary shelter","dump sites","organic products","hybrid cars","exhaust fumes"]},{"n":32,"q":"He made up some cock-and-bull story about losing his car keys. (idiom)","o":["He was upset about being late.","Other people thought he was true.","He was involved in illegal activities.","He told a story about animals.","He told a fake story."]},{"n":33,"q":"The police will arrest the suspect by hook or by crook. (idiom)","o":["They will investigate all offenders.","They will use technological devices.","They will mobilize all units.","They will use any method possible.","They will be on duty at check-points."]}]},{"id":"2024-A","year":2024,"variant":"A","source":"Хэрэглэгчийн өгсөн ЭЕШ 2024 оны материал, A хувилбар","questions":[{"n":19,"q":"The rain won't last long; it's only a __.","o":["hail","breeze","shower","frost","downpour"]},{"n":20,"q":"__ is a person whose job is riding horses in races.","o":["Fencer","Jockey","Runner","Swimmer","Golfer"]},{"n":21,"q":"The theory of __ studies the nature and origin of the universe.","o":["chemistry","physics","biology","cosmology","medicine"]},{"n":22,"q":"For security reasons, always log __ when you leave your computer unattended.","o":["up","in","on","for","out"]},{"n":23,"q":"A(n) __ is a tall bird with long thin legs and a long neck.","o":["crane(d)","ostrich","lever","move(d)","stretch(ed)"]},{"n":24,"q":"Finally, the house was put back onto the truck by __.","o":["crane(d)","ostrich","lever","move(d)","stretch(ed)"]},{"n":25,"q":"The boy __ his neck to get the first glimpse of a celebrity.","o":["crane(d)","ostrich","lever","move(d)","stretch(ed)"]},{"n":26,"q":"What will you take with you when you reach the mountain's peak?","o":["hiking boots","climbing gear","a fencing sword","bowling pins","a mountain bike"]},{"n":27,"q":"What expression is used for making pain go away?","o":["to complain of pain","to suffer pain","to cause pain","to soothe pain","to inflict pain"]},{"n":28,"q":"__ ageing substance / __ viral drug / __ depressant treatment","o":["ante-","pro-","non-","pre-","anti-"]},{"n":29,"q":"persist(__) learner","o":["-ance","-ant","-ence","-ent","-ible"]},{"n":30,"q":"Tonya spends a lot of money __ fancy clothes.","o":["in","over","on","for","onto"]},{"n":31,"q":"I asked our neighbors to keep an eye __ the house while we were away.","o":["with","over","at","for","on"]},{"n":32,"q":"It really got Mr Robert's goat when he had to wait two hours. (idiom)","o":["He was annoyed at the long delay.","He was angry because he couldn't get the ticket.","He didn't care about the long line.","He was frustrated because he was late for the flight.","He didn't mind the long delay."]},{"n":33,"q":"Who wears trousers in your family? (idiom)","o":["be a caregiver of the family","be financially dependent on the spouse","be the dominant partner in a marriage","be the most educated family member","be the only breadwinner of the family"]}]},{"id":"2024-B","year":2024,"variant":"B","source":"Хэрэглэгчийн өгсөн ЭЕШ 2024 оны материал, B хувилбар","questions":[{"n":19,"q":"I would love to be a good __, but my eyesight isn't very good.","o":["high jumper","gymnast","archer","weight lifter","canoeist"]},{"n":20,"q":"It was absolutely pouring down yesterday. It was a real __.","o":["shower","downpour","gale","hurricane","blizzard"]},{"n":21,"q":"__ studies the rocks and similar substances that make up the Earth's surface.","o":["Archeology","Geography","Geometry","Geology","Astrology"]},{"n":22,"q":"The ability of zoom __ is useful when working on detailed diagrams.","o":["over","out","up","on","in"]},{"n":23,"q":"Please, print your name and address in __ letters.","o":["capital","block","clog","bulk","fill"]},{"n":24,"q":"My boyfriend and I live on the same __.","o":["capital","block","clog","bulk","fill"]},{"n":25,"q":"Every autumn dead leaves __ the drains.","o":["capital","block","clog","bulk","fill"]},{"n":26,"q":"What will you wear when you go hiking?","o":["camping gear","climbing boots","a walking stick","walking boots","a surfing board"]},{"n":27,"q":"What expression is used for making others experience pain?","o":["to experience pain","to feel pain","to ease pain","to relieve pain","to inflict pain"]},{"n":28,"q":"__ war Europe / __ traumatic stress disorder / __ industrial age","o":["sub-","post-","inter-","trans-","com-"]},{"n":29,"q":"History(__) novels","o":["-ical","-ic","-ian","-ous","-ish"]},{"n":30,"q":"My uncle suffers __ a type of diabetes.","o":["from","of","with","off","about"]},{"n":31,"q":"The answer was __ the tip of my tongue, but I couldn't remember it.","o":["in","at","on","from","with"]},{"n":32,"q":"She became more down in the dumps as the day passed. (idiom)","o":["gloomy but peaceful","having a mixed emotion","happy and encouraged","sad and discouraged","dejected but energetic"]},{"n":33,"q":"He really caught it in the neck because he didn't put the fire out. (idiom)","o":["He was rewarded.","He was praised.","He was captured","He was disgraced.","He was scolded."]}]},{"id":"2025-A","year":2025,"variant":"A","source":"Хэрэглэгчийн өгсөн ЭЕШ 2025 оны материал, A хувилбар","questions":[{"n":17,"q":"Which item is made from cotton?","o":["a raincoat","a shirt","a wristband","nylons","a jumper"]},{"n":18,"q":"A young horse is called? A __.","o":["fawn","kid","cub","lamb","foal"]},{"n":19,"q":"A __ is a part of the building where a vehicle is kept.","o":["garage","patio","garden","shade","concrete"]},{"n":20,"q":"Name the means of transport the front part of which is a cockpit.","o":["coach","aircraft","caravan","train","ferry"]},{"n":21,"q":"A __ uses a computer or smartphone to commit crimes.","o":["kidnapper","fraudster","vandal","mugger","cybercriminal"]},{"n":22,"q":"As soon as Lydia and I met, we knew we were going to get __ well.","o":["up","(a) round","at","on","in"]},{"n":23,"q":"It was sunny and hot.","o":["There was a bit of drizzle.","There were a few sunny showers.","It was very overcast.","There was quite a breeze.","We had a bit of heat wave."]},{"n":24,"q":"It's so easy to get around. Public transport is excellent – it's cheap and __.","o":["useful","efficient","cosmopolitan","stressful","crowded"]},{"n":25,"q":"They won two nil.","o":["year somebody was born","the temperature","a telephone number","the score in a tennis match","the result of the football match"]},{"n":26,"q":"Ron was arrested by the police, who __ him of being involved in a robbery.","o":["suspected","heard","questioned","charged","convicted"]},{"n":27,"q":"He had been __ previously of petty crime, but never anything serious.","o":["suspected","heard","questioned","charged","convicted"]},{"n":28,"q":"The police __ him for several hours.","o":["suspected","heard","questioned","charged","convicted"]},{"n":29,"q":"... and finally __ him with robbery.","o":["suspected","heard","questioned","charged","convicted"]},{"n":30,"q":"... he had to appear in court when his case would be __.","o":["suspected","heard","questioned","charged","convicted"]},{"n":31,"q":"In which sentence does \"to take off\" mean \"to remove something from a surface\"?","o":["Take off your shoes. You're getting mud on the carpet.","You need to take the old wax off the floor before you wax it again.","Our plane took off an hour late because of the snow.","If this business takes off, we could make a lot of money.","Alfonso always takes the skin off chicken before he cooks it."]},{"n":32,"q":"I think he has the flu because you don't usually throw __ when you have a cold.","o":["back","out","on","off","up"]},{"n":33,"q":"I'm sorry to cancel, but I just don't __ up to going dancing today.","o":["look","feel","take","get","bring"]}]},{"id":"2025-B","year":2025,"variant":"B","source":"Хэрэглэгчийн өгсөн ЭЕШ 2025 оны материал, B хувилбар","questions":[{"n":17,"q":"Which item is made from wool?","o":["a T-shirt","sandals","a fur coat","a necklace","a pull-over"]},{"n":18,"q":"A young cow is called a __.","o":["fawn","foal","lamb","calf","cub"]},{"n":19,"q":"A part of the building which is below the ground level.","o":["basement","shade","gate","garage","fence"]},{"n":20,"q":"Name the means of transport which is controlled by a captain and stops at a port.","o":["airplane","ship","spaceship","subway","tram"]},{"n":21,"q":"A person who steals something from a supermarket is a __.","o":["shoplifter","pickpocket","burglar","robber","mugger"]},{"n":22,"q":"I just can't come out tonight as I've got so __ with my work.","o":["behind","up","over","away","along"]},{"n":23,"q":"It was dull and cloudy.","o":["There were a few wintry showers.","It was quite misty.","We had thunder and lightning.","It was very overcast.","There was a bit of drizzle."]},{"n":24,"q":"I love it here. Everything I want is only five minutes away. It's so __.","o":["efficient","convenient","crowded","inconvenient","stressful"]},{"n":25,"q":"In nineteen oh three.","o":["the year somebody was born","the score in a tennis match","a telephone number","the temperature","the result of a football match"]},{"n":26,"q":"Ron hired the best lawyer. He __ not guilty.","o":["identified","called","sentenced","committed","pleaded"]},{"n":27,"q":"When he was __ to give evidence, ...","o":["identified","called","sentenced","committed","pleaded"]},{"n":28,"q":"... over 100 miles away when the crime was __.","o":["identified","called","sentenced","committed","pleaded"]},{"n":29,"q":"... three witnesses __ him as the man they had seen at the scene.","o":["identified","called","sentenced","committed","pleaded"]},{"n":30,"q":"He was found guilty and __ to three years in prison.","o":["identified","called","sentenced","committed","pleaded"]},{"n":31,"q":"In which sentence does \"to put on\" mean \"to attach or affix something to another thing\"?","o":["I need to go on a diet. I've been putting on a lot of weight.","Jerry put too much fertilizer on his lawn.","Eric forgot to put suntan lotion on.","The club put on a show to raise money.","The tailor to put the red buttons on the dress."]},{"n":32,"q":"The store owner was held __ by three men wearing ski masks.","o":["down","back","up","in","on"]},{"n":33,"q":"If you don't wear an undershirt, you'll __ down with pneumonia.","o":["come","get","put","take","hold"]}]}];
+</script>
+<script>
+// Автоматаар үүссэн (tools/build_data.js)
+window.VOCAB_TOPICS=[{"id":"edu","mn":"1. Боловсрол, сургалтын үйл явц","en":"Education & Learning"},{"id":"env","mn":"2. Байгаль орчин","en":"Environment & Nature"},{"id":"tech","mn":"3. Технологи, харилцаа холбоо","en":"Technology & Communication"},{"id":"health","mn":"4. Эрүүл мэнд","en":"Health & Medicine"},{"id":"society","mn":"5. Нийгэм, соёл","en":"Society & Culture"},{"id":"work","mn":"6. Ажил мэргэжил","en":"Work & Career"},{"id":"science","mn":"7. Шинжлэх ухаан, судалгаа","en":"Science & Research"},{"id":"economy","mn":"8. Эдийн засаг, мөнгө","en":"Economy & Money"},{"id":"gov","mn":"9. Засаглал, хууль, улс төр","en":"Government, Law & Politics"},{"id":"travel","mn":"10. Аялал, газар зүй","en":"Travel & Places"},{"id":"emotion","mn":"11. Сэтгэл хөдлөл, зан төлөв","en":"Emotions & Personality"},{"id":"adj","mn":"12. Түгээмэл тэмдэг нэр","en":"Common Adjectives"},{"id":"academic","mn":"13. Академик, эссений үйл үг","en":"Academic & Essay Verbs"},{"id":"ese","mn":"14. ЭЕШ-ийн бодит асуултуудын үг, хэллэг","en":"Exam words, phrasal verbs & idioms (2021-2025)"}];
+window.VOCAB=[{"w":"achieve","m":"амжилтад хүрэх","t":["edu"]},{"w":"curriculum","m":"сургалтын хөтөлбөр","t":["edu"]},{"w":"assess","m":"үнэлэх, дүгнэх","t":["edu"]},{"w":"enroll","m":"элсэх, бүртгүүлэх","t":["edu"]},{"w":"scholarship","m":"тэтгэлэг","t":["edu"]},{"w":"graduate","m":"төгсөх","t":["edu"]},{"w":"lecture","m":"лекц","t":["edu"]},{"w":"motivate","m":"урам зориг өгөх","t":["edu"]},{"w":"literacy","m":"бичиг үсэг тайлагдсан байдал","t":["edu"]},{"w":"academic","m":"эрдэм шинжилгээний","t":["edu"]},{"w":"concentrate","m":"анхаарлаа төвлөрүүлэх","t":["edu"]},{"w":"memorize","m":"цээжлэх","t":["edu"]},{"w":"comprehend","m":"ойлгох","t":["edu"]},{"w":"evaluate","m":"үнэлгээ өгөх","t":["edu"]},{"w":"discipline","m":"сахилга бат","t":["edu"]},{"w":"tuition","m":"сургалтын төлбөр","t":["edu"]},{"w":"require","m":"шаардах","t":["edu"]},{"w":"skill","m":"чадвар","t":["edu"]},{"w":"research","m":"судалгаа","t":["edu"]},{"w":"knowledge","m":"мэдлэг","t":["edu"]},{"w":"intelligent","m":"ухаалаг","t":["edu"]},{"w":"semester","m":"улирал","t":["edu"]},{"w":"assignment","m":"даалгавар","t":["edu"]},{"w":"degree","m":"эрдмийн зэрэг","t":["edu"]},{"w":"encourage","m":"урамшуулах","t":["edu"]},{"w":"explain","m":"тайлбарлах","t":["edu"]},{"w":"improve","m":"сайжруулах","t":["edu"]},{"w":"instruction","m":"заавар","t":["edu"]},{"w":"progress","m":"ахиц дэвшил","t":["edu"]},{"w":"revise","m":"давтах, засах","t":["edu"]},{"w":"subject","m":"хичээл, сэдэв","t":["edu"]},{"w":"talented","m":"авьяаслаг","t":["edu"]},{"w":"achievement","m":"амжилт, ололт","t":["edu"]},{"w":"explore","m":"судлан шинжлэх","t":["edu"]},{"w":"fluent","m":"чөлөөтэй ярьдаг","t":["edu"]},{"w":"participate","m":"оролцох","t":["edu"]},{"w":"qualify","m":"эрх авах, шалгарах","t":["edu"]},{"w":"theory","m":"онол","t":["edu"]},{"w":"understand","m":"ойлгох","t":["edu"]},{"w":"diploma","m":"диплом","t":["edu"]},{"w":"pollution","m":"бохирдол","t":["env"]},{"w":"sustainable","m":"тогтвортой","t":["env"]},{"w":"renewable","m":"сэргээгдэх","t":["env"]},{"w":"deforestation","m":"ойн хомсдол","t":["env"]},{"w":"emission","m":"хаягдал угаа","t":["env"]},{"w":"conserve","m":"хамгаалах, хэмнэх","t":["env"]},{"w":"ecosystem","m":"экосистем","t":["env"]},{"w":"drought","m":"ган гачиг","t":["env"]},{"w":"endangered","m":"устгаж болзошгүй","t":["env"]},{"w":"recycle","m":"дахин боловсруулах","t":["env"]},{"w":"contaminate","m":"бохирдуулах","t":["env"]},{"w":"habitat","m":"амьдрах орчин","t":["env"]},{"w":"resource","m":"нөөц","t":["env"]},{"w":"erosion","m":"элэгдэл","t":["env"]},{"w":"biodiversity","m":"биологийн олон янз байдал","t":["env"]},{"w":"waste","m":"хог хаягдал","t":["env"]},{"w":"climate","m":"уур амьсгал","t":["env"]},{"w":"atmosphere","m":"агаар мандал","t":["env"]},{"w":"pollutant","m":"бохирдуулагч бодис","t":["env"]},{"w":"preserve","m":"хамгаалах, хадгалах","t":["env"]},{"w":"species","m":"зүйл, төрөл","t":["env"]},{"w":"extinct","m":"устаж мөхсөн","t":["env"]},{"w":"global warming","m":"дэлхийн дулаарал","t":["env"]},{"w":"greenhouse","m":"хүлэмж","t":["env"]},{"w":"natural","m":"байгалийн","t":["env"]},{"w":"wildlife","m":"зэрлэг ан амьтан","t":["env"]},{"w":"environment","m":"хүрээлэн буй орчин","t":["env"]},{"w":"disaster","m":"гамшиг","t":["env"]},{"w":"landscape","m":"байгалийн үзэмж","t":["env"]},{"w":"fossil fuel","m":"чулуужсан түлш","t":["env"]},{"w":"reserve","m":"нөөц газар, хамгаалах","t":["env"]},{"w":"overpopulation","m":"хэт хүн ам суурьшил","t":["env"]},{"w":"temperature","m":"температур","t":["env"]},{"w":"consume","m":"хэрэглэх","t":["env"]},{"w":"restore","m":"сэргээх","t":["env"]},{"w":"threat","m":"аюул, заналхийлэл","t":["env"]},{"w":"scarce","m":"ховор, хомс","t":["env"]},{"w":"abundant","m":"элбэг","t":["env"]},{"w":"organic","m":"органик","t":["env"]},{"w":"carbon","m":"нүүрстөрөгч","t":["env"]},{"w":"device","m":"төхөөрөмж","t":["tech"]},{"w":"innovation","m":"инноваци, шинэлэг санаа","t":["tech"]},{"w":"access","m":"хандах, хандалт","t":["tech"]},{"w":"artificial","m":"хиймэл","t":["tech"]},{"w":"upgrade","m":"сайжруулах","t":["tech"]},{"w":"network","m":"сүлжээ","t":["tech"]},{"w":"virtual","m":"виртуал, цахим","t":["tech"]},{"w":"data","m":"мэдээлэл, дата","t":["tech"]},{"w":"efficient","m":"үр ашигтай","t":["tech"]},{"w":"breakthrough","m":"томоохон нээлт","t":["tech"]},{"w":"automate","m":"автоматжуулах","t":["tech"]},{"w":"interact","m":"харилцах","t":["tech"]},{"w":"platform","m":"платформ","t":["tech"]},{"w":"reliable","m":"найдвартай","t":["tech"]},{"w":"security","m":"аюулгүй байдал","t":["tech"]},{"w":"update","m":"шинэчлэх","t":["tech"]},{"w":"convenient","m":"тохиромжтой","t":["tech"]},{"w":"feature","m":"онцлог, боломж","t":["tech"]},{"w":"gadget","m":"цахим хэрэгсэл","t":["tech"]},{"w":"digital","m":"тоон, дижитал","t":["tech"]},{"w":"software","m":"програм хангамж","t":["tech"]},{"w":"download","m":"татаж авах","t":["tech"]},{"w":"connect","m":"холбох","t":["tech"]},{"w":"communicate","m":"харилцах","t":["tech"]},{"w":"invention","m":"шинэ бүтээл","t":["tech"]},{"w":"screen","m":"дэлгэц","t":["tech"]},{"w":"signal","m":"дохио, сигнал","t":["tech"]},{"w":"transmit","m":"дамжуулах","t":["tech"]},{"w":"password","m":"нууц үг","t":["tech"]},{"w":"online","m":"онлайн, цахим","t":["tech"]},{"w":"remote","m":"алслагдсан, зайны","t":["tech"]},{"w":"advanced","m":"дэвшилтэт","t":["tech"]},{"w":"technology","m":"технологи","t":["tech"]},{"w":"information","m":"мэдээлэл","t":["tech"]},{"w":"message","m":"мессеж, зурвас","t":["tech"]},{"w":"storage","m":"хадгалалт","t":["tech"]},{"w":"wireless","m":"утасгүй","t":["tech"]},{"w":"battery","m":"батерей","t":["tech"]},{"w":"portable","m":"зөөврийн","t":["tech"]},{"w":"function","m":"үйлдэл, ажиллагаа","t":["tech"]},{"w":"nutrition","m":"тэжээл","t":["health"]},{"w":"diagnose","m":"оношлох","t":["health"]},{"w":"symptom","m":"шинж тэмдэг","t":["health"]},{"w":"treatment","m":"эмчилгээ","t":["health"]},{"w":"immune","m":"дархлаа","t":["health"]},{"w":"chronic","m":"архаг","t":["health"]},{"w":"prevent","m":"урьдчилан сэргийлэх","t":["health"]},{"w":"recover","m":"эдгэрэх","t":["health"]},{"w":"addiction","m":"донтолт","t":["health"]},{"w":"mental","m":"сэтгэцийн","t":["health"]},{"w":"obesity","m":"таргалалт","t":["health"]},{"w":"hygiene","m":"эрүүл ахуй","t":["health"]},{"w":"fatigue","m":"ядрал","t":["health"]},{"w":"stress","m":"стресс, дарамт","t":["health"]},{"w":"diet","m":"хооллолт","t":["health"]},{"w":"infectious","m":"халдварт","t":["health"]},{"w":"wellbeing","m":"сайн сайхан байдал","t":["health"]},{"w":"medication","m":"эм","t":["health"]},{"w":"injury","m":"гэмтэл","t":["health"]},{"w":"exhausted","m":"маш их ядарсан","t":["health"]},{"w":"disease","m":"өвчин","t":["health"]},{"w":"cure","m":"эмчлэх, эдгээх","t":["health"]},{"w":"healthy","m":"эрүүл","t":["health"]},{"w":"patient","m":"өвчтөн; тэвчээртэй","t":["health","emotion"]},{"w":"surgery","m":"мэс засал","t":["health"]},{"w":"vaccine","m":"вакцин","t":["health"]},{"w":"infection","m":"халдвар","t":["health"]},{"w":"physical","m":"бие махбодийн","t":["health"]},{"w":"prescribe","m":"эм бичих","t":["health"]},{"w":"allergy","m":"харшил","t":["health"]},{"w":"heal","m":"эдгэрэх, эдгээх","t":["health"]},{"w":"pain","m":"өвдөлт","t":["health"]},{"w":"balance","m":"тэнцвэр","t":["health"]},{"w":"fitness","m":"бие бялдрын хүчин чадал","t":["health"]},{"w":"dose","m":"тун","t":["health"]},{"w":"clinic","m":"эмнэлэг","t":["health"]},{"w":"therapy","m":"эмчилгээ","t":["health"]},{"w":"contagious","m":"халдварлах чадвартай","t":["health"]},{"w":"nutrient","m":"шимт бодис","t":["health"]},{"w":"wound","m":"шарх","t":["health"]},{"w":"diverse","m":"олон төрөл","t":["society"]},{"w":"tradition","m":"уламжлал","t":["society"]},{"w":"community","m":"хамт олон","t":["society"]},{"w":"tolerance","m":"хүлээцтэй байдал","t":["society"]},{"w":"inequality","m":"тэгш бус байдал","t":["society"]},{"w":"generation","m":"үе","t":["society"]},{"w":"custom","m":"заншил","t":["society"]},{"w":"heritage","m":"өв соёл","t":["society"]},{"w":"urban","m":"хотын","t":["society"]},{"w":"rural","m":"хөдөөгийн","t":["society"]},{"w":"migration","m":"шилжилт хөдөлгөөн","t":["society"]},{"w":"poverty","m":"ядуурал","t":["society"]},{"w":"stereotype","m":"хэвшмэл ойлголт","t":["society"]},{"w":"ethnic","m":"угсаатны","t":["society"]},{"w":"norm","m":"хэм хэмжээ","t":["society"]},{"w":"identity","m":"өвөрмөц шинж","t":["society"]},{"w":"contribute","m":"хувь нэмэр оруулах","t":["society"]},{"w":"volunteer","m":"сайн дурын ажилтан","t":["society"]},{"w":"celebrate","m":"тэмдэглэх","t":["society"]},{"w":"value","m":"үнэ цэн, үнэт зүйл","t":["society"]},{"w":"society","m":"нийгэм","t":["society"]},{"w":"culture","m":"соёл","t":["society"]},{"w":"equality","m":"тэгш байдал","t":["society"]},{"w":"population","m":"хүн ам","t":["society"]},{"w":"citizen","m":"иргэн","t":["society"]},{"w":"respect","m":"хүндлэх","t":["society"]},{"w":"belief","m":"итгэл үнэмшил","t":["society"]},{"w":"festival","m":"баяр наадам","t":["society"]},{"w":"prejudice","m":"өрөөсгөл ойлголт","t":["society"]},{"w":"discrimination","m":"ялгаварлан гадуурхалт","t":["society"]},{"w":"cooperation","m":"хамтын ажиллагаа","t":["society"]},{"w":"responsibility","m":"хариуцлага","t":["society"]},{"w":"gender","m":"хүйс","t":["society"]},{"w":"religion","m":"шашин","t":["society"]},{"w":"unity","m":"эв нэгдэл","t":["society"]},{"w":"conflict","m":"зөрчил","t":["society"]},{"w":"charity","m":"буяны үйлс","t":["society"]},{"w":"ancestor","m":"өвөг дээдэс","t":["society"]},{"w":"neighbor","m":"хөрш","t":["society"]},{"w":"welfare","m":"нийгмийн халамж","t":["society"]},{"w":"employ","m":"ажилд авах","t":["work"]},{"w":"career","m":"мэргэжлийн зам","t":["work"]},{"w":"qualification","m":"мэргэшил","t":["work"]},{"w":"colleague","m":"хамт ажиллагч","t":["work"]},{"w":"promote","m":"албан тушаал ахиулах","t":["work"]},{"w":"salary","m":"цалин","t":["work"]},{"w":"deadline","m":"хугацаа","t":["work"]},{"w":"interview","m":"ярилцлага","t":["work"]},{"w":"experience","m":"туршлага","t":["work"]},{"w":"negotiate","m":"хэлэлцээр хийх","t":["work"]},{"w":"resign","m":"ажлаас гарах","t":["work"]},{"w":"ambitious","m":"их зорилготой","t":["work"]},{"w":"supervise","m":"хянах, удирдах","t":["work"]},{"w":"opportunity","m":"боломж","t":["work"]},{"w":"cooperate","m":"хамтран ажиллах","t":["work"]},{"w":"freelance","m":"чөлөөт ажилтны","t":["work"]},{"w":"employer","m":"ажил олгогч","t":["work"]},{"w":"employee","m":"ажилтан","t":["work"]},{"w":"profession","m":"мэргэжил","t":["work"]},{"w":"apply","m":"өргөдөл гаргах","t":["work"]},{"w":"candidate","m":"нэр дэвшигч","t":["work"]},{"w":"hire","m":"ажилд авах","t":["work"]},{"w":"wage","m":"хөлс, цалин","t":["work"]},{"w":"overtime","m":"илүү цаг","t":["work"]},{"w":"retire","m":"тэтгэвэрт гарах","t":["work"]},{"w":"shift","m":"ээлж","t":["work"]},{"w":"task","m":"даалгавар","t":["work"]},{"w":"skilled","m":"чадварлаг","t":["work"]},{"w":"income","m":"орлого","t":["work"]},{"w":"management","m":"удирдлага","t":["work"]},{"w":"productive","m":"бүтээмжтэй","t":["work"]},{"w":"contract","m":"гэрээ","t":["work"]},{"w":"experiment","m":"туршилт","t":["science"]},{"w":"hypothesis","m":"таамаглал","t":["science"]},{"w":"analyze","m":"задлан шинжлэх","t":["science"]},{"w":"observe","m":"ажиглах","t":["science"]},{"w":"evidence","m":"нотолгоо","t":["science"]},{"w":"discover","m":"нээх","t":["science"]},{"w":"laboratory","m":"лаборатори","t":["science"]},{"w":"method","m":"арга","t":["science"]},{"w":"result","m":"үр дүн","t":["science"]},{"w":"conclusion","m":"дүгнэлт","t":["science"]},{"w":"measure","m":"хэмжих","t":["science"]},{"w":"chemical","m":"хими, химийн бодис","t":["science"]},{"w":"reaction","m":"урвал","t":["science"]},{"w":"particle","m":"хэсэг, бөөм","t":["science"]},{"w":"gravity","m":"таталцал","t":["science"]},{"w":"element","m":"элемент","t":["science"]},{"w":"molecule","m":"молекул","t":["science"]},{"w":"genetics","m":"генетик","t":["science"]},{"w":"cell","m":"эс","t":["science"]},{"w":"organism","m":"организм","t":["science"]},{"w":"evolution","m":"хувьсал","t":["science"]},{"w":"formula","m":"томьёо","t":["science"]},{"w":"calculate","m":"тооцоолох","t":["science"]},{"w":"accurate","m":"нарийвчлалтай","t":["science"]},{"w":"sample","m":"дээж","t":["science"]},{"w":"examine","m":"нягтлан шалгах","t":["science"]},{"w":"invent","m":"зохион бүтээх","t":["science"]},{"w":"procedure","m":"журам, дараалал","t":["science"]},{"w":"prove","m":"нотлох","t":["science"]},{"w":"substance","m":"бодис","t":["science"]},{"w":"radiation","m":"цацраг","t":["science"]},{"w":"scientific","m":"шинжлэх ухааны","t":["science"]},{"w":"variable","m":"хувьсагч","t":["science"]},{"w":"logic","m":"логик","t":["science"]},{"w":"astronomy","m":"одон орон судлал","t":["science"]},{"w":"microscope","m":"микроскоп","t":["science"]},{"w":"economy","m":"эдийн засаг","t":["economy"]},{"w":"budget","m":"төсөв","t":["economy"]},{"w":"invest","m":"хөрөнгө оруулах","t":["economy"]},{"w":"profit","m":"ашиг","t":["economy"]},{"w":"loss","m":"алдагдал","t":["economy"]},{"w":"afford","m":"төлж чадах","t":["economy"]},{"w":"expense","m":"зардал","t":["economy"]},{"w":"debt","m":"өр","t":["economy"]},{"w":"loan","m":"зээл","t":["economy"]},{"w":"currency","m":"мөнгөн тэмдэгт","t":["economy"]},{"w":"inflation","m":"инфляци","t":["economy"]},{"w":"trade","m":"худалдаа","t":["economy"]},{"w":"market","m":"зах зээл","t":["economy"]},{"w":"demand","m":"эрэлт","t":["economy"]},{"w":"supply","m":"нийлүүлэлт","t":["economy"]},{"w":"consumer","m":"хэрэглэгч","t":["economy"]},{"w":"purchase","m":"худалдан авах","t":["economy"]},{"w":"wealth","m":"баялаг","t":["economy"]},{"w":"financial","m":"санхүүгийн","t":["economy"]},{"w":"bank","m":"банк","t":["economy"]},{"w":"fund","m":"сан, санхүүжүүлэх","t":["economy"]},{"w":"revenue","m":"орлого, ашиг","t":["economy"]},{"w":"tax","m":"татвар","t":["economy"]},{"w":"cost","m":"өртөг, зардал","t":["economy"]},{"w":"price","m":"үнэ","t":["economy"]},{"w":"economic","m":"эдийн засгийн","t":["economy"]},{"w":"save","m":"хэмнэх, хадгалах","t":["economy"]},{"w":"spend","m":"зарцуулах","t":["economy"]},{"w":"wealthy","m":"баян, чинээлэг","t":["economy"]},{"w":"recession","m":"уналт, хямрал","t":["economy"]},{"w":"export","m":"экспорт","t":["economy"]},{"w":"import","m":"импорт","t":["economy"]},{"w":"earnings","m":"олсон орлого","t":["economy"]},{"w":"bankrupt","m":"дампуурсан","t":["economy"]},{"w":"insurance","m":"даатгал","t":["economy"]},{"w":"investment","m":"хөрөнгө оруулалт","t":["economy"]},{"w":"prosper","m":"цэцэглэн хөгжих","t":["economy"]},{"w":"government","m":"засгийн газар","t":["gov"]},{"w":"policy","m":"бодлого","t":["gov"]},{"w":"law","m":"хууль","t":["gov"]},{"w":"election","m":"сонгууль","t":["gov"]},{"w":"vote","m":"санал өгөх","t":["gov"]},{"w":"democracy","m":"ардчилал","t":["gov"]},{"w":"rights","m":"эрх","t":["gov"]},{"w":"justice","m":"шударга ёс","t":["gov"]},{"w":"parliament","m":"парламент","t":["gov"]},{"w":"authority","m":"эрх мэдэл, эрх бүхий байгууллага","t":["gov"]},{"w":"regulation","m":"журам, зохицуулалт","t":["gov"]},{"w":"legal","m":"хуулийн, хууль ёсны","t":["gov"]},{"w":"illegal","m":"хууль бус","t":["gov"]},{"w":"crime","m":"гэмт хэрэг","t":["gov"]},{"w":"punish","m":"шийтгэх","t":["gov"]},{"w":"court","m":"шүүх","t":["gov"]},{"w":"trial","m":"шүүх хурал","t":["gov"]},{"w":"witness","m":"гэрч","t":["gov"]},{"w":"freedom","m":"эрх чөлөө","t":["gov"]},{"w":"corruption","m":"авлига","t":["gov"]},{"w":"reform","m":"шинэчлэл","t":["gov"]},{"w":"official","m":"албан ёсны, түшмэл","t":["gov"]},{"w":"campaign","m":"кампанит ажил","t":["gov"]},{"w":"debate","m":"мэтгэлцээн","t":["gov"]},{"w":"protest","m":"жагсаал, эсэргүүцэл","t":["gov"]},{"w":"constitution","m":"үндсэн хууль","t":["gov"]},{"w":"politician","m":"улс төрч","t":["gov"]},{"w":"enforce","m":"хэрэгжүүлэх, мөрдүүлэх","t":["gov"]},{"w":"destination","m":"очих газар","t":["travel"]},{"w":"journey","m":"аялал, зам","t":["travel"]},{"w":"tourist","m":"жуулчин","t":["travel"]},{"w":"accommodation","m":"байр, буудал","t":["travel"]},{"w":"reservation","m":"захиалга","t":["travel"]},{"w":"passport","m":"гадаад паспорт","t":["travel"]},{"w":"luggage","m":"тээш, ачаа","t":["travel"]},{"w":"depart","m":"хөдлөх, гарах","t":["travel"]},{"w":"arrive","m":"хүрэлцэн ирэх","t":["travel"]},{"w":"abroad","m":"гадаадад","t":["travel"]},{"w":"scenery","m":"байгалийн үзэмж","t":["travel"]},{"w":"adventure","m":"адал явдал","t":["travel"]},{"w":"region","m":"бүс нутаг","t":["travel"]},{"w":"border","m":"хил","t":["travel"]},{"w":"capital","m":"нийслэл","t":["travel"]},{"w":"continent","m":"тив","t":["travel"]},{"w":"landmark","m":"дурсгалт газар","t":["travel"]},{"w":"route","m":"маршрут, зам","t":["travel"]},{"w":"distance","m":"зай","t":["travel"]},{"w":"tour","m":"аялал, тур","t":["travel"]},{"w":"foreign","m":"гадаадын","t":["travel"]},{"w":"nearby","m":"ойролцоо","t":["travel"]},{"w":"souvenir","m":"бэлэг дурсгал","t":["travel"]},{"w":"guide","m":"хөтөч","t":["travel"]},{"w":"flight","m":"нислэг","t":["travel"]},{"w":"local","m":"нутгийн, орон нутгийн","t":["travel"]},{"w":"confident","m":"өөртөө итгэлтэй","t":["emotion"]},{"w":"anxious","m":"түгшүүртэй","t":["emotion"]},{"w":"generous","m":"өгөөмөр","t":["emotion"]},{"w":"honest","m":"шударга","t":["emotion"]},{"w":"curious","m":"сониуч","t":["emotion"]},{"w":"grateful","m":"талархалтай","t":["emotion"]},{"w":"polite","m":"эелдэг","t":["emotion"]},{"w":"selfish","m":"хувиа хичээсэн","t":["emotion"]},{"w":"cheerful","m":"хөгжилтэй","t":["emotion"]},{"w":"nervous","m":"сандарсан","t":["emotion"]},{"w":"proud","m":"бахархсан","t":["emotion"]},{"w":"shy","m":"ичимхий","t":["emotion"]},{"w":"brave","m":"зоригтой","t":["emotion"]},{"w":"jealous","m":"атаархсан","t":["emotion"]},{"w":"calm","m":"тайван","t":["emotion"]},{"w":"stubborn","m":"зөрүүд","t":["emotion"]},{"w":"sympathy","m":"энэрэл, өрөвдөх сэтгэл","t":["emotion"]},{"w":"frustrated","m":"цухалдсан, уурласан","t":["emotion"]},{"w":"optimistic","m":"өөдрөг","t":["emotion"]},{"w":"pessimistic","m":"гутранги","t":["emotion"]},{"w":"sensitive","m":"мэдрэмтгий","t":["emotion"]},{"w":"enthusiastic","m":"урам зоригтой","t":["emotion"]},{"w":"disappointed","m":"урам хугарсан","t":["emotion"]},{"w":"loyal","m":"үнэнч","t":["emotion"]},{"w":"arrogant","m":"их зантай, бардам","t":["emotion"]},{"w":"gentle","m":"зөөлөн, эелдэг","t":["emotion"]},{"w":"determined","m":"шийдэмгий","t":["emotion"]},{"w":"mood","m":"сэтгэлийн байдал","t":["emotion"]},{"w":"emotion","m":"сэтгэл хөдлөл","t":["emotion"]},{"w":"essential","m":"зайлшгүй чухал","t":["adj"]},{"w":"significant","m":"чухал, томоохон","t":["adj"]},{"w":"obvious","m":"илэрхий","t":["adj"]},{"w":"complex","m":"нарийн төвөгтэй","t":["adj"]},{"w":"appropriate","m":"тохиромжтой","t":["adj"]},{"w":"various","m":"янз бүрийн","t":["adj"]},{"w":"temporary","m":"түр зуурын","t":["adj"]},{"w":"permanent","m":"байнгын","t":["adj"]},{"w":"sufficient","m":"хангалттай","t":["adj"]},{"w":"rare","m":"ховор","t":["adj"]},{"w":"frequent","m":"байнга тохиолддог","t":["adj"]},{"w":"typical","m":"ердийн, жишиг","t":["adj"]},{"w":"unique","m":"өвөрмөц","t":["adj"]},{"w":"ancient","m":"эртний","t":["adj"]},{"w":"modern","m":"орчин үеийн","t":["adj"]},{"w":"enormous","m":"асар том","t":["adj"]},{"w":"tiny","m":"жижигхэн","t":["adj"]},{"w":"fragile","m":"хэврэг","t":["adj"]},{"w":"flexible","m":"уян хатан","t":["adj"]},{"w":"reasonable","m":"боломжийн, үндэслэлтэй","t":["adj"]},{"w":"complicated","m":"төвөгтэй","t":["adj"]},{"w":"valuable","m":"үнэ цэнэтэй","t":["adj"]},{"w":"harmful","m":"хортой","t":["adj"]},{"w":"beneficial","m":"ашигтай","t":["adj"]},{"w":"remarkable","m":"гайхалтай, онцгой","t":["adj"]},{"w":"ordinary","m":"энгийн","t":["adj"]},{"w":"crucial","m":"шийдвэрлэх, чухал","t":["adj"]},{"w":"genuine","m":"жинхэнэ","t":["adj"]},{"w":"adequate","m":"зохих хэмжээний","t":["adj"]},{"w":"vital","m":"амин чухал","t":["adj"]},{"w":"argue","m":"үндэслэн ярих, маргах","t":["academic"]},{"w":"claim","m":"нотлон хэлэх","t":["academic"]},{"w":"suggest","m":"санал болгох, дүгнэх","t":["academic"]},{"w":"indicate","m":"заах, харуулах","t":["academic"]},{"w":"demonstrate","m":"нотлох, харуулах","t":["academic"]},{"w":"emphasize","m":"онцлон тэмдэглэх","t":["academic"]},{"w":"illustrate","m":"жишээгээр тайлбарлах","t":["academic"]},{"w":"conclude","m":"дүгнэлт хийх","t":["academic"]},{"w":"compare","m":"харьцуулах","t":["academic"]},{"w":"contrast","m":"эсэргүүцүүлэх","t":["academic"]},{"w":"consider","m":"авч үзэх","t":["academic"]},{"w":"assume","m":"таамаглах","t":["academic"]},{"w":"support","m":"дэмжих, батлах","t":["academic"]},{"w":"reveal","m":"илчлэх, харуулах","t":["academic"]},{"w":"highlight","m":"онцлох","t":["academic"]},{"w":"propose","m":"санал дэвшүүлэх","t":["academic"]},{"w":"state","m":"мэдэгдэх, тодорхой хэлэх","t":["academic"]},{"w":"reflect","m":"тусгах, эргэцүүлэх","t":["academic"]},{"w":"identify","m":"тодорхойлох, ялгах","t":["academic"]},{"w":"describe","m":"тодорхойлон бичих","t":["academic"]},{"w":"outline","m":"тоймлон бичих","t":["academic"]},{"w":"summarize","m":"дүгнэн хураангуйлах","t":["academic"]},{"w":"define","m":"тодорхойлолт өгөх","t":["academic"]},{"w":"justify","m":"үндэслэлээ гаргах","t":["academic"]},{"w":"refer","m":"иш татах, хандах","t":["academic"]},{"w":"break down","m":"эвдрэх","t":["ese"]},{"w":"take off","m":"хөөрөх","t":["ese"]},{"w":"put off","m":"хойшлуулах","t":["ese"]},{"w":"come into","m":"өв хүртэх","t":["ese"]},{"w":"take after","m":"төстэй байх","t":["ese"]},{"w":"put on","m":"өмсөх","t":["ese"]},{"w":"come across","m":"санамсаргүй олох","t":["ese"]},{"w":"turn in","m":"хүлээлгэн өгөх, унтах","t":["ese"]},{"w":"stick out","m":"тодрох, цухуйх","t":["ese"]},{"w":"do over","m":"дахин хийх","t":["ese"]},{"w":"back up","m":"нөөцлөх","t":["ese"]},{"w":"log out","m":"системээс гарах","t":["ese"]},{"w":"zoom in","m":"томруулах","t":["ese"]},{"w":"keep an eye on","m":"хараа тавих","t":["ese"]},{"w":"get on well","m":"сайн харилцах","t":["ese"]},{"w":"get behind with","m":"хоцрох","t":["ese"]},{"w":"throw up","m":"бөөлжих","t":["ese"]},{"w":"feel up to","m":"хийх хүсэл хүч байх","t":["ese"]},{"w":"held up","m":"дээрэмдүүлэх","t":["ese"]},{"w":"come down with","m":"өвчин тусах","t":["ese"]},{"w":"burst into","m":"гэнэт эхлэх","t":["ese"]},{"w":"suffer from","m":"өвчтэй байх","t":["ese"]},{"w":"spend on","m":"зарцуулах","t":["ese"]},{"w":"raining cats and dogs","m":"ширүүн бороо орох","t":["ese"]},{"w":"seventh heaven","m":"маш их жаргал","t":["ese"]},{"w":"for a song","m":"маш хямд","t":["ese"]},{"w":"in the same boat","m":"ижил хүнд байдалд","t":["ese"]},{"w":"word of mouth","m":"хүнээс хүнд дамжсан","t":["ese"]},{"w":"born yesterday","m":"туршлагагүй","t":["ese"]},{"w":"hit the nail on the head","m":"яг зөв хийх","t":["ese"]},{"w":"look a gift horse in the mouth","m":"бэлгийг шүүмжлэхгүй","t":["ese"]},{"w":"by hook or by crook","m":"ямар ч аргаар","t":["ese"]},{"w":"down in the dumps","m":"гунигтай","t":["ese"]},{"w":"get one's goat","m":"ууртай болгох","t":["ese"]},{"w":"wear the trousers","m":"гэр бүлд тэргүүлэх","t":["ese"]},{"w":"up in the air","m":"шийдээгүй","t":["ese"]},{"w":"flood","m":"үер","t":["ese"]},{"w":"earthquake","m":"газар хөдлөлт","t":["ese"]},{"w":"burglar","m":"байшин дээрэмдэгч","t":["ese"]},{"w":"mugger","m":"олон нийтийн газар дайрагч","t":["ese"]},{"w":"shoplifter","m":"дэлгүүрийн хулгайч","t":["ese"]},{"w":"soil erosion","m":"хөрсний элэгдэл","t":["ese"]},{"w":"precipitation","m":"хур тунадас","t":["ese"]},{"w":"downpour","m":"аагтай бороо","t":["ese"]},{"w":"shower","m":"богино бороо","t":["ese"]},{"w":"overcast","m":"үүлэрхэг","t":["ese"]},{"w":"heat wave","m":"халуун цаг","t":["ese"]},{"w":"foreign correspondent","m":"гадаад сурвалжлагч","t":["ese"]},{"w":"make-up artist","m":"будагч","t":["ese"]},{"w":"jockey","m":"уяач","t":["ese"]},{"w":"archer","m":"сур харваач","t":["ese"]},{"w":"crane","m":"тогоруу, өргөгч кран","t":["ese"]},{"w":"foal","m":"унага","t":["ese"]},{"w":"calf","m":"тугал","t":["ese"]},{"w":"basement","m":"подвал","t":["ese"]},{"w":"cybercriminal","m":"кибер гэмт хэрэгтэн","t":["ese"]},{"w":"convicted","m":"ял сонссон","t":["ese"]},{"w":"sentenced","m":"ял оноосон","t":["ese"]}];
+</script>
+<script>
+// Үгийн жишээ өгүүлбэр ба ойролцоо түвшин (CEFR). Энд байхгүй үгэнд түвшин "тодорхойгүй" гэж харагдана.
+// Нэмэх: "үг":{l:"B1",ex:"English example.",mn:"Монгол орчуулга."}
+window.EXAMPLES={
+"achieve":{l:"B1",ex:"She worked hard to achieve her goal.",mn:"Тэр зорилгодоо хүрэхийн тулд сайн хөдөлмөрлөсөн."},
+"curriculum":{l:"B2",ex:"The school updated its curriculum this year.",mn:"Сургууль энэ жил сургалтын хөтөлбөрөө шинэчилсэн."},
+"scholarship":{l:"B1",ex:"He won a scholarship to study abroad.",mn:"Тэр гадаадад сурах тэтгэлэг авсан."},
+"graduate":{l:"B1",ex:"I will graduate from university next June.",mn:"Би ирэх зургадугаар сард их сургуулиа төгсөнө."},
+"motivate":{l:"B2",ex:"A good teacher knows how to motivate students.",mn:"Сайн багш сурагчдаа хэрхэн урамшуулахаа мэддэг."},
+"concentrate":{l:"B1",ex:"It is hard to concentrate when it is noisy.",mn:"Чимээтэй үед анхаарлаа төвлөрүүлэхэд хэцүү."},
+"memorize":{l:"B1",ex:"I memorize ten new words every day.",mn:"Би өдөр бүр арван шинэ үг цээжилдэг."},
+"pollution":{l:"B1",ex:"Air pollution is a serious problem in big cities.",mn:"Агаарын бохирдол том хотуудад ноцтой асуудал болоод байна."},
+"sustainable":{l:"B2",ex:"We need sustainable ways to use energy.",mn:"Бидэнд эрчим хүчийг тогтвортой ашиглах арга хэрэгтэй."},
+"renewable":{l:"B2",ex:"Wind and solar are renewable energy sources.",mn:"Салхи, нар бол сэргээгдэх эрчим хүчний эх үүсвэр."},
+"drought":{l:"B2",ex:"The drought killed many animals.",mn:"Ган гачиг олон малыг үхүүлсэн."},
+"recycle":{l:"A2",ex:"We recycle paper and plastic at home.",mn:"Бид гэртээ цаас, хуванцараа дахин боловсруулдаг."},
+"device":{l:"B1",ex:"This device charges your phone without a cable.",mn:"Энэ төхөөрөмж утсыг тань утасгүйгээр цэнэглэнэ."},
+"download":{l:"A2",ex:"You can download the app for free.",mn:"Та энэ аппыг үнэгүй татаж авч болно."},
+"password":{l:"A2",ex:"Never share your password with anyone.",mn:"Нууц үгээ хэзээ ч хэнтэй ч бүү хуваалц."},
+"wireless":{l:"B1",ex:"I bought wireless headphones.",mn:"Би утасгүй чихэвч худалдаж авсан."},
+"symptom":{l:"B2",ex:"A fever is a common symptom of the flu.",mn:"Халуурах нь томуугийн түгээмэл шинж тэмдэг."},
+"recover":{l:"B1",ex:"He is recovering after the surgery.",mn:"Тэр мэс заслын дараа эдгэрч байна."},
+"vaccine":{l:"B2",ex:"The vaccine protects children from the disease.",mn:"Вакцин хүүхдийг өвчнөөс хамгаална."},
+"diet":{l:"A2",ex:"A balanced diet keeps you healthy.",mn:"Тэнцвэртэй хооллолт таныг эрүүл байлгана."},
+"tradition":{l:"B1",ex:"Tsagaan Sar is an important Mongolian tradition.",mn:"Цагаан сар бол Монголын чухал уламжлал."},
+"heritage":{l:"B2",ex:"The temple is part of our cultural heritage.",mn:"Тэр сүм бол манай соёлын өвийн нэг хэсэг."},
+"volunteer":{l:"B1",ex:"She volunteers at the animal shelter on weekends.",mn:"Тэр амралтын өдрүүдэд амьтдын хоргодох байранд сайн дураар ажилладаг."},
+"salary":{l:"A2",ex:"His salary is paid at the end of the month.",mn:"Түүний цалинг сарын эцэст олгодог."},
+"deadline":{l:"B1",ex:"The deadline for the project is Friday.",mn:"Төслийн эцсийн хугацаа баасан гараг."},
+"resign":{l:"B2",ex:"She resigned from her job last week.",mn:"Тэр өнгөрсөн долоо хоногт ажлаасаа гарсан."},
+"experiment":{l:"B1",ex:"We did an experiment in the chemistry lab.",mn:"Бид хими судлалын лабораторид туршилт хийсэн."},
+"evidence":{l:"B2",ex:"There is no evidence that he was there.",mn:"Тэр тэнд байсан гэх нотолгоо алга."},
+"budget":{l:"B1",ex:"We have a small budget for the trip.",mn:"Бидний аялалд зориулсан төсөв бага."},
+"profit":{l:"B1",ex:"The shop made a good profit this month.",mn:"Дэлгүүр энэ сард сайн ашиг олсон."},
+"inflation":{l:"B2",ex:"High inflation makes everyday goods more expensive.",mn:"Өндөр инфляци өдөр тутмын барааг үнэтэй болгодог."},
+"election":{l:"B1",ex:"The election will be held in June.",mn:"Сонгууль зургадугаар сард болно."},
+"corruption":{l:"B2",ex:"The new law is meant to fight corruption.",mn:"Шинэ хууль авлигатай тэмцэхэд чиглэгдсэн."},
+"passport":{l:"A2",ex:"Don't forget your passport at the airport.",mn:"Нисэх онгоцны буудал дээр паспортоо мартдаггүй шүү."},
+"luggage":{l:"A2",ex:"My luggage was lost on the flight.",mn:"Миний тээш нислэгийн үеэр алдагдсан."},
+"souvenir":{l:"B1",ex:"I bought a small souvenir for my mother.",mn:"Би ээждээ жижиг бэлэг дурсгал авсан."},
+"curious":{l:"A2",ex:"Children are curious about everything.",mn:"Хүүхдүүд бүх зүйлд сонирхолтой байдаг."},
+"stubborn":{l:"B1",ex:"My brother is too stubborn to listen.",mn:"Миний ах дэндүү зөрүүд тул сонсдоггүй."},
+"generous":{l:"B1",ex:"He is generous and always shares his food.",mn:"Тэр өгөөмөр бөгөөд хоолоо үргэлж хуваалцдаг."},
+"essential":{l:"B2",ex:"Water is essential for life.",mn:"Ус бол амьдралд зайлшгүй чухал."},
+"fragile":{l:"B2",ex:"Be careful, the glass is fragile.",mn:"Болгоомжтой, шил хэврэг шүү."},
+"argue":{l:"B1",ex:"Some scientists argue that the climate is changing faster.",mn:"Зарим эрдэмтэд уур амьсгал улам хурдан өөрчлөгдөж байна гэж үздэг."},
+"highlight":{l:"B2",ex:"The report highlights three main problems.",mn:"Тайланд гурван үндсэн асуудлыг онцолсон байна."},
+"break down":{l:"B1",ex:"My car broke down on the way to work.",mn:"Миний машин ажил руу явах замд эвдэрсэн."},
+"take off":{l:"B1",ex:"The plane takes off at nine o'clock.",mn:"Онгоц есөн цагт хөөрнө."},
+"put off":{l:"B1",ex:"Don't put off your homework until tomorrow.",mn:"Гэрийн даалгавраа маргааш болгож бүү хойшлуул."},
+"take after":{l:"B2",ex:"She takes after her mother.",mn:"Тэр ээжтэйгээ төстэй."},
+"come across":{l:"B2",ex:"I came across an old photo in the drawer.",mn:"Би шургуулгаас хуучин зураг санамсаргүй олсон."},
+"keep an eye on":{l:"B2",ex:"Can you keep an eye on my bag?",mn:"Миний цүнхэнд хараа тавьж өгөхгүй юу?"},
+"in the same boat":{l:"C1",ex:"We are all in the same boat, so let's help each other.",mn:"Бид бүгд адил байдалд байгаа тул бие биедээ тусалъя."},
+"for a song":{l:"C1",ex:"He bought the old car for a song.",mn:"Тэр хуучин машиныг маш хямдаар авсан."},
+"seventh heaven":{l:"C1",ex:"When she got the news, she was in seventh heaven.",mn:"Тэр мэдээг сонсоод жаргалын оргилд хүрсэн."}
+};
+</script>
+<script>
+// Орчуулгын дасгалын жишээ сан. Нэг өгүүлбэр олон зөв орчуулгатай байж болох тул en / mn нь ЖАГСААЛТ.
+// t: "word" эсвэл "sentence"; l: A1..C2; en[0], mn[0] нь үндсэн загвар хариулт.
+window.TRANSLATION=[
+{id:"t01",l:"A1",t:"word",en:["water"],mn:["ус"],note:"Тоолдоггүй нэр үг.",ex:"Please drink more water.",exMn:"Илүү их ус уугаарай."},
+{id:"t02",l:"A1",t:"word",en:["book"],mn:["ном"],note:"",ex:"This book is interesting.",exMn:"Энэ ном сонирхолтой."},
+{id:"t03",l:"A1",t:"sentence",en:["My name is Bold.","I am Bold.","I'm Bold."],mn:["Миний нэр Болд.","Намайг Болд гэдэг.","Би Болд."],note:"Нэр танилцуулах хоёр хэлбэр байна.",ex:"My name is Anu.",exMn:"Миний нэр Ану."},
+{id:"t04",l:"A1",t:"sentence",en:["I have a brother.","I have one brother.","I've got a brother."],mn:["Надад ах бий.","Надад дүү бий.","Надад ах байна.","Надад дүү байна.","Надад нэг ах байгаа.","Надад нэг дүү байгаа."],note:"brother = ах эсвэл дүү (эр). Монголд нас харгалзан ялгана.",ex:"I have two sisters.",exMn:"Надад хоёр эгч дүү бий."},
+{id:"t05",l:"A2",t:"word",en:["tomorrow"],mn:["маргааш"],note:"",ex:"See you tomorrow.",exMn:"Маргааш уулзъя."},
+{id:"t06",l:"A2",t:"sentence",en:["I usually get up at seven.","I usually wake up at seven.","I usually get up at 7."],mn:["Би ихэвчлэн долоон цагт босдог.","Би ихэвчлэн 7 цагт босдог.","Би ихэвчлэн долоон цагт сэрдэг."],note:"Давтагддаг үйлд Present Simple + usually.",ex:"She usually walks to school.",exMn:"Тэр ихэвчлэн сургуульдаа явганаар явдаг."},
+{id:"t07",l:"A2",t:"sentence",en:["Where is the nearest bank?","Where is the closest bank?"],mn:["Хамгийн ойрын банк хаана байдаг вэ?","Хамгийн ойрхон банк хаана вэ?","Хамгийн ойрын банк хаана байна?"],note:"nearest = хамгийн ойр (superlative).",ex:"Where is the nearest bus stop?",exMn:"Хамгийн ойрын автобусны буудал хаана вэ?"},
+{id:"t08",l:"A2",t:"sentence",en:["She is taller than her sister.","She is taller than her older sister.","She is taller than her younger sister."],mn:["Тэр эгчээсээ өндөр.","Тэр дүүгээсээ өндөр.","Тэр эгчээсээ илүү өндөр."],note:"Харьцуулах зэрэг: taller than.",ex:"This bag is heavier than that one.",exMn:"Энэ цүнх тэрнээс хүнд."},
+{id:"t09",l:"B1",t:"word",en:["environment"],mn:["хүрээлэн буй орчин","орчин"],note:"the environment = байгаль орчин.",ex:"We must protect the environment.",exMn:"Бид байгаль орчноо хамгаалах ёстой."},
+{id:"t10",l:"B1",t:"sentence",en:["If it rains, we will stay at home.","If it rains we will stay home.","If it rains, we'll stay at home."],mn:["Бороо орвол бид гэртээ үлдэнэ.","Бороо орвол бид гэртээ байна.","Бороо орсон бол бид гэртээ үлдэнэ."],note:"First conditional: if + Present Simple, will + V.",ex:"If you study, you will pass.",exMn:"Хичээвэл тэнцэнэ."},
+{id:"t11",l:"B1",t:"sentence",en:["I have been studying English for three years.","I've been studying English for three years.","I have studied English for three years."],mn:["Би гурван жил англи хэл сурч байна.","Би гурван жилийн турш англи хэл сурч байна.","Би англи хэлийг гурван жил сурсан."],note:"for + хугацаа → Present Perfect Continuous.",ex:"She has been working here for two years.",exMn:"Тэр энд хоёр жил ажиллаж байна."},
+{id:"t12",l:"B1",t:"sentence",en:["He asked me to open the window.","He asked me to open the window."],mn:["Тэр надаас цонхоо нээхийг хүссэн.","Тэр намайг цонх нээхийг хүссэн.","Тэр надад цонх нээж өгөхийг хүссэн."],note:"ask somebody to do something.",ex:"She asked him to wait.",exMn:"Тэр түүнийг хүлээхийг хүссэн."},
+{id:"t13",l:"B2",t:"word",en:["sustainable"],mn:["тогтвортой"],note:"sustainable development = тогтвортой хөгжил.",ex:"Sustainable farming protects the soil.",exMn:"Тогтвортой газар тариалан хөрсийг хамгаалдаг."},
+{id:"t14",l:"B2",t:"sentence",en:["Despite the heavy rain, the match was not cancelled.","In spite of the heavy rain, the match was not cancelled.","Despite the heavy rain, the match wasn't cancelled."],mn:["Хүчтэй бороотой байсан ч тоглолт цуцлагдсангүй.","Хүчтэй бороотой байсан хэдий ч тоглолт цуцлагдаагүй.","Их бороо орсон ч тоглолтыг цуцлаагүй."],note:"despite + нэр үг (clause биш).",ex:"Despite being tired, he kept working.",exMn:"Ядарсан ч тэр ажлаа үргэлжлүүлсэн."},
+{id:"t15",l:"B2",t:"sentence",en:["The company is said to have lost millions.","The company is said to have lost millions of dollars."],mn:["Тус компани сая сая алдсан гэж ярьдаг.","Тус компани олон сая алдсан гэдэг.","Тэр компани олон сая алдсан гэж байгаа."],note:"is said to have + V3 = ... гэж ярьдаг (өнгөрсөн).",ex:"He is said to have won the prize.",exMn:"Тэр шагнал авсан гэж ярьдаг."},
+{id:"t16",l:"B2",t:"sentence",en:["Had I known, I would have called you.","If I had known, I would have called you."],mn:["Мэдсэн бол би чамд залгах байсан.","Би мэдсэн бол чамд залгах байсан юм."],note:"Third conditional-ийн урвуу хэлбэр (inversion).",ex:"Had she left earlier, she would have caught the train.",exMn:"Тэр эрт гарсан бол галт тэргэнд амжих байсан."},
+{id:"t17",l:"C1",t:"word",en:["ubiquitous"],mn:["хаа сайгүй байдаг","хаа сайгүй тохиолддог","өргөн дэлгэрсэн"],note:"Ихэвчлэн технологи, брэндийн тухай хэлнэ.",ex:"Smartphones have become ubiquitous.",exMn:"Ухаалаг утас хаа сайгүй болсон."},
+{id:"t18",l:"C1",t:"sentence",en:["Not only did she win the prize, but she also broke the record.","Not only did she win the prize but she also broke the record."],mn:["Тэр шагнал авсан төдийгүй амжилтыг эвдсэн.","Тэр зөвхөн шагнал авсан биш, бас рекорд эвдсэн."],note:"Not only + туслах үйл үг + подлог (inversion).",ex:"Not only was he late, but he also forgot his book.",exMn:"Тэр хоцорсон төдийгүй номоо мартсан."},
+{id:"t19",l:"C1",t:"sentence",en:["The findings call into question the validity of earlier studies.","The findings cast doubt on the validity of earlier studies."],mn:["Энэ үр дүн өмнөх судалгаануудын үнэн зөвийг эргэлзээтэй болгож байна.","Эдгээр үр дүн өмнөх судалгааны найдвартай байдалд эргэлзээ төрүүлж байна."],note:"call into question = эргэлзээ төрүүлэх.",ex:"The new data calls the theory into question.",exMn:"Шинэ мэдээлэл онолыг эргэлзээтэй болгож байна."},
+{id:"t20",l:"C2",t:"word",en:["ephemeral"],mn:["түр зуурын","богино настай","хурдан өнгөрөх"],note:"Албан, уран зохиолын үг.",ex:"Fame can be ephemeral.",exMn:"Алдар нэр түр зуурынх байж болно."},
+{id:"t21",l:"C2",t:"sentence",en:["Seldom has a theory been so thoroughly vindicated by subsequent evidence.","Rarely has a theory been so thoroughly vindicated by subsequent evidence."],mn:["Онол ийм бүрэн дүүрэн нотлогдсон нь ховор.","Дараа гарсан нотолгоогоор онол ийм бүрэн батлагдсан нь ховор тохиолдол."],note:"Seldom/Rarely эхэлбэл inversion.",ex:"Rarely have I seen such talent.",exMn:"Ийм авьяасыг би ховорхон харсан."},
+{id:"t22",l:"C2",t:"sentence",en:["His reticence stemmed from a profound respect for the occasion.","His reserve stemmed from a deep respect for the occasion."],mn:["Түүний цөөхөн үг хэлэх нь тухайн ажиллагаанд гүн хүндэтгэлтэй хандсанаас үүдэлтэй байв.","Түүний байлган зан тухайн үйл явдлыг гүнээ хүндэлснээс болсон."],note:"reticence = цөөн ярьж, дотроо барих зан.",ex:"Her reticence surprised everyone.",exMn:"Түүний цөөн үгтэй байдал бүгдийг гайхшруулсан."}
+];
+</script>
+<script>
+// ДЕМО сан: албан ёсны ЭЕШ-ийн асуулт БИШ. Зөвхөн сервер (Code.gs) холбохоос өмнө апп-ыг туршихад зориулсан.
+// Демо тестийн хариулт энд байгаа тул оноо нь багшид илгээгдэхгүй.
+window.DEMO_SET={id:"DEMO",year:"ДЕМО",variant:"-",source:"Зохиомол демо асуулт (албан ёсны биш)",
+questions:[
+{n:1,q:"She was very tired, __ she went to bed early.",o:["but","so","although","or","because"],a:1,e:"so = тиймээс (үр дүн)."},
+{n:2,q:"I look forward __ you next week.",o:["see","to see","to seeing","seeing","for see"],a:2,e:"look forward to + V-ing."},
+{n:3,q:"Please turn __ the light when you leave.",o:["on","off","up","in","at"],a:1,e:"turn off = унтраах."}
+]};
+</script>
+
+<script>
+"use strict";
+/* ===================== ТОХИРГОО ===================== */
+const CONFIG = {
+  // Google Apps Script "Web app" URL
+  API_URL: "https://script.google.com/macros/s/AKfycbxvhOm-00unTLA6XEnJ97mdZa4R6TCMmgjnhnJzFpjGkegFctAAwow8yws-TaHPJCCt/exec",
+  DAILY_NEW: 10 // өдөрт нэмж үзэх шинэ үгийн тоо
+};
+
+/* ===================== ТУСЛАХ ===================== */
+const $ = (s, r = document) => r.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const store = (area) => ({
+  get(k, d) { try { const v = window[area].getItem("ese." + k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { window[area].setItem("ese." + k, JSON.stringify(v)); } catch (e) {} },
+  del(k) { try { window[area].removeItem("ese." + k); } catch (e) {} }
+});
+const LS = store("localStorage"), SS = store("sessionStorage");
+const dstr = (d = new Date()) => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+const addDays = n => { const d = new Date(); d.setDate(d.getDate() + n); return dstr(d); };
+const shuffle = a => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const L = "ABCDE", LEVELS = ["A1", "A2", "B1", "B2", "C1", "C2"];
+const app = $("#app");
+function toast(msg, ms = 3500) { const t = $("#toast"); t.textContent = msg; t.style.display = "block"; clearTimeout(toast.h); toast.h = setTimeout(() => t.style.display = "none", ms); }
+
+const D = {
+  sets: window.QSETS || [], vocab: window.VOCAB || [], topics: window.VOCAB_TOPICS || [],
+  ex: window.EXAMPLES || {}, tr: window.TRANSLATION || [], demo: window.DEMO_SET || null
+};
+const lvlOf = w => (D.ex[w] || {}).l || "";
+const topicName = id => (D.topics.find(t => t.id === id) || {}).mn || id;
+
+async function api(action, data) {
+  if (!CONFIG.API_URL) throw new Error("Сервер холбогдоогүй байна (index.html доторх CONFIG.API_URL хоосон).");
+  const ac = new AbortController(), to = setTimeout(() => ac.abort(), 30000);
+  try {
+    const r = await fetch(CONFIG.API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action, ...data }), signal: ac.signal });
+    const j = await r.json();
+    if (!j.ok) { const e = new Error(j.error || "Серверийн алдаа"); e.auth = j.auth; throw e; }
+    return j;
+  } catch (e) {
+    if (e.name === "AbortError") throw new Error("Сервер хариу өгсөнгүй (хугацаа дууслаа). Дахин оролдоно уу.");
+    if (e instanceof TypeError) throw new Error("Сервертэй холбогдож чадсангүй. Интернэтээ шалгана уу.");
+    throw e;
+  } finally { clearTimeout(to); }
+}
+
+/* ===================== ДУУДЛАГА (Web Speech API) ===================== */
+const TTS = {
+  ok: "speechSynthesis" in window && "SpeechSynthesisUtterance" in window,
+  accent: LS.get("accent", "en-US"), rate: LS.get("rate", 0.95), last: "",
+  voices() { return this.ok ? speechSynthesis.getVoices().filter(v => v.lang.replace("_", "-").toLowerCase().startsWith(this.accent.toLowerCase())) : []; },
+  allEnglish() { return this.ok ? speechSynthesis.getVoices().filter(v => /^en/i.test(v.lang)) : []; },
+  speak(text) {
+    if (!this.ok) { toast("Энэ хөтөч дуу хоолой (text-to-speech) дэмждэггүй байна. Chrome, Edge эсвэл Safari туршаад үзнэ үү."); return false; }
+    if (!text || !text.trim()) { toast("Сонсох текстээ бичнэ үү."); return false; }
+    this.last = text;
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = this.accent; u.rate = this.rate;
+    const v = this.voices()[0]; if (v) u.voice = v;
+    u.onerror = e => { if (e.error !== "canceled" && e.error !== "interrupted") toast("Дуу хоолой тоглуулж чадсангүй (" + (e.error || "алдаа") + "). Төхөөрөмжийнхөө дууг шалгана уу."); };
+    if (!v && !this.allEnglish().length) toast("Энэ төхөөрөмжид " + this.accent + " дуу хоолой олдсонгүй. Дуу гарахгүй байж болно.", 5000);
+    speechSynthesis.speak(u);
+    return true;
+  },
+  pause() { if (this.ok) speechSynthesis.pause(); },
+  resume() { if (this.ok) speechSynthesis.resume(); },
+  stop() { if (this.ok) speechSynthesis.cancel(); }
+};
+if (TTS.ok) speechSynthesis.onvoiceschanged = () => { if (cur === "speak") views.speak(); };
+
+/* ===================== ЦЭС / ЗАМЧЛАЛ ===================== */
+const ROUTES = [
+  { id: "home", t: "Нүүр" }, { id: "vocab", t: "Vocabulary" }, { id: "tests", t: "ЭЕШ 2021–2025" },
+  { id: "mn-en", t: "Монгол → Англи" }, { id: "en-mn", t: "Англи → Монгол" }, { id: "cards", t: "Үг цээжлэх карт" },
+  { id: "speak", t: "Дуудлага" }, { id: "progress", t: "Миний ахиц" }, { id: "teacher", t: "Багшийн тайлан" }
+];
+$("#nav").innerHTML = ROUTES.map(r => `<a href="#${r.id}" data-r="${r.id}">${r.t}</a>`).join("");
+function theme(dark) {
+  if (dark === undefined) { const s = LS.get("theme", null); dark = s ? s === "dark" : matchMedia("(prefers-color-scheme: dark)").matches; }
+  document.documentElement.dataset.theme = dark ? "dark" : "light";
+  $("#theme").textContent = dark ? "☀️ Гэрэлтэй" : "🌙 Харанхуй";
+}
+$("#theme").onclick = () => { const d = document.documentElement.dataset.theme !== "dark"; LS.set("theme", d ? "dark" : "light"); theme(d); };
+let timerId = null, cur = (location.hash || "#home").slice(1);
+// Хуудас солих: hash-д найдахгүй (iframe/preview дотор hash ажиллахгүй байж болно)
+function go(id) {
+  cur = views[id] ? id : "home";
+  try { history.replaceState(null, "", "#" + cur); } catch (e) { try { location.hash = cur; } catch (e2) {} }
+  route();
+}
+$("#logo").onclick = () => go("home");
+function route() {
+  clearInterval(timerId); TTS.stop();
+  const r = views[cur] ? cur : "home";
+  document.querySelectorAll("#nav a").forEach(a => a.classList.toggle("on", a.dataset.r === r));
+  views[r]();
+  window.scrollTo(0, 0);
+}
+window.addEventListener("hashchange", () => { const id = (location.hash || "#home").slice(1); if (id !== cur) { cur = id; route(); } });
+// Бүх "#..." холбоос (цэс, нүүр хуудасны картууд) go()-оор ажиллана
+document.addEventListener("click", e => { const a = e.target.closest && e.target.closest('a[href^="#"]'); if (a) { e.preventDefault(); go(a.getAttribute("href").slice(1)); } });
+
+/* ===================== ҮГИЙН ЯВЦ (Leitner) ===================== */
+const INTERVALS = [0, 1, 3, 7, 14, 30];
+const cardStore = () => LS.get("cards", {});
+function cardStats() {
+  const st = cardStore(), td = dstr();
+  const seen = D.vocab.filter(v => st[v.w]);
+  return {
+    total: D.vocab.length, seen: seen.length,
+    memorized: seen.filter(v => st[v.w].b >= 3).length,
+    due: seen.filter(v => st[v.w].d <= td).length,
+    unknown: seen.filter(v => st[v.w].r === 0).length
+  };
+}
+const statusIcon = w => { const c = cardStore()[w]; return !c ? "" : c.b >= 3 ? "✅" : c.r === 0 ? "🔁" : "🕓"; };
+
+/* ===================== VIEWS ===================== */
+const views = {};
+
+/* ---------- Нүүр ---------- */
+views.home = () => {
+  const cs = cardStats(), hist = LS.get("history", []);
+  const desc = {
+    vocab: `${D.topics.length} сэдэв · ${D.vocab.length} үг`,
+    tests: `${D.sets.length} багц · ${D.sets.reduce((a, s) => a + s.questions.length, 0)} асуулт`,
+    "mn-en": "Үг, өгүүлбэр · A1–C2", "en-mn": "Үг, өгүүлбэр · A1–C2",
+    cards: `Өнөөдөр давтах: ${cs.due} · Цээжилсэн: ${cs.memorized}`, speak: "en-US / en-GB",
+    progress: `${hist.length} тест өгсөн`, teacher: "Нууц үгтэй"
+  };
+  const icon = { vocab: "📚", tests: "📝", "mn-en": "🇲🇳", "en-mn": "🇬🇧", cards: "🃏", speak: "🔊", progress: "📈", teacher: "🔐" };
+  app.innerHTML = `<h1>Сайн уу 👋</h1><p class="mu">Англи хэлний үгийн сан, ЭЕШ-ийн бодит асуултаар бэлдэнэ.</p>
+  <div class="grid w2">${ROUTES.slice(1).map(r => `<a class="tile" href="#${r.id}"><b>${icon[r.id]} ${r.t}</b><span class="mu sm">${desc[r.id]}</span></a>`).join("")}</div>`;
+};
+
+/* ---------- Vocabulary (сэдвээр) ---------- */
+const VS = { topic: null, q: "" };
+function wordRow(v) {
+  const e = D.ex[v.w], l = e && e.l;
+  return `<div class="wr"><button class="icon" data-act="say" data-w="${esc(v.w)}" aria-label="Дуудлага сонсох">🔊</button>
+  <div style="flex:1"><b>${esc(v.w)}</b> ${l ? `<span class="badge">${l}</span>` : ""} <span>${statusIcon(v.w)}</span>
+  <div class="mu">${esc(v.m)}</div>${e ? `<div class="sm"><i>${esc(e.ex)}</i> — ${esc(e.mn)}</div>` : ""}</div></div>`;
+}
+function vocabList() {
+  const q = VS.q.trim().toLowerCase();
+  let list = D.vocab;
+  if (VS.topic) list = list.filter(v => v.t.includes(VS.topic));
+  if (q) list = list.filter(v => v.w.toLowerCase().includes(q) || v.m.toLowerCase().includes(q));
+  return list.length ? list.map(wordRow).join("") : `<p class="mu">Үг олдсонгүй.</p>`;
+}
+views.vocab = () => {
+  if (!D.vocab.length) { app.innerHTML = `<div class="alert e">Vocabulary өгөгдөл (data/vocab.js) ачаалагдсангүй.</div>`; return; }
+  const st = cardStore();
+  if (!VS.topic && !VS.q) {
+    app.innerHTML = `<h1>📚 Vocabulary</h1><p class="mu">Сэдвээ сонгоод үгсийг үзэх, дуудлагыг сонсох, картаар давтах боломжтой.</p>
+    <input id="vsearch" placeholder="Үг хайх (англи эсвэл монгол)…" value="${esc(VS.q)}" autocomplete="off">
+    <div class="grid w2" style="margin-top:12px">${D.topics.map(t => {
+      const ws = D.vocab.filter(v => v.t.includes(t.id)), m = ws.filter(v => st[v.w] && st[v.w].b >= 3).length;
+      return `<button class="tile" data-act="topic" data-id="${t.id}"><b>${esc(t.mn)}</b><span class="mu sm">${esc(t.en)}</span>
+      <div class="bar" style="margin:8px 0 4px"><div style="width:${ws.length ? m / ws.length * 100 : 0}%"></div></div><span class="sm">${ws.length} үг · цээжилсэн ${m}</span></button>`;
+    }).join("")}</div>`;
+  } else {
+    const t = D.topics.find(x => x.id === VS.topic);
+    app.innerHTML = `<div class="row sp"><button class="btn g" data-act="vback">← Сэдвүүд</button>${VS.topic ? `<button class="btn" data-act="vcards">🃏 Картаар давтах</button>` : ""}</div>
+    <h2>${t ? esc(t.mn) : "Хайлтын үр дүн"}</h2>
+    <input id="vsearch" placeholder="Энэ жагсаалтаас хайх…" value="${esc(VS.q)}" autocomplete="off">
+    <div class="card" id="vlist">${vocabList()}</div>`;
+  }
+};
+
+/* ---------- ЭЕШ тест ---------- */
+const TS = { phase: "pick", year: null, setId: null, set: null, demo: false, ans: {}, i: 0, t0: 0, name: "", cls: "", res: null, err: "" };
+function setLabel(s) { return `ЭЕШ ${s.year} · ${s.variant} хувилбар`; }
+views.tests = () => {
+  if (TS.phase === "pick") return testPick();
+  if (TS.phase === "info") return testInfo();
+  if (TS.phase === "run") return testRun();
+  if (TS.phase === "sending") { app.innerHTML = `<div class="card c"><h2>Илгээж байна…</h2><p class="mu">Сервер таны хариултыг шалгаж, багшид дүнг илгээж байна.</p></div>`; return; }
+  if (TS.phase === "result") return testResult();
+};
+function testPick() {
+  const years = [2021, 2022, 2023, 2024, 2025];
+  if (!TS.year) TS.year = years.find(y => D.sets.some(s => s.year === y)) || 2021;
+  const sets = D.sets.filter(s => s.year === TS.year);
+  app.innerHTML = `<h1>📝 ЭЕШ-ийн тест</h1>
+  ${CONFIG.API_URL ? "" : `<div class="alert w">⚠️ Сервер (Google Sheets) холбогдоогүй тул албан ёсны тестийг оноож, багшид илгээх боломжгүй. Зөвхөн ДЕМО ажиллана. Холбох заавар README-д бий.</div>`}
+  <div class="row">${years.map(y => `<button class="chip ${TS.year === y ? "on" : ""}" data-act="year" data-y="${y}" ${D.sets.some(s => s.year === y) ? "" : "disabled"}>${y}</button>`).join("")}</div>
+  ${sets.length ? `<div class="grid w2" style="margin-top:12px">${sets.map(s => `<button class="tile" data-act="startset" data-id="${s.id}" ${CONFIG.API_URL ? "" : "disabled"}>
+    <b>${s.variant} хувилбар</b><span class="mu sm">${s.questions.length} асуулт</span><div class="sm mu" style="margin-top:6px">Эх сурвалж: ${esc(s.source)}</div>
+    ${s.questions.some(q => q.flag) ? `<div class="sm" style="color:var(--warn)">⚠ ${s.questions.filter(q => q.flag).length} асуулт эх материалтай тулгах шаардлагатай</div>` : ""}</button>`).join("")}</div>`
+    : `<div class="alert w" style="margin-top:12px">${TS.year} оны бодит материал одоогоор оруулаагүй байна. Материалтай болмогц README-ийн "Материал нэмэх" дагуу нэмнэ.</div>`}
+  ${D.demo ? `<h2>Демо</h2><button class="tile" data-act="startdemo"><b>🧪 ДЕМО тест</b><span class="mu sm">Албан ёсны ЭЕШ-ийн асуулт БИШ, зохиомол. Дүн багшид илгээгдэхгүй.</span></button>` : ""}`;
+}
+function testInfo() {
+  const me = LS.get("student", {});
+  app.innerHTML = `<h1>${TS.demo ? "🧪 ДЕМО тест" : esc(setLabel(TS.set))}</h1>
+  <div class="card"><form data-form="tinfo">
+  ${TS.demo ? `<p class="mu">Демо тест тул нэр, анги шаардлагагүй.</p>` : `
+  <label for="sn">Нэр (бүтнээр)</label><input id="sn" required minlength="2" maxlength="60" autocomplete="name" value="${esc(me.name || "")}">
+  <label for="sc">Анги</label><input id="sc" required maxlength="20" placeholder="Жишээ: 12А" value="${esc(me.cls || "")}">
+  <p class="sm mu">Таны нэр, анги, шалгалтын дүн зөвхөн таны багшид илгээгдэнэ. Бусад сурагчид харахгүй.</p>`}
+  <div class="row" style="margin-top:12px"><button class="btn" type="submit">Тест эхлэх →</button><button class="btn g" type="button" data-act="tback">Буцах</button></div></form></div>`;
+}
+function startTimer() { clearInterval(timerId); timerId = setInterval(() => { const el = $("#timer"); if (el) { const s = Math.floor((Date.now() - TS.t0) / 1000); el.textContent = String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0"); } }, 1000); }
+function testRun() {
+  const qs = TS.set.questions, q = qs[TS.i], sel = TS.ans[q.n];
+  const answered = qs.filter(x => TS.ans[x.n] !== undefined && TS.ans[x.n] !== null).length;
+  app.innerHTML = `<div class="row sp sm mu"><span>${TS.demo ? "ДЕМО" : esc(setLabel(TS.set))}</span><span>⏱ <b id="timer">00:00</b> · ${TS.i + 1}/${qs.length}</span></div>
+  <div class="bar" style="margin:6px 0"><div style="width:${answered / qs.length * 100}%"></div></div>
+  <div class="card"><div class="sm mu">Асуулт ${q.n}</div><p style="font-size:18px;margin:6px 0">${esc(q.q)}</p>
+  ${q.flag ? `<div class="alert w">⚠ Энэ асуултын эх материал/хариулт эргэлзээтэй байж болзошгүй. Багшаасаа асуугаарай.</div>` : ""}</div>
+  ${q.o.map((o, k) => `<button class="opt ${sel === k ? "sel" : ""}" data-act="pick" data-k="${k}"><i>${L[k]}</i><span>${esc(o)}</span></button>`).join("")}
+  <div class="row sp" style="margin-top:10px"><button class="btn g" data-act="prevq" ${TS.i === 0 ? "disabled" : ""}>← Өмнөх</button>
+  ${sel !== undefined ? `<button class="chip" data-act="clearq">Сонголт арилгах</button>` : ""}
+  ${TS.i < qs.length - 1 ? `<button class="btn" data-act="nextq">Дараах →</button>` : `<button class="btn ok" data-act="finish">Дуусгах ✔</button>`}</div>
+  <div class="qm">${qs.map((x, k) => `<button data-act="jump" data-i="${k}" class="${TS.ans[x.n] !== undefined && TS.ans[x.n] !== null ? "a" : ""} ${k === TS.i ? "cur" : ""}">${x.n}</button>`).join("")}</div>
+  <div class="row"><button class="btn ok" data-act="finish">Дуусгах ✔</button></div>`;
+  startTimer();
+}
+async function finishTest() {
+  const qs = TS.set.questions, blank = qs.filter(x => TS.ans[x.n] === undefined || TS.ans[x.n] === null).length;
+  if (blank && !confirm(`${blank} асуулт хоосон байна. Дуусгах уу?`)) return;
+  clearInterval(timerId);
+  const dur = Math.round((Date.now() - TS.t0) / 1000);
+  if (TS.demo) {
+    const details = qs.map(q => ({ n: q.n, correct: L[q.a], mine: TS.ans[q.n] == null ? null : L[TS.ans[q.n]], ok: TS.ans[q.n] === q.a, explanation: q.e, note: "" }));
+    const correct = details.filter(d => d.ok).length, bl = details.filter(d => d.mine === null).length;
+    TS.res = { total: qs.length, correct, wrong: qs.length - correct - bl, blank: bl, percent: Math.round(correct / qs.length * 1000) / 10, details, sent: false };
+    TS.phase = "result"; return route();
+  }
+  const answers = {}; qs.forEach(q => { answers[q.n] = TS.ans[q.n] == null ? null : L[TS.ans[q.n]]; });
+  TS.phase = "sending"; route();
+  try {
+    const r = await api("submit", { setId: TS.setId, name: TS.name, cls: TS.cls, answers, durationSec: dur });
+    TS.res = { sent: true }; // сурагчид оноо, зөв хариулт харуулахгүй — зөвхөн багшид очино
+    const h = LS.get("history", []); h.push({ d: new Date().toISOString(), set: TS.setId }); LS.set("history", h.slice(-100));
+    TS.phase = "result"; TS.err = "";
+  } catch (e) { TS.phase = "run"; TS.err = e.message; toast("Илгээж чадсангүй: " + e.message, 6000); }
+  route();
+  if (TS.err) { app.insertAdjacentHTML("afterbegin", `<div class="alert e">Дүнг илгээж чадсангүй: ${esc(TS.err)}<br>Хариултууд хадгалагдсан хэвээр байна — "Дуусгах"-ыг дахин дарж оролдоно уу.</div>`); }
+}
+function testResult() {
+  if (TS.res.sent) { app.innerHTML = `<div class="card c"><h2>✅ Хариулт илгээгдлээ</h2><p class="mu">Таны хариулт багшид хүргэгдлээ. Дүнг багш танд мэдэгдэнэ.</p><div class="row" style="justify-content:center"><button class="btn" data-act="tback">Тестүүд</button></div></div>`; return; }
+  const r = TS.res, qs = TS.set.questions, byN = Object.fromEntries(qs.map(q => [q.n, q]));
+  app.innerHTML = `<div class="card c"><div class="sm mu">${TS.demo ? "ДЕМО тест (албан ёсны биш)" : esc(setLabel(TS.set))}</div><div class="big-pct">${r.percent}%</div>
+  <p>${r.total} асуултаас <b>${r.correct}</b> зөв · ${r.wrong} буруу · ${r.blank} хоосон</p>
+  ${r.sent ? `<div class="alert s">✅ Дүн багшид илгээгдлээ.</div>` : `<div class="alert w">Демо тул дүн илгээгдээгүй.</div>`}
+  <div class="row" style="justify-content:center"><button class="btn" data-act="tagain">Дахин өгөх</button><button class="btn g" data-act="tback">Тестүүд</button></div></div>
+  ${r.details.map(d => { const q = byN[d.n]; return `<div class="card"><div class="row sp"><b>${d.n}. ${esc(q ? q.q : "")}</b><span>${d.ok ? "✅" : d.mine ? "❌" : "➖"}</span></div>
+  <p style="margin:6px 0">Зөв: <b>${d.correct}. ${esc(q ? q.o[L.indexOf(d.correct)] : "")}</b>${d.ok ? "" : ` · Таны хариулт: ${d.mine ? d.mine + ". " + esc(q ? q.o[L.indexOf(d.mine)] : "") : "хоосон"}`}</p>
+  <p class="mu sm" style="margin:0">${esc(d.explanation)}</p>${d.note ? `<div class="alert w" style="margin:6px 0 0">⚠ ${esc(d.note)}</div>` : ""}</div>`; }).join("")}`;
+}
+
+/* ---------- Орчуулгын дасгал ---------- */
+const TR = {
+  "mn-en": { level: "all", type: "all", q: [], i: 0, res: null, started: false },
+  "en-mn": { level: "all", type: "all", q: [], i: 0, res: null, started: false }
+};
+const ENC = { "i'm": "i am", "i've": "i have", "i'll": "i will", "i'd": "i would", "we'll": "we will", "we're": "we are", "we've": "we have", "it's": "it is", "he's": "he is", "she's": "she is", "isn't": "is not", "aren't": "are not", "wasn't": "was not", "weren't": "were not", "don't": "do not", "doesn't": "does not", "didn't": "did not", "can't": "cannot", "won't": "will not", "hasn't": "has not", "haven't": "have not" };
+function norm(s, en) {
+  s = String(s).toLowerCase().replace(/[’‘]/g, "'");
+  if (en) s = s.replace(/\b[a-z]+'[a-z]+\b/g, m => ENC[m] || m);
+  return s.replace(/[^\p{L}\p{N}\s']/gu, " ").replace(/\s+/g, " ").trim().replace(/\bcannot\b/g, "can not");
+}
+function sim(a, b) {
+  if (a === b) return 1; const m = a.length, n = b.length; if (!m || !n) return 0;
+  let p = Array.from({ length: n + 1 }, (_, j) => j);
+  for (let i = 1; i <= m; i++) { const c = [i]; for (let j = 1; j <= n; j++) c[j] = Math.min(p[j] + 1, c[j - 1] + 1, p[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)); p = c; }
+  return 1 - p[n] / Math.max(m, n);
+}
+function trRecord(item, ok) {
+  const s = LS.get("tr", { total: 0, correct: 0, by: {} });
+  s.total++; if (ok) s.correct++;
+  const b = s.by[item.l] || (s.by[item.l] = { c: 0, t: 0 }); b.t++; if (ok) b.c++;
+  LS.set("tr", s);
+}
+function trView(dir) {
+  const S = TR[dir], title = dir === "mn-en" ? "🇲🇳 Монгол → Англи 🇬🇧" : "🇬🇧 Англи → Монгол 🇲🇳";
+  if (!D.tr.length) { app.innerHTML = `<div class="alert e">Орчуулгын өгөгдөл (data/translation.js) ачаалагдсангүй.</div>`; return; }
+  const filters = `<div class="row" style="margin:6px 0">${["all", ...LEVELS].map(l => `<button class="chip ${S.level === l ? "on" : ""}" data-act="trlevel" data-d="${dir}" data-v="${l}">${l === "all" ? "Бүх түвшин" : l}</button>`).join("")}</div>
+  <div class="row" style="margin-bottom:8px">${[["all", "Үг + өгүүлбэр"], ["word", "Зөвхөн үг"], ["sentence", "Зөвхөн өгүүлбэр"]].map(([v, t]) => `<button class="chip ${S.type === v ? "on" : ""}" data-act="trtype" data-d="${dir}" data-v="${v}">${t}</button>`).join("")}</div>`;
+  if (!S.started || !S.q.length) {
+    const n = D.tr.filter(x => (S.level === "all" || x.l === S.level) && (S.type === "all" || x.t === S.type)).length;
+    app.innerHTML = `<h1>${title}</h1><p class="mu">Хариултаа бичиж шалгана. Нэг өгүүлбэр олон янзаар зөв орчуулагдаж болно.</p>${filters}
+    <div class="card c"><p>Тохирох дасгал: <b>${n}</b></p><button class="btn" data-act="trstart" data-d="${dir}" ${n ? "" : "disabled"}>Эхлэх →</button></div>`;
+    return;
+  }
+  if (S.i >= S.q.length) {
+    app.innerHTML = `<h1>${title}</h1><div class="card c"><h2>Дасгал дууслаа 🎉</h2><p class="mu">Ахицыг "Миний ахиц" хэсгээс харна уу.</p><button class="btn" data-act="trrestart" data-d="${dir}">Шинээр эхлэх</button></div>`; return;
+  }
+  const it = S.q[S.i], ask = dir === "mn-en" ? it.mn[0] : it.en[0], ans = dir === "mn-en" ? it.en : it.mn, r = S.res;
+  app.innerHTML = `<h1>${title}</h1>${filters}<div class="row sp sm mu"><span>${S.i + 1} / ${S.q.length}</span><span><span class="badge">${it.l}</span> ${it.t === "word" ? "үг" : "өгүүлбэр"}</span></div>
+  <div class="card"><div class="row"><div style="flex:1;font-size:20px;font-weight:600">${esc(ask)}</div>${dir === "en-mn" ? `<button class="icon" data-act="sayt" data-t="${esc(ask)}" aria-label="Сонсох">🔊</button>` : ""}</div></div>
+  <form data-form="trcheck" data-d="${dir}">
+  <textarea id="trin" rows="2" placeholder="${dir === "mn-en" ? "Англиар бичнэ үү…" : "Монголоор бичнэ үү…"}" ${r ? "disabled" : ""} autocomplete="off" autocapitalize="off">${r ? esc(r.input) : ""}</textarea>
+  ${r ? "" : `<div class="row" style="margin-top:8px"><button class="btn" type="submit">Шалгах</button><button class="btn g" type="button" data-act="trskip" data-d="${dir}">Алгасах</button></div>`}</form>
+  ${r ? `<div class="alert ${r.st === "ok" ? "s" : r.st === "near" ? "w" : "e"}"><b>${r.st === "ok" ? "✅ Зөв!" : r.st === "near" ? "🟡 Бараг зөв (жижиг зөрүүтэй)" : "❌ Таарсангүй"}</b></div>
+  <div class="card"><b>Зөв хариултууд:</b><ul style="margin:6px 0 6px 18px;padding:0">${ans.map(a => `<li>${esc(a)} ${dir === "mn-en" ? `<button class="icon" style="width:30px;height:30px" data-act="sayt" data-t="${esc(a)}">🔊</button>` : ""}</li>`).join("")}</ul>
+  ${it.note ? `<p class="sm mu" style="margin:4px 0">💡 ${esc(it.note)}</p>` : ""}
+  ${it.ex ? `<p class="sm" style="margin:4px 0"><b>Жишээ:</b> <i>${esc(it.ex)}</i> — ${esc(it.exMn)}</p>` : ""}</div>
+  ${r.st !== "ok" && !r.rec ? `<p class="sm mu">Миний хариулт өөр боловч зөв утгатай байсан уу?</p><div class="row"><button class="btn ok" data-act="trself" data-d="${dir}" data-v="1">Тийм, зөв</button><button class="btn bad" data-act="trself" data-d="${dir}" data-v="0">Үгүй, алдсан</button></div>` : ""}
+  <div class="row" style="margin-top:10px"><button class="btn" data-act="trnext" data-d="${dir}">Дараагийнх →</button></div>` : ""}`;
+  const t = $("#trin"); if (t && !r) t.focus();
+}
+views["mn-en"] = () => trView("mn-en");
+views["en-mn"] = () => trView("en-mn");
+
+/* ---------- Үг цээжлэх карт ---------- */
+const CS = { topic: "all", level: "all", mode: "daily", q: [], i: 0, flip: false, started: false, retried: new Set(), know: 0, again: 0 };
+function cardPool() {
+  return D.vocab.filter(v => (CS.topic === "all" || v.t.includes(CS.topic)) &&
+    (CS.level === "all" || (CS.level === "?" ? !D.ex[v.w] : lvlOf(v.w) === CS.level)));
+}
+function buildQueue() {
+  const st = cardStore(), pool = cardPool(), td = dstr();
+  if (CS.mode === "daily") {
+    const nt = LS.get("newToday", { d: td, n: 0 }), left = Math.max(0, CONFIG.DAILY_NEW - (nt.d === td ? nt.n : 0));
+    return [...shuffle(pool.filter(v => st[v.w] && st[v.w].d <= td)), ...pool.filter(v => !st[v.w]).slice(0, left)];
+  }
+  if (CS.mode === "new") return shuffle(pool.filter(v => !st[v.w])).slice(0, 20);
+  if (CS.mode === "unknown") return shuffle(pool.filter(v => st[v.w] && st[v.w].r === 0));
+  return shuffle(pool).slice(0, 40);
+}
+function cardGrade(know) {
+  const w = CS.q[CS.i], st = cardStore(), td = dstr(), was = st[w.w];
+  if (!was) { const nt = LS.get("newToday", { d: td, n: 0 }); LS.set("newToday", { d: td, n: (nt.d === td ? nt.n : 0) + 1 }); }
+  const c = was || { b: 0, k: 0, a: 0 };
+  if (know) { c.b = Math.min(5, c.b + 1); c.k++; c.d = addDays(INTERVALS[c.b]); c.r = 1; CS.know++; }
+  else { c.b = 0; c.a++; c.d = td; c.r = 0; CS.again++; if (!CS.retried.has(w.w)) { CS.retried.add(w.w); CS.q.push(w); } }
+  c.l = td; st[w.w] = c; LS.set("cards", st);
+  CS.i++; CS.flip = false;
+}
+views.cards = () => {
+  if (!D.vocab.length) { app.innerHTML = `<div class="alert e">Vocabulary өгөгдөл ачаалагдсангүй.</div>`; return; }
+  const cs = cardStats();
+  const sel = (id, opts, cur) => `<select id="${id}">${opts.map(([v, t]) => `<option value="${v}" ${cur === v ? "selected" : ""}>${esc(t)}</option>`).join("")}</select>`;
+  const head = `<h1>🃏 Үг цээжлэх карт</h1><div class="grid" style="margin-bottom:8px">
+  <div class="card c" style="margin:0"><b>${cs.due}</b><div class="sm mu">Өнөөдөр давтах</div></div>
+  <div class="card c" style="margin:0"><b>${cs.memorized}/${cs.total}</b><div class="sm mu">Цээжилсэн</div></div>
+  <div class="card c" style="margin:0"><b>${cs.unknown}</b><div class="sm mu">Дахин давтах</div></div></div>`;
+  if (!CS.started || CS.i >= CS.q.length) {
+    const done = CS.started && CS.i >= CS.q.length;
+    app.innerHTML = `${head}${done ? `<div class="alert s">🎉 Сесс дууслаа: мэдсэн ${CS.know}, дахин давтах ${CS.again}.</div>` : ""}
+    <div class="card"><label>Горим</label>${sel("fmode", [["daily", "Өнөөдрийн давталт (давтах + шинэ " + CONFIG.DAILY_NEW + " үг)"], ["new", "Шинэ үгс"], ["unknown", "Дахин давтах жагсаалт (мэдээгүй үгс)"], ["all", "Дурын 40 үг"]], CS.mode)}
+    <label>Сэдэв / сан</label>${sel("ftopic", [["all", "Бүх сэдэв"], ...D.topics.map(t => [t.id, t.mn + (t.id === "ese" ? " (ЭЕШ-ийн үгийн сан)" : "")])], CS.topic)}
+    <label>Түвшин</label>${sel("flevel", [["all", "Бүх түвшин"], ...LEVELS.map(l => [l, l]), ["?", "Түвшин оноогоогүй"]], CS.level)}
+    <p class="sm mu">Түвшин зөвхөн жишээ өгүүлбэртэй үгэнд оноогдсон (ойролцоо CEFR). Бусад нь "оноогоогүй".</p>
+    <button class="btn full" data-act="cstart">Эхлэх →</button></div>`;
+    return;
+  }
+  const w = CS.q[CS.i], e = D.ex[w.w];
+  app.innerHTML = `${head}<div class="row sp sm mu"><span>${CS.i + 1} / ${CS.q.length}</span><button class="chip" data-act="cquit">Дуусгах</button></div>
+  <div class="bar" style="margin:6px 0"><div style="width:${CS.i / CS.q.length * 100}%"></div></div>
+  <div class="card fc" data-act="cflip" tabindex="0" role="button" aria-label="Карт эргүүлэх">${CS.flip ? `<div>
+    <div class="sm mu">${esc(w.w)}</div><div style="font-size:24px;font-weight:700;margin:6px 0">${esc(w.m)}</div>
+    ${e ? `<p style="margin:8px 0 0"><i>${esc(e.ex)}</i><br><span class="mu">${esc(e.mn)}</span></p><span class="badge">${e.l}</span>` : `<p class="mu sm">Жишээ өгүүлбэр энэ үгэнд хараахан оруулаагүй.</p>`}
+    <div class="sm mu" style="margin-top:6px">${w.t.map(topicName).join(" · ")}</div></div>`
+    : `<div><div class="big">${esc(w.w)}</div><div class="sm mu" style="margin-top:8px">Дарж эргүүлнэ үү</div></div>`}</div>
+  <div class="row" style="justify-content:center"><button class="btn g" data-act="sayw" data-w="${esc(w.w)}">🔊 Сонсох</button></div>
+  ${CS.flip ? `<div class="row" style="margin-top:10px"><button class="btn bad" style="flex:1" data-act="cagain">🔁 Дахин давтана</button><button class="btn ok" style="flex:1" data-act="cknow">✅ Мэднэ</button></div>` : ""}`;
+};
+
+/* ---------- Дуудлага ---------- */
+views.speak = () => {
+  const v = TTS.voices().length, all = TTS.allEnglish().length;
+  const samples = shuffle(D.vocab).slice(0, 8).map(x => x.w);
+  app.innerHTML = `<h1>🔊 Англи дуудлага</h1>
+  ${TTS.ok ? "" : `<div class="alert e">Таны хөтөч дуу хоолой (text-to-speech) дэмждэггүй байна. Chrome, Edge эсвэл Safari-г туршаад үзнэ үү.</div>`}
+  <div class="card"><label for="stext">Үг эсвэл өгүүлбэр</label><textarea id="stext" rows="3" placeholder="Жишээ: sustainable development">${esc(TTS.last)}</textarea>
+  <label>Аялгуу</label><div class="row"><button class="chip ${TTS.accent === "en-US" ? "on" : ""}" data-act="accent" data-v="en-US">🇺🇸 en-US</button><button class="chip ${TTS.accent === "en-GB" ? "on" : ""}" data-act="accent" data-v="en-GB">🇬🇧 en-GB</button></div>
+  <label for="srate">Хурд: <span id="srv">${TTS.rate}</span></label><input id="srate" type="range" min="0.5" max="1.5" step="0.05" value="${TTS.rate}">
+  <div class="row" style="margin-top:12px"><button class="btn" data-act="splay">▶ Сонсох</button><button class="btn g" data-act="spause">⏸ Түр зогсоох</button><button class="btn g" data-act="sresume">⏯ Үргэлжлүүлэх</button><button class="btn g" data-act="sstop">⏹ Зогсоох</button><button class="btn g" data-act="sreplay">🔁 Дахин тоглуулах</button></div>
+  ${TTS.ok ? `<p class="sm mu">Олдсон ${TTS.accent} дуу хоолой: ${v}${v ? "" : all ? " (англи дуу хоолой байгаа боловч энэ аялгуугаар биш)" : " — энэ төхөөрөмжид англи дуу хоолой суугаагүй байж болно"}. Дуу гарах эсэх нь таны төхөөрөмж, хөтчөөс хамаарна.</p>` : ""}</div>
+  <h3>Түргэн сонголт</h3><div class="row">${samples.map(w => `<button class="chip" data-act="sayw" data-w="${esc(w)}">🔊 ${esc(w)}</button>`).join("")}</div>`;
+  const r = $("#srate"); if (r) r.oninput = () => { TTS.rate = +r.value; LS.set("rate", TTS.rate); $("#srv").textContent = TTS.rate; };
+};
+
+/* ---------- Миний ахиц ---------- */
+views.progress = () => {
+  const cs = cardStats(), hist = LS.get("history", []).slice().reverse(), tr = LS.get("tr", { total: 0, correct: 0, by: {} }), st = cardStore();
+  app.innerHTML = `<h1>📈 Миний ахиц</h1><p class="sm mu">Энэ хуудасны мэдээлэл зөвхөн таны төхөөрөмж дээр хадгалагдана.</p>
+  <div class="grid"><div class="card c" style="margin:0"><b style="font-size:22px">${cs.memorized}</b><div class="sm mu">Цээжилсэн үг</div></div>
+  <div class="card c" style="margin:0"><b style="font-size:22px">${cs.seen}/${cs.total}</b><div class="sm mu">Үзсэн үг</div></div>
+  <div class="card c" style="margin:0"><b style="font-size:22px">${cs.due}</b><div class="sm mu">Өнөөдөр давтах</div></div>
+  <div class="card c" style="margin:0"><b style="font-size:22px">${cs.unknown}</b><div class="sm mu">Мэдээгүй үг</div></div></div>
+  <h2>Сэдвээр</h2><div class="card">${D.topics.map(t => { const ws = D.vocab.filter(v => v.t.includes(t.id)), m = ws.filter(v => st[v.w] && st[v.w].b >= 3).length;
+    return `<div style="margin:8px 0"><div class="row sp sm"><span>${esc(t.mn)}</span><span>${m}/${ws.length}</span></div><div class="bar"><div style="width:${ws.length ? m / ws.length * 100 : 0}%"></div></div></div>`; }).join("")}</div>
+  <h2>Орчуулга</h2><div class="card">${tr.total ? `<p>Нийт <b>${tr.correct}/${tr.total}</b> зөв (${Math.round(tr.correct / tr.total * 100)}%)</p>${LEVELS.filter(l => tr.by[l]).map(l => `<div class="row sp sm"><span>${l}</span><span>${tr.by[l].c}/${tr.by[l].t}</span></div>`).join("")}` : `<p class="mu">Орчуулгын дасгал хараахан хийгээгүй байна.</p>`}</div>
+  <h2>ЭЕШ-ийн тестүүд</h2><div class="card tw">${hist.length ? `<table><tr><th>Огноо</th><th>Багц</th><th>Зөв</th><th>Хувь</th></tr>${hist.slice(0, 20).map(h => `<tr><td>${esc(new Date(h.d).toLocaleDateString("mn-MN"))}</td><td>${esc(h.set)}</td><td>${h.p !== undefined ? h.c + "/" + h.t : "—"}</td><td>${h.p !== undefined ? h.p + "%" : "Багшид илгээсэн"}</td></tr>`).join("")}</table>` : `<p class="mu">Тест хараахан өгөөгүй байна.</p>`}</div>
+  <h2>Хувийн мэдээлэл</h2><div class="card"><p class="sm mu">Хадгалсан ахиц, нэр, ангиа энэ төхөөрөмжөөс устгаж болно. (Багшид илгээсэн дүн устахгүй.)</p><button class="btn bad" data-act="wipe">🗑 Миний мэдээллийг устгах</button></div>`;
+};
+
+/* ---------- Багшийн тайлан ---------- */
+const TC = { token: SS.get("tok", null), rows: [], cls: "all", set: "all", q: "", err: "", loading: false };
+function csvCell(v) { let s = String(v ?? ""); if (/^[=+\-@]/.test(s)) s = "'" + s; return '"' + s.replace(/"/g, '""') + '"'; }
+function teacherFiltered() { const q = TC.q.trim().toLowerCase(); return TC.rows.filter(r => (TC.cls === "all" || r.cls === TC.cls) && (TC.set === "all" || r.setId === TC.set) && (!q || r.name.toLowerCase().includes(q))); }
+views.teacher = () => {
+  if (!TC.token) {
+    app.innerHTML = `<h1>🔐 Багшийн дүнгийн тайлан</h1><div class="card"><form data-form="tlogin"><label for="tpw">Багшийн нууц үг</label><input id="tpw" type="password" required autocomplete="current-password">
+    ${TC.err ? `<div class="alert e">${esc(TC.err)}</div>` : ""}${CONFIG.API_URL ? "" : `<div class="alert w">Сервер холбогдоогүй байна (CONFIG.API_URL).</div>`}
+    <button class="btn" type="submit" style="margin-top:10px" ${TC.loading ? "disabled" : ""}>${TC.loading ? "Шалгаж байна…" : "Нэвтрэх"}</button></form>
+    <p class="sm mu">Дүнгүүд Google Sheets-ийн "Results" таб дээр мөн автоматаар хадгалагдана. Сурагчид энэ хэсгийг харах боломжгүй.</p></div>`;
+    return;
+  }
+  const rows = teacherFiltered().slice().sort((a, b) => b.date.localeCompare(a.date));
+  const classes = [...new Set(TC.rows.map(r => r.cls))].sort(), sets = [...new Set(TC.rows.map(r => r.setId))].sort();
+  const avg = rows.length ? Math.round(rows.reduce((a, r) => a + r.percent, 0) / rows.length * 10) / 10 : 0;
+  const byCls = {}; rows.forEach(r => { (byCls[r.cls] = byCls[r.cls] || []).push(r.percent); });
+  app.innerHTML = `<div class="row sp"><h1>🔐 Багшийн тайлан</h1><div class="row"><button class="btn g" data-act="trefresh">⟳ Шинэчлэх</button><button class="btn g" data-act="tlogout">Гарах</button></div></div>
+  ${TC.err ? `<div class="alert e">${esc(TC.err)}</div>` : ""}
+  <div class="card"><div class="grid"><div><label>Анги</label><select id="tcls"><option value="all">Бүгд</option>${classes.map(c => `<option ${TC.cls === c ? "selected" : ""} value="${esc(c)}">${esc(c)}</option>`).join("")}</select></div>
+  <div><label>Багц</label><select id="tset"><option value="all">Бүгд</option>${sets.map(c => `<option ${TC.set === c ? "selected" : ""} value="${esc(c)}">${esc(c)}</option>`).join("")}</select></div>
+  <div><label>Нэрээр хайх</label><input id="tq" value="${esc(TC.q)}"></div></div></div>
+  <div class="grid"><div class="card c" style="margin:0"><b style="font-size:22px">${rows.length}</b><div class="sm mu">Оролдлого</div></div><div class="card c" style="margin:0"><b style="font-size:22px">${avg}%</b><div class="sm mu">Дундаж</div></div>
+  <div class="card c" style="margin:0"><b style="font-size:22px">${rows.length ? Math.max(...rows.map(r => r.percent)) : 0}%</b><div class="sm mu">Дээд</div></div><div class="card c" style="margin:0"><b style="font-size:22px">${rows.length ? Math.min(...rows.map(r => r.percent)) : 0}%</b><div class="sm mu">Доод</div></div></div>
+  ${Object.keys(byCls).length ? `<h2>Ангиар дундаж</h2><div class="card">${Object.entries(byCls).map(([c, a]) => `<div class="row sp sm"><span>${esc(c)} (${a.length})</span><b>${Math.round(a.reduce((x, y) => x + y, 0) / a.length * 10) / 10}%</b></div>`).join("")}</div>` : ""}
+  <div class="row sp"><h2>Дүнгийн жагсаалт</h2><button class="btn" data-act="tcsv" ${rows.length ? "" : "disabled"}>⬇ CSV татах</button></div>
+  <div class="card tw">${rows.length ? `<table><tr><th>Огноо</th><th>Нэр</th><th>Анги</th><th>Багц</th><th>Зөв</th><th>Буруу</th><th>Хоосон</th><th>Хувь</th></tr>${rows.map(r => `<tr><td>${esc(new Date(r.date).toLocaleString("mn-MN"))}</td><td>${esc(r.name)}</td><td>${esc(r.cls)}</td><td>${esc(r.setId)}</td><td>${r.correct}/${r.total}</td><td>${r.wrong}</td><td>${r.blank}</td><td><b>${r.percent}%</b></td></tr>`).join("")}</table>` : `<p class="mu">Дүн олдсонгүй.</p>`}</div>`;
+};
+async function teacherLoad() {
+  TC.err = ""; TC.loading = true;
+  try { const r = await api("teacherResults", { token: TC.token }); TC.rows = r.rows; }
+  catch (e) { TC.err = e.message; if (e.auth === false) { TC.token = null; SS.del("tok"); } }
+  TC.loading = false; if (cur === "teacher") views.teacher();
+}
+
+/* ===================== ҮЙЛДЛИЙН ХЭРЭГЖҮҮЛЭГЧ ===================== */
+const A = {
+  say: t => TTS.speak(t.dataset.w), sayw: t => TTS.speak(t.dataset.w), sayt: t => TTS.speak(t.dataset.t),
+  // vocab
+  topic: t => { VS.topic = t.dataset.id; VS.q = ""; views.vocab(); },
+  vback: () => { VS.topic = null; VS.q = ""; views.vocab(); },
+  vcards: () => { CS.topic = VS.topic; CS.mode = "all"; CS.level = "all"; CS.started = false; go("cards"); },
+  // tests
+  year: t => { TS.year = +t.dataset.y; views.tests(); },
+  startset: t => { TS.set = D.sets.find(s => s.id === t.dataset.id); TS.setId = TS.set.id; TS.demo = false; TS.phase = "info"; views.tests(); },
+  startdemo: () => { TS.set = D.demo; TS.setId = "DEMO"; TS.demo = true; TS.phase = "info"; views.tests(); },
+  tback: () => { TS.phase = "pick"; TS.err = ""; views.tests(); },
+  tagain: () => { TS.ans = {}; TS.i = 0; TS.t0 = Date.now(); TS.phase = "run"; views.tests(); },
+  pick: t => { TS.ans[TS.set.questions[TS.i].n] = +t.dataset.k; views.tests(); },
+  clearq: () => { delete TS.ans[TS.set.questions[TS.i].n]; views.tests(); },
+  prevq: () => { TS.i = Math.max(0, TS.i - 1); views.tests(); window.scrollTo(0, 0); },
+  nextq: () => { TS.i = Math.min(TS.set.questions.length - 1, TS.i + 1); views.tests(); window.scrollTo(0, 0); },
+  jump: t => { TS.i = +t.dataset.i; views.tests(); window.scrollTo(0, 0); },
+  finish: () => finishTest(),
+  // translation
+  trlevel: t => { const S = TR[t.dataset.d]; S.level = t.dataset.v; S.started = false; trView(t.dataset.d); },
+  trtype: t => { const S = TR[t.dataset.d]; S.type = t.dataset.v; S.started = false; trView(t.dataset.d); },
+  trstart: t => { const S = TR[t.dataset.d]; S.q = shuffle(D.tr.filter(x => (S.level === "all" || x.l === S.level) && (S.type === "all" || x.t === S.type))); S.i = 0; S.res = null; S.started = true; trView(t.dataset.d); },
+  trrestart: t => { TR[t.dataset.d].started = false; trView(t.dataset.d); },
+  trskip: t => { const S = TR[t.dataset.d]; S.res = { st: "no", input: "", rec: false }; trView(t.dataset.d); },
+  trself: t => { const S = TR[t.dataset.d]; trRecord(S.q[S.i], t.dataset.v === "1"); S.res.rec = true; trView(t.dataset.d); },
+  trnext: t => { const S = TR[t.dataset.d]; if (S.res && S.res.st !== "ok" && !S.res.rec) trRecord(S.q[S.i], false); S.i++; S.res = null; trView(t.dataset.d); window.scrollTo(0, 0); },
+  // cards
+  cstart: () => { CS.mode = $("#fmode").value; CS.topic = $("#ftopic").value; CS.level = $("#flevel").value; CS.q = buildQueue(); CS.i = 0; CS.flip = false; CS.know = 0; CS.again = 0; CS.retried = new Set(); CS.started = true; if (!CS.q.length) { toast("Энэ сонголтоор давтах үг алга. Өөр горим/сэдэв сонгоно уу.", 5000); CS.started = false; } views.cards(); },
+  cflip: () => { CS.flip = !CS.flip; views.cards(); },
+  cknow: () => { cardGrade(true); views.cards(); },
+  cagain: () => { cardGrade(false); views.cards(); },
+  cquit: () => { CS.started = false; views.cards(); },
+  // speak
+  accent: t => { TTS.accent = t.dataset.v; LS.set("accent", TTS.accent); views.speak(); },
+  splay: () => { TTS.speak($("#stext").value); },
+  spause: () => TTS.pause(), sresume: () => TTS.resume(), sstop: () => TTS.stop(),
+  sreplay: () => { const t = $("#stext").value || TTS.last; TTS.speak(t); },
+  // progress
+  wipe: () => { if (!confirm("Таны төхөөрөмж дээр хадгалсан бүх ахиц, нэр, ангийг устгах уу?")) return; ["cards", "newToday", "history", "tr", "student", "accent", "rate"].forEach(k => LS.del(k)); toast("Устгалаа."); views.progress(); },
+  // teacher
+  tlogout: async () => { const tk = TC.token; TC.token = null; TC.rows = []; SS.del("tok"); try { await api("teacherLogout", { token: tk }); } catch (e) {} views.teacher(); },
+  trefresh: () => teacherLoad(),
+  tcsv: () => {
+    const rows = teacherFiltered(), head = ["Огноо", "Нэр", "Анги", "Багц", "Нийт", "Зөв", "Буруу", "Хоосон", "Хувь"];
+    const csv = "﻿" + [head, ...rows.map(r => [r.date, r.name, r.cls, r.setId, r.total, r.correct, r.wrong, r.blank, r.percent])].map(r => r.map(csvCell).join(",")).join("\n");
+    const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" })); a.download = "ese_dun_" + dstr() + ".csv"; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  }
+};
+app.addEventListener("click", e => { const t = e.target.closest("[data-act]"); if (t && A[t.dataset.act]) A[t.dataset.act](t, e); });
+app.addEventListener("keydown", e => { if ((e.key === "Enter" || e.key === " ") && e.target.matches(".fc[data-act]")) { e.preventDefault(); A.cflip(); } });
+app.addEventListener("input", e => {
+  if (e.target.id === "vsearch") { VS.q = e.target.value; const l = $("#vlist"); if (l) l.innerHTML = vocabList(); else if (VS.q) { views.vocab(); const s = $("#vsearch"); s.focus(); s.setSelectionRange(s.value.length, s.value.length); } }
+  if (e.target.id === "tq") { TC.q = e.target.value; views.teacher(); const s = $("#tq"); s.focus(); s.setSelectionRange(s.value.length, s.value.length); }
+});
+app.addEventListener("change", e => {
+  if (e.target.id === "tcls") { TC.cls = e.target.value; views.teacher(); }
+  if (e.target.id === "tset") { TC.set = e.target.value; views.teacher(); }
+});
+app.addEventListener("submit", async e => {
+  const f = e.target.closest("[data-form]"); if (!f) return; e.preventDefault();
+  const k = f.dataset.form;
+  if (k === "tinfo") {
+    if (!TS.demo) { TS.name = $("#sn").value.trim(); TS.cls = $("#sc").value.trim(); if (TS.name.length < 2 || !TS.cls) return toast("Нэр, ангиа бөглөнө үү."); LS.set("student", { name: TS.name, cls: TS.cls }); }
+    TS.ans = {}; TS.i = 0; TS.t0 = Date.now(); TS.phase = "run"; views.tests();
+  } else if (k === "trcheck") {
+    const dir = f.dataset.d, S = TR[dir], it = S.q[S.i], input = $("#trin").value.trim();
+    if (!input) return toast("Хариултаа бичнэ үү.");
+    const en = dir === "mn-en", n = norm(input, en), set = (en ? it.en : it.mn).map(a => norm(a, en));
+    let st = "no"; if (set.includes(n)) st = "ok"; else if (Math.max(...set.map(s => sim(n, s))) >= 0.88) st = "near";
+    S.res = { st, input, rec: false }; if (st === "ok") { trRecord(it, true); S.res.rec = true; }
+    trView(dir);
+  } else if (k === "tlogin") {
+    TC.loading = true; TC.err = ""; views.teacher();
+    try { const r = await api("teacherLogin", { password: $("#tpw").value }); TC.token = r.token; SS.set("tok", r.token); TC.loading = false; views.teacher(); teacherLoad(); }
+    catch (er) { TC.loading = false; TC.err = er.message; views.teacher(); }
+  }
+});
+
+/* ===================== ЭХЛҮҮЛЭХ ===================== */
+theme();
+if (!D.sets.length && !D.vocab.length) app.innerHTML = `<div class="alert e">Өгөгдлийн файлууд (data/*.js) ачаалагдсангүй. index.html-тэй хамт data хавтсыг байршуулсан эсэхээ шалгана уу.</div>`;
+else { if (TC.token) teacherLoad(); route(); }
+</script>
+<script>
+/* ===== Монгол↔Англи дасгалын нэмэлт: Vocabulary эх сурвалж + Сонгох тест ===== */
+(function(){
+  for (const d of ["mn-en","en-mn"]) Object.assign(TR[d], { src:"tr", fmt:"type", topic:"all", n:10, opts:[], pick:null, correct:"" });
+
+  const vocabItems = topic => D.vocab.filter(v => topic==="all" || v.t.includes(topic)).map(v => {
+    const e = D.ex[v.w], parts = v.m.split(/[,;]/).map(s=>s.trim()).filter(Boolean);
+    return { id:"v:"+v.w, l:(e&&e.l)||"?", t:"word", en:[v.w], mn:[...new Set([v.m,...parts])],
+             note: v.t.map(topicName).join(" · "), ex:e?e.ex:"", exMn:e?e.mn:"" };
+  });
+  const trPool = S => S.src==="vocab" ? vocabItems(S.topic) : S.src==="ese" ? vocabItems("ese")
+    : D.tr.filter(x => (S.level==="all"||x.l===S.level) && (S.type==="all"||x.t===S.type));
+  const txt = (dir,it) => dir==="mn-en" ? it.en[0] : it.mn[0];
+  const chip = (on,act,d,v,t) => `<button class="chip ${on?"on":""}" data-act="${act}" data-d="${d}" data-v="${v}">${t}</button>`;
+
+  function mkOpts(dir, S, it){
+    S.correct = txt(dir,it);
+    let pool = S.src==="vocab" ? vocabItems("all") : S.src==="ese" ? vocabItems("ese") : D.tr.filter(x=>x.t===it.t);
+    let wrong = [...new Set(shuffle(pool).filter(x=>x.id!==it.id).map(x=>txt(dir,x)))].filter(x=>x!==S.correct);
+    if (wrong.length<3) wrong = [...new Set([...wrong, ...shuffle(vocabItems("all")).map(x=>txt(dir,x))])].filter(x=>x!==S.correct);
+    return shuffle([S.correct, ...wrong.slice(0,3)]);
+  }
+
+  trView = function(dir){
+    const S = TR[dir], title = dir==="mn-en" ? "🇲🇳 Монгол → Англи 🇬🇧" : "🇬🇧 Англи → Монгол 🇲🇳";
+    if (!D.tr.length && !D.vocab.length){ app.innerHTML = `<div class="alert e">Өгөгдөл ачаалагдсангүй.</div>`; return; }
+
+    if (!S.started || !S.q.length){
+      const n = trPool(S).length;
+      app.innerHTML = `<h1>${title}</h1><p class="mu">Дасгалын эх сурвалж, хэлбэрээ сонгоно уу.</p>
+      <div class="card">
+        <label>Эх сурвалж</label><div class="row">${chip(S.src==="tr","trsrc",dir,"tr","📝 Дасгалын сан (үг + өгүүлбэр)")}${chip(S.src==="vocab","trsrc",dir,"vocab","📚 Vocabulary-ийн үгс")}${chip(S.src==="ese","trsrc",dir,"ese","🎓 ЭЕШ-ийн үг, хэллэг (2021–2025)")}</div>
+        <label>Хэлбэр</label><div class="row">${chip(S.fmt==="type","trfmt",dir,"type","✍️ Бичиж хариулах")}${chip(S.fmt==="mcq","trfmt",dir,"mcq","✅ Сонгох тест")}</div>
+        ${S.src==="vocab"
+          ? `<label for="trtopic">Сэдэв</label><select id="trtopic" data-d="${dir}"><option value="all">Бүх сэдэв</option>${D.topics.map(t=>`<option value="${t.id}" ${S.topic===t.id?"selected":""}>${esc(t.mn)}</option>`).join("")}</select>`
+          : `<label>Түвшин</label><div class="row">${["all",...LEVELS].map(l=>chip(S.level===l,"trlevel",dir,l,l==="all"?"Бүх түвшин":l)).join("")}</div>
+             <label>Төрөл</label><div class="row">${[["all","Үг + өгүүлбэр"],["word","Зөвхөн үг"],["sentence","Зөвхөн өгүүлбэр"]].map(([v,t])=>chip(S.type===v,"trtype",dir,v,t)).join("")}</div>`}
+        <label>Асуултын тоо</label><div class="row">${[10,20,40,"all"].map(v=>chip(S.n===v,"trn",dir,v,v==="all"?"Бүгд":v)).join("")}</div>
+        <p class="sm mu" style="margin-top:10px">Тохирох дасгал: <b>${n}</b></p>
+        <button class="btn full" data-act="trstart" data-d="${dir}" ${n?"":"disabled"}>Эхлэх →</button>
+      </div>`;
+      return;
+    }
+    if (S.i >= S.q.length){
+      app.innerHTML = `<h1>${title}</h1><div class="card c"><h2>Дасгал дууслаа 🎉</h2><p class="mu">Ахицыг "Миний ахиц" хэсгээс харна уу.</p>
+      <div class="row" style="justify-content:center"><button class="btn" data-act="trstart" data-d="${dir}">Дахин (шинэ дараалал)</button><button class="btn g" data-act="trrestart" data-d="${dir}">Тохиргоо</button></div></div>`;
+      return;
+    }
+    const it = S.q[S.i], ask = dir==="mn-en" ? it.mn[0] : it.en[0], ans = dir==="mn-en" ? it.en : it.mn, r = S.res, mcq = S.fmt==="mcq";
+    if (mcq && !S.opts.length) S.opts = mkOpts(dir,S,it);
+
+    const answerCard = r ? `<div class="card"><b>Зөв хариултууд:</b><ul style="margin:6px 0 6px 18px;padding:0">${ans.map(a=>`<li>${esc(a)} ${dir==="mn-en"?`<button class="icon" style="width:30px;height:30px" data-act="sayt" data-t="${esc(a)}">🔊</button>`:""}</li>`).join("")}</ul>
+      ${it.note?`<p class="sm mu" style="margin:4px 0">💡 ${esc(it.note)}</p>`:""}
+      ${it.ex?`<p class="sm" style="margin:4px 0"><b>Жишээ:</b> <i>${esc(it.ex)}</i> — ${esc(it.exMn)}</p>`:""}</div>` : "";
+
+    const body = mcq
+      ? `${S.opts.map((o,k)=>`<button class="opt ${r?(o===S.correct?"good":(k===S.pick?"wrong":"")):""}" data-act="trpick" data-d="${dir}" data-k="${k}" ${r?"disabled":""}><i>${L[k]}</i><span>${esc(o)}</span></button>`).join("")}
+         ${r?`<div class="alert ${r.st==="ok"?"s":"e"}"><b>${r.st==="ok"?"✅ Зөв!":"❌ Буруу"}</b></div>${answerCard}<div class="row"><button class="btn" data-act="trnext" data-d="${dir}">Дараагийнх →</button></div>`:""}`
+      : `<form data-form="trcheck" data-d="${dir}">
+          <textarea id="trin" rows="2" placeholder="${dir==="mn-en"?"Англиар бичнэ үү…":"Монголоор бичнэ үү…"}" ${r?"disabled":""} autocomplete="off" autocapitalize="off">${r?esc(r.input):""}</textarea>
+          ${r?"":`<div class="row" style="margin-top:8px"><button class="btn" type="submit">Шалгах</button><button class="btn g" type="button" data-act="trskip" data-d="${dir}">Алгасах</button></div>`}</form>
+         ${r?`<div class="alert ${r.st==="ok"?"s":r.st==="near"?"w":"e"}"><b>${r.st==="ok"?"✅ Зөв!":r.st==="near"?"🟡 Бараг зөв (жижиг зөрүүтэй)":"❌ Таарсангүй"}</b></div>${answerCard}
+         ${r.st!=="ok"&&!r.rec?`<p class="sm mu">Миний хариулт өөр боловч зөв утгатай байсан уу?</p><div class="row"><button class="btn ok" data-act="trself" data-d="${dir}" data-v="1">Тийм, зөв</button><button class="btn bad" data-act="trself" data-d="${dir}" data-v="0">Үгүй, алдсан</button></div>`:""}
+         <div class="row" style="margin-top:10px"><button class="btn" data-act="trnext" data-d="${dir}">Дараагийнх →</button></div>`:""}`;
+
+    app.innerHTML = `<h1>${title}</h1>
+    <div class="row sp sm mu"><span>${S.i+1} / ${S.q.length}</span><span><span class="badge">${it.l}</span> ${mcq?"тест":"бичих"} · <button class="chip" data-act="trrestart" data-d="${dir}">Тохиргоо</button></span></div>
+    <div class="bar" style="margin:6px 0"><div style="width:${S.i/S.q.length*100}%"></div></div>
+    <div class="card"><div class="row"><div style="flex:1;font-size:20px;font-weight:600">${esc(ask)}</div>${dir==="en-mn"?`<button class="icon" data-act="sayt" data-t="${esc(ask)}" aria-label="Сонсох">🔊</button>`:""}</div></div>${body}`;
+    const t = $("#trin"); if (t && !r) t.focus();
+  };
+
+  Object.assign(A, {
+    trsrc:  t => { const S=TR[t.dataset.d]; S.src=t.dataset.v; S.started=false; trView(t.dataset.d); },
+    trfmt:  t => { const S=TR[t.dataset.d]; S.fmt=t.dataset.v; S.started=false; trView(t.dataset.d); },
+    trn:    t => { const S=TR[t.dataset.d]; S.n=t.dataset.v==="all"?"all":+t.dataset.v; trView(t.dataset.d); },
+    trstart:t => { const d=t.dataset.d, S=TR[d]; let q=shuffle(trPool(S)); if(S.n!=="all") q=q.slice(0,S.n);
+                   S.q=q; S.i=0; S.res=null; S.opts=[]; S.pick=null; S.started=true; trView(d); },
+    trpick: t => { const d=t.dataset.d, S=TR[d]; if(S.res) return; S.pick=+t.dataset.k;
+                   const ok=S.opts[S.pick]===S.correct; trRecord(S.q[S.i],ok); S.res={st:ok?"ok":"no",input:"",rec:true}; trView(d); },
+    trnext: t => { const d=t.dataset.d, S=TR[d]; if(S.res&&S.res.st!=="ok"&&!S.res.rec) trRecord(S.q[S.i],false);
+                   S.i++; S.res=null; S.opts=[]; S.pick=null; trView(d); window.scrollTo(0,0); }
+  });
+  app.addEventListener("change", e => { if (e.target.id==="trtopic"){ const S=TR[e.target.dataset.d]; S.topic=e.target.value; trView(e.target.dataset.d); } });
+})();
+</script>
+<script>
+/* ===== Vocabulary-аар шалгалт өгөх (сонгох тест) ===== */
+(function(){
+  const VQ = { phase:"setup", topic:"all", dir:"en-mn", n:10, q:[], ans:[], i:0, res:null };
+  const chip = (on,act,v,t) => `<button class="chip ${on?"on":""}" data-act="${act}" data-v="${v}">${t}</button>`;
+  const poolOf = () => D.vocab.filter(v => VQ.topic==="all" || v.t.includes(VQ.topic));
+  const tname = () => VQ.topic==="all" ? "Бүх сэдэв" : topicName(VQ.topic);
+
+  const ow = views.vocab;
+  views.vocab = function(){
+    ow();
+    const h = app.querySelector("h1,h2");
+    if (h) h.insertAdjacentHTML("afterend", `<div class="row" style="margin:8px 0"><button class="btn" data-act="vquiz">🧪 Шалгалт өгөх</button></div>`);
+  };
+
+  function build(){
+    const pool = poolOf(), en = VQ.dir==="en-mn", key = v => en ? v.m : v.w;
+    let items = shuffle(pool); if (VQ.n!=="all") items = items.slice(0, VQ.n);
+    VQ.q = items.map(v => {
+      const c = key(v), wrong = [];
+      for (const x of shuffle(pool).concat(shuffle(D.vocab)).map(key)) { if (x!==c && !wrong.includes(x)) { wrong.push(x); if (wrong.length===3) break; } }
+      const opts = shuffle([c, ...wrong]);
+      return { v, opts, ci: opts.indexOf(c) };
+    });
+    VQ.ans = VQ.q.map(() => null); VQ.i = 0; VQ.res = null;
+  }
+
+  views.vquiz = function(){
+    const en = VQ.dir==="en-mn";
+    if (VQ.phase==="setup"){
+      const n = poolOf().length;
+      app.innerHTML = `<h1>🧪 Vocabulary шалгалт</h1><p class="mu">Үгсийн сангаас 4 сонголттой шалгалт өгнө. Дүн нь шалгалт дуусаад харагдана.</p>
+      <div class="card"><label for="vqtopic">Сэдэв</label><select id="vqtopic"><option value="all">Бүх сэдэв</option>${D.topics.map(t=>`<option value="${t.id}" ${VQ.topic===t.id?"selected":""}>${esc(t.mn)}</option>`).join("")}</select>
+      <label>Чиглэл</label><div class="row">${chip(en,"vqdir","en-mn","🇬🇧 Англи → Монгол")}${chip(!en,"vqdir","mn-en","🇲🇳 Монгол → Англи")}</div>
+      <label>Асуултын тоо</label><div class="row">${[10,20,40,"all"].map(v=>chip(VQ.n===v,"vqn",v,v==="all"?"Бүгд":v)).join("")}</div>
+      <p class="sm mu" style="margin-top:10px">Сонгосон сэдвийн үг: <b>${n}</b></p>
+      <button class="btn full" data-act="vqstart" ${n?"":"disabled"}>Шалгалт эхлэх →</button></div>`;
+      return;
+    }
+    if (VQ.phase==="run"){
+      const q = VQ.q[VQ.i], sel = VQ.ans[VQ.i], done = VQ.ans.filter(a=>a!==null).length;
+      app.innerHTML = `<div class="row sp sm mu"><span>${esc(tname())}</span><span>${VQ.i+1}/${VQ.q.length}</span></div>
+      <div class="bar" style="margin:6px 0"><div style="width:${done/VQ.q.length*100}%"></div></div>
+      <div class="card"><div class="sm mu">${en?"Утгыг нь сонго":"Англи үгийг сонго"}</div>
+      <div class="row"><div style="flex:1;font-size:22px;font-weight:700">${esc(en?q.v.w:q.v.m)}</div>${en?`<button class="icon" data-act="sayw" data-w="${esc(q.v.w)}" aria-label="Сонсох">🔊</button>`:""}</div></div>
+      ${q.opts.map((o,k)=>`<button class="opt ${sel===k?"sel":""}" data-act="vqpick" data-k="${k}"><i>${L[k]}</i><span>${esc(o)}</span></button>`).join("")}
+      <div class="row sp" style="margin-top:10px"><button class="btn g" data-act="vqprev" ${VQ.i===0?"disabled":""}>← Өмнөх</button>
+      ${VQ.i<VQ.q.length-1?`<button class="btn" data-act="vqnext">Дараах →</button>`:`<button class="btn ok" data-act="vqfinish">Дуусгах ✔</button>`}</div>
+      <div class="qm">${VQ.q.map((x,k)=>`<button data-act="vqjump" data-i="${k}" class="${VQ.ans[k]!==null?"a":""} ${k===VQ.i?"cur":""}">${k+1}</button>`).join("")}</div>
+      <div class="row"><button class="btn ok" data-act="vqfinish">Дуусгах ✔</button><button class="btn g" data-act="vqsetup">Болих</button></div>`;
+      return;
+    }
+    const r = VQ.res, bad = VQ.q.map((q,k)=>({q,k,a:VQ.ans[k]})).filter(x=>x.a!==x.q.ci);
+    app.innerHTML = `<div class="card c"><div class="sm mu">${esc(tname())} · ${en?"Англи → Монгол":"Монгол → Англи"}</div><div class="big-pct">${r.percent}%</div>
+    <p>${r.total} асуултаас <b>${r.correct}</b> зөв · ${r.wrong} буруу · ${r.blank} хоосон</p>
+    <div class="row" style="justify-content:center"><button class="btn" data-act="vqretry">Дахин өгөх</button><button class="btn g" data-act="vqsetup">Тохиргоо</button></div></div>
+    ${bad.length?`<div class="row sp"><h2>Алдсан үгс (${bad.length})</h2><button class="btn g" data-act="vqcards">🃏 Картанд нэмэх</button></div>`+bad.map(({q,a})=>`<div class="card"><div class="row sp"><b>${esc(q.v.w)}</b><button class="icon" data-act="sayw" data-w="${esc(q.v.w)}">🔊</button></div>
+      <p style="margin:6px 0">Зөв: <b>${esc(q.opts[q.ci])}</b>${a===null?" · хоосон":` · Таны хариулт: ${esc(q.opts[a])}`}</p>
+      ${D.ex[q.v.w]?`<p class="sm mu" style="margin:0"><i>${esc(D.ex[q.v.w].ex)}</i> — ${esc(D.ex[q.v.w].mn)}</p>`:""}</div>`).join(""):`<div class="alert s">🎉 Бүгд зөв!</div>`}`;
+  };
+
+  function finish(){
+    const blank = VQ.ans.filter(a=>a===null).length;
+    if (blank && !confirm(`${blank} асуулт хоосон байна. Дуусгах уу?`)) return;
+    const total = VQ.q.length, correct = VQ.q.filter((q,k)=>VQ.ans[k]===q.ci).length;
+    VQ.res = { total, correct, blank, wrong: total-correct-blank, percent: Math.round(correct/total*1000)/10 };
+    const h = LS.get("history", []); h.push({ d:new Date().toISOString(), set:"Vocabulary: "+tname(), c:correct, t:total, p:VQ.res.percent }); LS.set("history", h.slice(-100));
+    VQ.phase = "result"; views.vquiz(); window.scrollTo(0,0);
+  }
+
+  Object.assign(A, {
+    vquiz:   () => { VQ.phase="setup"; if (typeof VS!=="undefined" && VS.topic) VQ.topic=VS.topic; go("vquiz"); },
+    vqsetup: () => { VQ.phase="setup"; views.vquiz(); },
+    vqdir:   t => { VQ.dir=t.dataset.v; views.vquiz(); },
+    vqn:     t => { VQ.n = t.dataset.v==="all" ? "all" : +t.dataset.v; views.vquiz(); },
+    vqstart: () => { build(); if (!VQ.q.length) return; VQ.phase="run"; views.vquiz(); },
+    vqretry: () => { build(); VQ.phase="run"; views.vquiz(); window.scrollTo(0,0); },
+    vqpick:  t => { VQ.ans[VQ.i]=+t.dataset.k; views.vquiz(); },
+    vqprev:  () => { VQ.i=Math.max(0,VQ.i-1); views.vquiz(); window.scrollTo(0,0); },
+    vqnext:  () => { VQ.i=Math.min(VQ.q.length-1,VQ.i+1); views.vquiz(); window.scrollTo(0,0); },
+    vqjump:  t => { VQ.i=+t.dataset.i; views.vquiz(); window.scrollTo(0,0); },
+    vqfinish: () => finish(),
+    vqcards: () => {
+      const st = cardStore(), td = dstr();
+      VQ.q.forEach((q,k) => { if (VQ.ans[k]!==q.ci) { const c = st[q.v.w] || { b:0, k:0, a:0 }; c.b=0; c.a++; c.d=td; c.r=0; c.l=td; st[q.v.w]=c; } });
+      LS.set("cards", st); toast("Алдсан үгс картын давтах жагсаалтад нэмэгдлээ.");
+    }
+  });
+  app.addEventListener("change", e => { if (e.target.id==="vqtopic"){ VQ.topic=e.target.value; views.vquiz(); } });
+})();
+</script>
+<script>
+/* ===== Орчуулгын нэмэлт сан: A1–C2 тус бүр 20 дасгал (10 үг + 10 өгүүлбэр) ===== */
+(function(){
+  const W="word", S="sentence";
+  const R=[
+  ["A1",W,["apple"],["алим"]],["A1",W,["house"],["байшин","гэр"]],["A1",W,["friend"],["найз"]],["A1",W,["school"],["сургууль"]],["A1",W,["mother"],["ээж"]],
+  ["A1",W,["red"],["улаан"]],["A1",W,["eat"],["идэх","хооллох"]],["A1",W,["big"],["том"]],["A1",W,["cat"],["муур"]],["A1",W,["sun"],["нар"]],
+  ["A1",S,["I am a student."],["Би сурагч.","Би оюутан."]],
+  ["A1",S,["She has a red bag."],["Түүнд улаан цүнх байна.","Тэр улаан цүнхтэй."]],
+  ["A1",S,["We live in Ulaanbaatar."],["Бид Улаанбаатарт амьдардаг.","Бид Улаанбаатарт амьдарч байна."]],
+  ["A1",S,["The cat is on the table."],["Муур ширээн дээр байна.","Муур ширээн дээр байгаа."]],
+  ["A1",S,["I like apples."],["Би алимд дуртай.","Надад алим таалагддаг.","Би алим дуртай."]],
+  ["A1",S,["He is my friend.","He's my friend."],["Тэр бол миний найз.","Тэр миний найз."]],
+  ["A1",S,["It is hot today.","It's hot today."],["Өнөөдөр халуун байна.","Өнөөдөр халуун."]],
+  ["A1",S,["Open the door, please.","Please open the door."],["Хаалгаа нээнэ үү.","Хаалгыг нээгээч.","Хаалгаа нээгээрэй."]],
+  ["A1",S,["What is your name?","What's your name?"],["Таны нэр хэн бэ?","Чиний нэр хэн бэ?","Таныг хэн гэдэг вэ?"]],
+  ["A1",S,["I have two dogs.","I've got two dogs."],["Надад хоёр нохой бий.","Надад хоёр нохой байна."]],
+  ["A2",W,["weather"],["цаг агаар"]],["A2",W,["hungry"],["өлсөсөн","өлссөн"]],["A2",W,["holiday"],["амралт","баяр"]],["A2",W,["cheap"],["хямд"]],["A2",W,["ticket"],["тасалбар"]],
+  ["A2",W,["visit"],["зочлох","айлчлах"]],["A2",W,["kitchen"],["гал тогоо"]],["A2",W,["neighbour","neighbor"],["хөрш"]],["A2",W,["borrow"],["зээлэх","зээлж авах"]],["A2",W,["wedding"],["хуримын ёслол","хурим"]],
+  ["A2",S,["I went to the market yesterday."],["Би өчигдөр зах дээр очсон.","Би өчигдөр зах явсан."]],
+  ["A2",S,["Can you help me, please?"],["Та надад тусалж чадах уу?","Надад тусалж өгөхгүй юу?","Надад тусална уу?"]],
+  ["A2",S,["There are many people in the park."],["Цэцэрлэгт хүрээлэнд олон хүн байна.","Паркт олон хүн байна."]],
+  ["A2",S,["I am going to visit my grandmother.","I'm going to visit my grandmother."],["Би эмээдээ зочлох гэж байна.","Би эмээгийндээ очих гэж байна."]],
+  ["A2",S,["How much is this jacket?"],["Энэ хүрэм хэд вэ?","Энэ хүрэм хэдэн төгрөг вэ?","Энэ хүрэм хэдтэй вэ?"]],
+  ["A2",S,["She doesn't like coffee.","She does not like coffee."],["Тэр кофенд дургүй.","Тэр кофе дургүй."]],
+  ["A2",S,["We must leave before six."],["Бид зургаан цагаас өмнө гарах ёстой.","Бид 6 цагаас өмнө гарах ёстой."]],
+  ["A2",S,["My phone is in my bag."],["Миний утас цүнхэнд байна.","Миний утас цүнхэн дотор байна."]],
+  ["A2",S,["It was raining when I woke up."],["Би сэрэхэд бороо орж байсан.","Намайг сэрэхэд бороо орж байсан."]],
+  ["A2",S,["Do you want some tea?"],["Та цай уумаар байна уу?","Чи цай уумаар байна уу?","Цай уух уу?"]],
+  ["B1",W,["advice"],["зөвлөгөө"]],["B1",W,["expensive"],["үнэтэй"]],["B1",W,["opinion"],["үзэл бодол","санал бодол","бодол санал"]],["B1",W,["attend"],["оролцох","хичээллэх"]],["B1",W,["reduce"],["багасгах","бууруулах"]],
+  ["B1",W,["appointment"],["товлосон уулзалт","уулзалт","цаг товлол"]],["B1",W,["mention"],["дурдах","дурьдах"]],["B1",W,["manage"],["удирдах","амжуулах"]],["B1",W,["improve"],["сайжруулах","сайжрах"]],["B1",W,["lazy"],["залхуу"]],
+  ["B1",S,["I would like to book a table for four."],["Би дөрвөн хүний ширээ захиалмаар байна.","Би дөрвөн хүний ширээ захиалахыг хүсч байна."]],
+  ["B1",S,["If I had more time, I would learn French."],["Надад илүү цаг байсан бол франц хэл сурна.","Хэрэв надад илүү цаг байсан бол би франц хэл сурна."]],
+  ["B1",S,["She has lived here since 2015."],["Тэр 2015 оноос хойш энд амьдарч байна.","Тэр энд 2015 оноос хойш амьдарч байна."]],
+  ["B1",S,["The film was so boring that I fell asleep."],["Кино үнэхээр уйтгартай байсан тул би унтчихсан.","Кино маш уйтгартай байсан болохоор би унтсан."]],
+  ["B1",S,["You should drink more water."],["Чи илүү их ус уух хэрэгтэй.","Та илүү их ус уух хэрэгтэй."]],
+  ["B1",S,["I am used to getting up early.","I'm used to getting up early."],["Би эрт босоход дассан.","Би эрт босдог зуршилтай."]],
+  ["B1",S,["He told me that he was busy."],["Тэр надад завгүй байна гэж хэлсэн.","Тэр завгүй гэж надад хэлсэн."]],
+  ["B1",S,["The meeting has been postponed until Monday."],["Уулзалтыг даваа гараг хүртэл хойшлуулсан.","Хурлыг даваа гараг хүртэл хойшлуулсан."]],
+  ["B1",S,["Although it was cold, we went swimming."],["Хүйтэн байсан ч бид усанд сэлсэн.","Хүйтэн байсан ч бид сэлэхээр явсан."]],
+  ["B1",S,["I forgot to lock the door."],["Би хаалгаа түгжихээ мартсан.","Би хаалгыг түгжихээ мартсан."]],
+  ["B2",W,["consequence"],["үр дагавар"]],["B2",W,["approach"],["хандлага","арга барил","хандах арга"]],["B2",W,["ensure"],["баталгаажуулах","хангах"]],["B2",W,["obstacle"],["саад бэрхшээл","саад"]],["B2",W,["reputation"],["нэр хүнд","нэр төр"]],
+  ["B2",W,["overcome"],["даван туулах"]],["B2",W,["implement"],["хэрэгжүүлэх"]],["B2",W,["issue"],["асуудал"]],["B2",W,["reliable"],["найдвартай"]],["B2",W,["gradually"],["аажмаар","дараалан","тэр чигээрээ"]],
+  ["B2",S,["The government has introduced new measures to reduce pollution."],["Засгийн газар бохирдлыг бууруулах шинэ арга хэмжээ нэвтрүүлсэн.","Засгийн газар бохирдлыг багасгах шинэ арга хэмжээ авсан."]],
+  ["B2",S,["He insisted on paying for the meal."],["Тэр хоолны мөнгийг өөрөө төлөхийг шаардсан.","Тэр хоолны мөнгийг заавал өөрөө төлнө гэж зүтгэсэн."]],
+  ["B2",S,["Had it not been for your help, I would have failed.","If it had not been for your help, I would have failed."],["Таны тусламж байгаагүй бол би бүтэлгүйтэх байсан.","Таны тусламжгүйгээр би бүтэлгүйтэх байсан."]],
+  ["B2",S,["The more you practise, the better you become.","The more you practice, the better you become."],["Хичээх тусам илүү сайн болно.","Чи хичээх тусам сайжирна."]],
+  ["B2",S,["She is believed to be the best player in the country."],["Тэр улсдаа хамгийн шилдэг тоглогч гэж үздэг.","Түүнийг улсдаа хамгийн шилдэг тоглогч гэж үздэг."]],
+  ["B2",S,["We are looking forward to hearing from you."],["Бид таны хариуг тэсэн ядан хүлээж байна.","Бид таны мэдээг хүлээж байна."]],
+  ["B2",S,["Despite his age, he is very active."],["Настай ч гэсэн тэр маш идэвхтэй.","Тэр настай хэдий ч маш идэвхтэй."]],
+  ["B2",S,["It is high time we took action."],["Бид арга хэмжээ авах цаг болсон.","Арга хэмжээ авах цаг нэгэнт болсон."]],
+  ["B2",S,["The company is expected to announce its results next week."],["Тус компани ирэх долоо хоногт үр дүнгээ зарлах төлөвтэй байна.","Компани ирэх долоо хоногт дүнгээ зарлана гэж найдаж байна."]],
+  ["B2",S,["I regret not studying harder."],["Би илүү сайн хичээгээгүйдээ харамсаж байна.","Би илүү их хичээгээгүйдээ харамсдаг."]],
+  ["C1",W,["inevitable"],["зайлшгүй","зайлшгүй тохиолдох","яалт ч үгүй"]],["C1",W,["ambiguous"],["хоёрдмол утгатай","хоёрдмол"]],["C1",W,["mitigate"],["сааруулах","бууруулах","багасгах"]],["C1",W,["scrutiny"],["нарийн хяналт","нарийвчилсан шалгалт","шалгалт"]],["C1",W,["reluctant"],["дурамжхан","дургүйцсэн"]],
+  ["C1",W,["comprehensive"],["иж бүрэн","цогц","бүрэн"]],["C1",W,["undermine"],["сулруулах","доройтуулах","үндсийг нь сулруулах"]],["C1",W,["coherent"],["уялдаатай","логиктой"]],["C1",W,["pragmatic"],["бодит","практик","бодитой"]],["C1",W,["allocate"],["хуваарилах","тусгаарлан хуваарилах"]],
+  ["C1",S,["The negotiations broke down due to irreconcilable differences."],["Эвлэршгүй санал зөрөлдөөнөөс болж хэлэлцээр тасарсан.","Эвлэршгүй зөрөлдөөнөөс болж хэлэлцээр тасалдсан."]],
+  ["C1",S,["Only after the meeting did I realize my mistake."],["Хурлын дараа л би алдаагаа ойлгосон.","Хурлын дараа л алдаагаа мэдсэн."]],
+  ["C1",S,["The policy has come under intense scrutiny."],["Энэ бодлого ширүүн шүүмжлэлд өртсөн.","Энэ бодлого нарийн шалгалт, хяналтад орсон."]],
+  ["C1",S,["She managed to strike a balance between work and family."],["Тэр ажил, гэр бүлийнхээ хооронд тэнцвэр олж чадсан.","Тэр ажил болон гэр бүлээ тэнцвэржүүлж чадсан."]],
+  ["C1",S,["The findings are consistent with previous research."],["Эдгээр үр дүн өмнөх судалгаатай нийцэж байна.","Эдгээр дүгнэлт өмнөх судалгаатай нийцтэй байна."]],
+  ["C1",S,["Little did he know what awaited him."],["Түүнийг юу хүлээж байгааг тэр мэдээгүй.","Түүнийг юу хүлээж байгааг тэр огт мэдээгүй."]],
+  ["C1",S,["It goes without saying that honesty matters."],["Шударга байдал чухал гэдэг нь хэлэлгүйгээр ойлгомжтой.","Шударга байх нь чухал гэдэг нь хэлэлгүй ойлгомжтой."]],
+  ["C1",S,["The project was abandoned for lack of funding."],["Төсөл санхүүжилт дутсанаас болж зогссон.","Төслийг санхүүжилтгүйгээс болж зогсоосон."]],
+  ["C1",S,["He was reluctant to admit his responsibility."],["Тэр хариуцлагаа хүлээн зөвшөөрөхөөс дурамжхан байсан.","Тэр өөрийн хариуцлагыг хүлээн зөвшөөрөхөөс дургүйцэж байсан."]],
+  ["C1",S,["The outcome hinges on public support."],["Үр дүн нь олон нийтийн дэмжлэгээс шалтгаална.","Үр дүн олон нийтийн дэмжлэгээс хамаарна."]],
+  ["C2",W,["sycophant"],["зусардагч","хоншоорч","дагаж зусардагч"]],["C2",W,["ostensible"],["гаднах харагдах","гаднаа харагдаж буй","илтэд мэт харагдах"]],["C2",W,["esoteric"],["нарийн мэргэжлийн","хаалттай","цөөхөд л ойлгогдох"]],["C2",W,["perfunctory"],["өнгөц","албаны хэлбэрийн","дэмий хийсэн"]],["C2",W,["obfuscate"],["будлиулах","бүрхэг болгох","тодорхойгүй болгох"]],
+  ["C2",W,["magnanimous"],["өргөн цээжтэй","өгөөмөр сэтгэлтэй","өгөөмөр"]],["C2",W,["juxtapose"],["зэрэгцүүлэн тавих","зэрэгцүүлэх"]],["C2",W,["quintessential"],["сонгодог","жинхэнэ жишиг","жинхэнэ"]],["C2",W,["recalcitrant"],["зөрүүд","дуулгаваргүй"]],["C2",W,["equivocal"],["хоёрдмол","тодорхой бус"]],
+  ["C2",S,["Notwithstanding the setbacks, the team persevered."],["Саад бэрхшээл тохиолдсон ч баг тэвчээртэй үргэлжлүүлсэн.","Бүтэлгүйтэл гарсан ч баг зүтгэсээр байсан."]],
+  ["C2",S,["Were it not for his tenacity, the venture would have collapsed."],["Түүний тэвчээр байгаагүй бол бизнес сүйрэх байсан.","Түүний тэсвэр хатуужил байгаагүй бол санаачилга бүтэлгүйтэх байсан."]],
+  ["C2",S,["The author's prose is at once lucid and deeply evocative."],["Зохиолчийн хэллэг нэгэн зэрэг тодорхой бөгөөд гүн мэдрэмж төрүүлдэг.","Зохиолчийн бичлэг тод бөгөөд сэтгэл хөдлөм."]],
+  ["C2",S,["His remarks were construed as an implicit criticism."],["Түүний үгийг далд шүүмжлэл гэж ойлгосон.","Түүний хэлсэн үгийг далд шүүмжлэл гэж тайлбарласан."]],
+  ["C2",S,["The treaty was ratified amid widespread controversy."],["Гэрээг өргөн маргааны дунд соёрхон баталсан.","Гэрээг их маргаантай нөхцөлд соёрхон баталсан."]],
+  ["C2",S,["She possesses an uncanny knack for anticipating trends."],["Тэр чиг хандлагыг таамаглах гайхалтай авьяастай.","Тэр чиг хандлагыг урьдчилан харах гайхалтай авьяастай."]],
+  ["C2",S,["Such behaviour is anathema to our values.","Such behavior is anathema to our values."],["Ийм үйлдэл бидний үнэт зүйлд харш.","Ийм зан үйл бидний үнэт зүйлсэд огт нийцэхгүй."]],
+  ["C2",S,["The legislation is fraught with ambiguity."],["Энэ хууль хоёрдмол утгаар дүүрэн.","Хууль хоёрдмол утгаар дүүрэн байна."]],
+  ["C2",S,["Scarcely had he arrived when the storm broke."],["Тэр ирэнгүүт шуурга дэгдсэн.","Тэр дөнгөж ирсэн байтал шуурга эхэлсэн."]],
+  ["C2",S,["Her reticence belied a formidable intellect."],["Түүний цөөн үг хэлэх нь гайхалтай оюун ухааныг нуун дарагдуулсан байсан.","Түүний чимээгүй байдал хүчирхэг оюун ухааныг нуусан байв."]]
+  ];
+  const have = new Set(D.tr.map(x => x.en[0].toLowerCase()));
+  R.forEach((r,i) => { if (have.has(r[2][0].toLowerCase())) return;
+    D.tr.push({ id:"n"+String(i+1).padStart(3,"0"), l:r[0], t:r[1], en:r[2], mn:r[3], note:"", ex:"", exMn:"" }); });
+})();
+</script>
 </body>
 </html>
