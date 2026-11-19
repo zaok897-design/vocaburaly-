@@ -172,7 +172,7 @@ questions:[
 <script>
 "use strict";
 const CONFIG = {
-  API_URL: "https://script.google.com/macros/s/AKfycbxPi_Fp-H6qyMysaSUIwOCgT3YW-s8qMOTcVJ8uFRFlfgtdYDAIWibfPDH22lRVMSGgSQ/exec",
+  API_URL: "https://script.google.com/macros/s/AKfycb0CpgHV1fyEssgU-I3UR6_MNbZu9EgB51iXj9iQUkGommdh4tlHP4Q8Kq48KO1AC-AAQ/exec",
   DAILY_NEW: 10
 };
 
@@ -331,7 +331,7 @@ views.vocab = () => {
   }
 };
 
-/* ===================== ТЕСТ ХЭСЭГ (Random options, Tab warning, URL score) ===================== */
+/* ===================== ТЕСТ ХЭСЭГ ===================== */
 const TS = { phase: "pick", year: null, setId: null, set: null, demo: false, ans: {}, map: {}, i: 0, t0: 0, name: "", cls: "", res: "", err: "", tabWarnCount: 0 };
 
 function clearTestSecurity() {
@@ -624,6 +624,7 @@ function buildQueue() {
   if (CS.mode === "unknown") return shuffle(pool.filter(v => st[v.w] && st[v.w].r === 0));
   return shuffle(pool).slice(0, 40);
 }
+const INTERVALS = [0, 1, 3, 7, 14, 30];
 function cardGrade(know) {
   const w = CS.q[CS.i], st = cardStore(), td = dstr(), was = st[w.w];
   if (!was) { const nt = LS.get("newToday", { d: td, n: 0 }); LS.set("newToday", { d: td, n: (nt.d === td ? nt.n : 0) + 1 }); }
@@ -633,137 +634,4 @@ function cardGrade(know) {
   c.l = td; st[w.w] = c; LS.set("cards", st);
   CS.i++; CS.flip = false;
 }
-views.cards = () => {
-  if (!D.vocab.length) { app.innerHTML = `<div class="alert e">Vocabulary олдсонгүй.</div>`; return; }
-  const cs = cardStats();
-  const sel = (id, opts, cur) => `<select id="${id}">${opts.map(([v, t]) => `<option value="${v}" ${cur === v ? "selected" : ""}>${esc(t)}</option>`).join("")}</select>`;
-  const head = `<h1>🃏 Үг цээжлэх карт</h1><div class="grid" style="margin-bottom:8px">
-  <div class="card c" style="margin:0"><b>${cs.due}</b><div class="sm mu">Өнөөдөр давтах</div></div>
-  <div class="card c" style="margin:0"><b>${cs.memorized}/${cs.total}</b><div class="sm mu">Цээжилсэн</div></div></div>`;
-  if (!CS.started || CS.i >= CS.q.length) {
-    const done = CS.started && CS.i >= CS.q.length;
-    app.innerHTML = `${head}${done ? `<div class="alert s">🎉 Сесс дууслаа.</div>` : ""}
-    <div class="card"><label>Горим</label>${sel("fmode", [["daily", "Өнөөдрийн давталт"], ["new", "Шинэ үгс"], ["unknown", "Дахин давтах"], ["all", "Дурын 40 үг"]], CS.mode)}
-    <label>Сэдэв</label>${sel("ftopic", [["all", "Бүх сэдэв"], ...D.topics.map(t => [t.id, t.mn])], CS.topic)}
-    <button class="btn full" data-act="cstart">Эхлэх →</button></div>`;
-    return;
-  }
-  const w = CS.q[CS.i], e = D.ex[w.w];
-  app.innerHTML = `${head}<div class="row sp sm mu"><span>${CS.i + 1} / ${CS.q.length}</span><button class="chip" data-act="cquit">Дуусгах</button></div>
-  <div class="bar" style="margin:6px 0"><div style="width:${CS.i / CS.q.length * 100}%"></div></div>
-  <div class="card fc" data-act="cflip">${CS.flip ? `<div><div class="sm mu">${esc(w.w)}</div><div style="font-size:24px;font-weight:700;margin:6px 0">${esc(w.m)}</div>${e ? `<p><i>${esc(e.ex)}</i> — ${esc(e.mn)}</p>` : ""}</div>` : `<div><div class="big">${esc(w.w)}</div><div class="sm mu">Дарж эргүүлнэ үү</div></div>`}</div>
-  ${CS.flip ? `<div class="row" style="margin-top:10px"><button class="btn bad" style="flex:1" data-act="cagain">🔁 Дахин</button><button class="btn ok" style="flex:1" data-act="cknow">✅ Мэднэ</button></div>` : ""}`;
-};
-
-views.speak = () => {
-  app.innerHTML = `<h1>🔊 Дуудлага</h1>
-  <div class="card"><label for="stext">Үг эсвэл өгүүлбэр</label><textarea id="stext" rows="3">${esc(TTS.last)}</textarea>
-  <div class="row" style="margin-top:12px"><button class="btn" data-act="splay">▶ Сонсох</button></div></div>`;
-};
-
-views.progress = () => {
-  const cs = cardStats(), hist = LS.get("history", []), tr = LS.get("tr", { total: 0, correct: 0, by: {} });
-  app.innerHTML = `<h1>📈 Миний ахиц</h1>
-  <div class="grid"><div class="card c" style="margin:0"><b style="font-size:22px">${cs.memorized}</b><div class="sm mu">Цээжилсэн</div></div>
-  <div class="card c" style="margin:0"><b style="font-size:22px">${cs.seen}/${cs.total}</b><div class="sm mu">Үзсэн үг</div></div></div>
-  <h2>Тестүүд</h2><div class="card tw">${hist.length ? `<table><tr><th>Огноо</th><th>Багц</th><th>Хувь</th></tr>${hist.slice(0, 20).map(h => `<tr><td>${esc(new Date(h.d).toLocaleDateString())}</td><td>${esc(h.set)}</td><td><b>${h.p || 0}%</b></td></tr>`).join("")}</table>` : `<p class="mu">Тест өгөөгүй байна.</p>`}</div>`;
-};
-
-/* ---------- БАГШИЙН ТАЙЛАН ---------- */
-const TC = { token: SS.get("tok", null), rows: [], kind: "all", cls: "all", set: "all", q: "", err: "", loading: false };
-function csvCell(v) { let s = String(v ?? ""); if (/^[=+\-@]/.test(s)) s = "'" + s; return '"' + s.replace(/"/g, '""') + '"'; }
-const isVocab = r => String(r.setId || "").startsWith("VOCAB");
-const kindOk = r => TC.kind === "all" || (TC.kind === "vocab") === isVocab(r);
-function teacherFiltered() { const q = TC.q.trim().toLowerCase(); return TC.rows.filter(r => kindOk(r) && (TC.cls === "all" || r.cls === TC.cls) && (TC.set === "all" || r.setId === TC.set) && (!q || r.name.toLowerCase().includes(q))); }
-views.teacher = () => {
-  if (!TC.token) {
-    app.innerHTML = `<h1>🔐 Багшийн тайлан</h1><div class="card"><form data-form="tlogin"><label for="tpw">Нууц үг</label><input id="tpw" type="password" required>
-    ${TC.err ? `<div class="alert e">${esc(TC.err)}</div>` : ""}
-    <button class="btn" type="submit" style="margin-top:10px">Нэвтрэх</button></form></div>`;
-    return;
-  }
-  const rows = teacherFiltered().slice().sort((a, b) => b.date.localeCompare(a.date));
-  app.innerHTML = `<div class="row sp"><h1>🔐 Багшийн тайлан</h1><div class="row"><button class="btn g" data-act="trefresh">⟳ Шинэчлэх</button><button class="btn g" data-act="tlogout">Гарах</button></div></div>
-  <div class="card tw">${rows.length ? `<table><tr><th>Огноо</th><th>Нэр</th><th>Анги</th><th>Багц</th><th>Хувь</th></tr>${rows.map(r => `<tr><td>${esc(new Date(r.date).toLocaleString())}</td><td>${esc(r.name)}</td><td>${esc(r.cls)}</td><td>${esc(r.setId)}</td><td><b>${r.percent}%</b></td></tr>`).join("")}</table>` : `<p class="mu">Дүн олдсонгүй.</p>`}</div>`;
-};
-async function teacherLoad() {
-  TC.err = ""; TC.loading = true;
-  try { const r = await api("teacherResults", { token: TC.token }); TC.rows = r.rows; }
-  catch (e) { TC.err = e.message; if (e.auth === false) { TC.token = null; SS.del("tok"); } }
-  TC.loading = false; if (cur === "teacher") views.teacher();
-}
-
-/* ===================== ҮЙЛДЛИЙН ЭХЛҮҮЛЭГЧ ===================== */
-const A = {
-  say: t => TTS.speak(t.dataset.w), sayw: t => TTS.speak(t.dataset.w), sayt: t => TTS.speak(t.dataset.t),
-  topic: t => { VS.topic = t.dataset.id; VS.q = ""; views.vocab(); },
-  vback: () => { VS.topic = null; VS.q = ""; views.vocab(); },
-  vcards: () => { CS.topic = VS.topic; CS.mode = "all"; CS.level = "all"; CS.started = false; go("cards"); },
-  year: t => { TS.year = +t.dataset.y; views.tests(); },
-  startset: t => { TS.set = D.sets.find(s => s.id === t.dataset.id); TS.setId = TS.set.id; TS.demo = false; TS.phase = "info"; views.tests(); },
-  startdemo: () => { TS.set = D.demo; TS.setId = "DEMO"; TS.demo = true; TS.phase = "info"; views.tests(); },
-  tback: () => { TS.phase = "pick"; TS.err = ""; views.tests(); },
-  tagain: () => { TS.ans = {}; TS.map = {}; TS.i = 0; TS.t0 = Date.now(); TS.phase = "run"; views.tests(); },
-  pick: t => { 
-    const orig = +t.dataset.orig;
-    TS.ans[TS.set.questions[TS.i].n] = orig; 
-    views.tests(); 
-  },
-  clearq: () => { delete TS.ans[TS.set.questions[TS.i].n]; views.tests(); },
-  prevq: () => { TS.i = Math.max(0, TS.i - 1); views.tests(); window.scrollTo(0, 0); },
-  nextq: () => { TS.i = Math.min(TS.set.questions.length - 1, TS.i + 1); views.tests(); window.scrollTo(0, 0); },
-  jump: t => { TS.i = +t.dataset.i; views.tests(); window.scrollTo(0, 0); },
-  finish: () => finishTest(false),
-  trlevel: t => { const S = TR[t.dataset.d]; S.level = t.dataset.v; S.started = false; trView(t.dataset.d); },
-  trtype: t => { const S = TR[t.dataset.d]; S.type = t.dataset.v; S.started = false; trView(t.dataset.d); },
-  trsrc: t => { const S = TR[t.dataset.d]; S.src = t.dataset.v; S.started = false; trView(t.dataset.d); },
-  trfmt: t => { const S = TR[t.dataset.d]; S.fmt = t.dataset.v; S.started = false; trView(t.dataset.d); },
-  trn: t => { const S = TR[t.dataset.d]; S.n = t.dataset.v === "all" ? "all" : +t.dataset.v; trView(t.dataset.d); },
-  trstart: t => { const d = t.dataset.d, S = TR[d]; let q = shuffle(trPool(S)); if (S.n !== "all") q = q.slice(0, S.n); S.q = q; S.i = 0; S.res = null; S.opts = []; S.pick = null; S.started = true; trView(d); },
-  trrestart: t => { TR[t.dataset.d].started = false; trView(t.dataset.d); },
-  trskip: t => { const S = TR[t.dataset.d]; S.res = { st: "no", input: "" }; trView(t.dataset.d); },
-  trnext: t => { const S = TR[t.dataset.d]; S.i++; S.res = null; S.opts = []; S.pick = null; trView(t.dataset.d); window.scrollTo(0, 0); },
-  trpick: t => { const d = t.dataset.d, S = TR[d]; if (S.res) return; S.pick = +t.dataset.k; const ok = S.opts[S.pick] === S.correct; trRecord(S.q[S.i], ok); S.res = { st: ok ? "ok" : "no" }; trView(d); },
-  cstart: () => { CS.mode = $("#fmode").value; CS.topic = $("#ftopic").value; CS.q = buildQueue(); CS.i = 0; CS.flip = false; CS.started = true; views.cards(); },
-  cflip: () => { CS.flip = !CS.flip; views.cards(); },
-  cknow: () => { cardGrade(true); views.cards(); },
-  cagain: () => { cardGrade(false); views.cards(); },
-  cquit: () => { CS.started = false; views.cards(); },
-  splay: () => { TTS.speak($("#stext").value); },
-  tlogout: async () => { const tk = TC.token; TC.token = null; TC.rows = []; SS.del("tok"); views.teacher(); },
-  trefresh: () => teacherLoad()
-};
-
-app.addEventListener("click", e => { const t = e.target.closest("[data-act]"); if (t && A[t.dataset.act]) A[t.dataset.act](t, e); });
-app.addEventListener("input", e => {
-  if (e.target.id === "vsearch") { VS.q = e.target.value; const l = $("#vlist"); if (l) l.innerHTML = vocabList(); else { views.vocab(); } }
-});
-app.addEventListener("change", e => {
-  if (e.target.id === "trtopic") { const S = TR[e.target.dataset.d]; S.topic = e.target.value; trView(e.target.dataset.d); }
-});
-app.addEventListener("submit", async e => {
-  const f = e.target.closest("[data-form]"); if (!f) return; e.preventDefault();
-  const k = f.dataset.form;
-  if (k === "tinfo") {
-    if (!TS.demo) { TS.name = $("#sn").value.trim(); TS.cls = $("#sc").value.trim(); if (TS.name.length < 2 || !TS.cls) return toast("Нэр, ангиа бөглөнө үү."); LS.set("student", { name: TS.name, cls: TS.cls }); }
-    TS.ans = {}; TS.map = {}; TS.i = 0; TS.t0 = Date.now(); TS.phase = "run"; views.tests();
-  } else if (k === "trcheck") {
-    const dir = f.dataset.d, S = TR[dir], it = S.q[S.i], input = $("#trin").value.trim();
-    if (!input) return toast("Хариултаа бичнэ үү.");
-    const en = dir === "mn-en", n = norm(input, en), set = (en ? it.en : it.mn).map(a => norm(a, en));
-    let st = "no"; if (set.includes(n)) st = "ok"; else if (Math.max(...set.map(s => sim(n, s))) >= 0.88) st = "near";
-    S.res = { st, input }; if (st === "ok") trRecord(it, true);
-    trView(dir);
-  } else if (k === "tlogin") {
-    TC.loading = true; TC.err = ""; views.teacher();
-    try { const r = await api("teacherLogin", { password: $("#tpw").value }); TC.token = r.token; SS.set("tok", r.token); TC.loading = false; views.teacher(); teacherLoad(); }
-    catch (er) { TC.loading = false; TC.err = er.message; views.teacher(); }
-  }
-});
-
-theme();
-if (!D.sets.length && !D.vocab.length) app.innerHTML = `<div class="alert e">Өгөгдөл олдсонгүй.</div>`;
-else { if (TC.token) teacherLoad(); route(); }
-</script>
-</body>
-</html>
+views.
